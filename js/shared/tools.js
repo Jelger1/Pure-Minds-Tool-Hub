@@ -8,16 +8,26 @@
      1. Maak tools/<id>.html (kopieer de kop van een bestaande tool).
      2. Voeg hieronder een regel toe.
 
+   Een tool die buiten de hub draait (een web-app elders, of een tool die je
+   downloadt en op je eigen computer start) heeft geen pagina in tools/: zet
+   dan kind op 'web' of 'lokaal' en href op de link of de download.
+
    Velden:
      id           korte naam, ook gebruikt als data-toolnav="<id>" in de kop
      name         naam op de kaart en in de kop
      short        korte naam voor de toolwisselaar
      href         pad vanaf de root van de site
+     group        blok op het dashboard: een id uit PM_GROUPS (standaard 'design')
+     kind         leeg = een pagina in deze hub; 'web' = web-app elders, opent in een
+                  nieuw tabblad; 'lokaal' = downloaden en op je eigen computer starten
+     guide        bij 'lokaal': id van de <dialog> met de uitleg in index.html
      category     soort: een sleutel uit PM_CATEGORIES (kopje boven de snelle starts)
      description  één korte zin op de kaart: wat maak je ermee
-     exports      hoe je het meeneemt (PNG, PDF, Word ...)
+     exports      hoe je het meeneemt (PNG, PDF, Word ...); bij tools van buiten
+                  de hub: wat je eruit krijgt
      cta          tekst op de knop van de kaart, begint met een werkwoord
-     art          illustratie op de kaart: 'post' | 'doc' | 'slides' | 'hex'
+     art          illustratie op de kaart: 'post' | 'doc' | 'slides' | 'consent' |
+                  'ads' | 'seo' | 'hex'
      tone         'light' = de output is wit (briefpapier); anders donker zoals posts en slides
      status       'live' | 'nieuw' | 'binnenkort' (binnenkort = niet klikbaar)
      newUntil     tot deze datum (JJJJ-MM-DD) staat er "nieuw" op de kaart
@@ -28,6 +38,13 @@
      draft        het concept in deze browser: { key, summary(opgeslagen) }
                   summary geeft { title, sub, ratio } voor "Verder werken"
    ============================================================================= */
+// Blokken op het dashboard, in deze volgorde. De technische tools krijgen
+// een eigen, donker vlak: ze openen buiten de hub en werken anders.
+window.PM_GROUPS = [
+  { id: 'design', name: 'Design & content', short: 'design', lead: 'posts, documenten en presentaties, direct in de huisstijl' },
+  { id: 'techniek', name: 'Techniek & analyse', short: 'techniek', tone: 'dark', lead: 'checks en analyses voor websites, ads en SEO. Ze openen buiten de hub: in een nieuw tabblad of op je eigen computer.' },
+];
+
 window.PM_CATEGORIES = {
   social: 'social media',
   documenten: 'documenten',
@@ -107,5 +124,45 @@ window.PM_TOOLS = [
         return { title: n ? s.slides[0].title || s.slides[0].label : '', sub: n === 1 ? '1 slide' : `${n} slides`, ratio: '16 / 9' };
       },
     },
+  },
+  {
+    id: 'consent-check',
+    name: 'Consent Check',
+    group: 'techniek',
+    kind: 'lokaal',
+    href: 'https://github.com/Jelger1/consent-check/archive/refs/heads/main.zip',
+    guide: 'guide-consent',
+    description: 'Meet per website welke cookies en trackers er vóór en ná het cookie-akkoord laden.',
+    exports: ['8 bevindingen', 'PDF', 'JSON'],
+    cta: 'download',                  // zo heet de knop ook in de uitleg: "Klik op de 'Download' knop"
+    art: 'consent',
+    status: 'nieuw',
+    newUntil: '2026-12-01',
+  },
+  {
+    id: 'ads-optimizer',
+    name: 'Landingpage & Ads Optimizer',
+    group: 'techniek',
+    kind: 'web',
+    href: 'https://landingpage-ads-optimizer-qr13.vercel.app/',
+    description: 'Checkt of je Google Ads-advertentie en je landingspagina op elkaar aansluiten, met een CRO-briefing in twee minuten.',
+    exports: ['CRO-briefing', 'PDF', 'Word', 'Google Docs'],
+    cta: 'check je campagne',
+    art: 'ads',
+    status: 'nieuw',
+    newUntil: '2026-12-01',
+  },
+  {
+    id: 'seo-gap',
+    name: 'SEO Content Gap Analyzer',
+    group: 'techniek',
+    kind: 'web',
+    href: 'https://seo-content-gap-analyzer-1yxm.vercel.app/',
+    description: 'Zet je pagina naast de Google-top 10 en laat zien welke koppen, termen en vragen jij nog mist.',
+    exports: ['contentbriefing', 'markdown'],
+    cta: 'analyseer je pagina',
+    art: 'seo',
+    status: 'nieuw',
+    newUntil: '2026-12-01',
   },
 ];

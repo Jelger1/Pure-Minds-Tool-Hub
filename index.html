@@ -4,16 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Generator Hub &middot; Pure Minds</title>
-<meta name="description" content="Alle Pure Minds-generatoren op één plek: social posts, documenten op briefpapier en presentaties in de huisstijl.">
+<meta name="description" content="Alle interne tools van Pure Minds op één plek: social posts, documenten en presentaties in de huisstijl, en checks voor websites, ads en SEO.">
 <meta name="theme-color" content="#1ab9e2">
 <link rel="icon" type="image/png" href="assets/brand/favicon.png">
 <link rel="stylesheet" href="css/global.css">
 <link rel="stylesheet" href="css/hub.css">
-<!-- Een tool alvast laden zodra je erop wijst: openen voelt dan direct (Chromium; andere browsers slaan dit over) -->
+<!-- Een tool alvast laden zodra je erop wijst: openen voelt dan direct (Chromium; andere browsers slaan dit over).
+     Alleen pagina's van deze site; web-apps elders laden pas als je ze echt opent. -->
 <script type="speculationrules">
 {
-  "prerender": [{ "where": { "selector_matches": ".tool-card__link, .draft" }, "eagerness": "moderate" }],
-  "prefetch": [{ "where": { "selector_matches": ".start" }, "eagerness": "moderate" }]
+  "prerender": [{ "where": { "and": [{ "href_matches": "/*" }, { "selector_matches": ".tool-card__link, .draft" }] }, "eagerness": "moderate" }],
+  "prefetch": [{ "where": { "and": [{ "href_matches": "/*" }, { "selector_matches": ".start" }] }, "eagerness": "moderate" }]
 }
 </script>
 </head>
@@ -65,10 +66,14 @@
     <div class="starts" id="startList"></div>
   </section>
 
+  <!-- Alle tools, per blok: design & content, en techniek & analyse in een eigen donker vlak -->
   <section class="hub__section" aria-labelledby="toolsTitle">
-    <h2 class="hub__h2" id="toolsTitle">Alle tools</h2>
-    <div class="tool-grid" id="toolGrid">
-      <noscript><p class="noscript">JavaScript staat uit. Open een tool direct: <a href="tools/insta.html">Insta Post Maker</a>, <a href="tools/document.html">Document Maker</a>, <a href="tools/presentation.html">Presentation Maker</a>.</p></noscript>
+    <div class="hub__h2row hub__h2row--tools">
+      <h2 class="hub__h2" id="toolsTitle">Alle tools</h2>
+      <div class="seg seg--filter" id="toolFilter" role="radiogroup" aria-label="Laat zien" hidden></div>
+    </div>
+    <div class="tool-groups" id="toolGroups">
+      <noscript><p class="noscript">JavaScript staat uit. Open een tool direct: <a href="tools/insta.html">Insta Post Maker</a>, <a href="tools/document.html">Document Maker</a>, <a href="tools/presentation.html">Presentation Maker</a>, <a href="https://landingpage-ads-optimizer-qr13.vercel.app/">Landingpage &amp; Ads Optimizer</a>, <a href="https://seo-content-gap-analyzer-1yxm.vercel.app/">SEO Content Gap Analyzer</a> of <a href="https://github.com/Jelger1/consent-check#readme">Consent Check</a>.</p></noscript>
     </div>
   </section>
 
@@ -78,11 +83,112 @@
       <ol>
         <li>Maak <code>tools/&lt;id&gt;.html</code> (kopieer de kop van een bestaande tool).</li>
         <li>Zet hem in <code>js/shared/tools.js</code>. Kaart, snelle starts en toolwisselaar volgen vanzelf.</li>
+        <li>Draait hij buiten de hub? Geef hem <code>kind: 'web'</code> of <code>'lokaal'</code> en <code>group: 'techniek'</code>; een lokale tool krijgt zijn uitleg als <code>&lt;dialog&gt;</code> hieronder.</li>
       </ol>
     </details>
     <a href="https://www.pureminds.nl/" target="_blank" rel="noopener">pureminds<span class="dot">.</span>nl</a>
   </footer>
 </main>
+
+<!-- Uitleg bij de Consent Check, een tool die op je eigen computer draait.
+     Opent via "hoe werkt dit?" op de kaart; js/hub.js zet het tabje van je eigen systeem open.
+     De Mac-tekst is letterlijk die van de maker van de tool; alleen de opmaak (toetsen, opdrachten, links) is toegevoegd. -->
+<dialog class="guide" id="guide-consent" aria-labelledby="guideConsentTitle" aria-describedby="guideConsentIntro">
+  <div class="guide__panel">
+    <header class="guide__head">
+      <div>
+        <p class="guide__kicker">Consent Check &middot; lokaal</p>
+        <h2 class="guide__title" id="guideConsentTitle">Hoe werkt dit<span class="dot">?</span></h2>
+      </div>
+      <button type="button" class="iconbtn guide__close" data-close aria-label="Uitleg sluiten">&times;</button>
+    </header>
+    <p class="guide__intro" id="guideConsentIntro">Deze tool draait op je eigen computer, niet in de browser. De eerste keer zet je hem in een paar minuten klaar; daarna start je hem met stap 2, 3 en 4.</p>
+    <div class="guide__tabs" role="tablist" aria-label="Kies je computer">
+      <button type="button" role="tab" id="guideConsentTabMac" aria-controls="guideConsentMac" aria-selected="true" data-os="mac">Mac</button>
+      <button type="button" role="tab" id="guideConsentTabWin" aria-controls="guideConsentWin" aria-selected="false" tabindex="-1" data-os="windows">Windows</button>
+    </div>
+
+    <div class="guide__body">
+      <div class="guide__panelbody" role="tabpanel" id="guideConsentMac" aria-labelledby="guideConsentTabMac" tabindex="0">
+        <ol class="guide-steps">
+          <li class="guide-step guide-step--prep">
+            <h3 class="guide-step__title">Voorbereiding: De 'motor' installeren (éénmalig)</h3>
+            <p>Omdat deze tool op de achtergrond gebruikmaakt van JavaScript, heeft de Mac een programmaatje nodig genaamd Node.js.</p>
+            <ul class="guide-list">
+              <li>Ga naar de website <a href="https://nodejs.org/" target="_blank" rel="noopener">nodejs.org</a>.</li>
+              <li>Klik op de grote groene knop waar "LTS" (Long Term Support) bij staat.</li>
+              <li>Open het gedownloade bestand en klik de installatie door (je kunt overal gewoon op 'Ga door' en 'Akkoord' klikken).</li>
+            </ul>
+          </li>
+          <li class="guide-step" data-n="1">
+            <h3 class="guide-step__title">Stap 1: Jouw tool downloaden</h3>
+            <p>Klik op de 'Download' knop in dit dashboard. Ga op de Mac naar de map Downloads en dubbelklik op het gedownloade ZIP-bestand om het uit te pakken (Safari doet dit soms al automatisch). Je hebt nu een mapje met alle bestanden.</p>
+            <p class="guide-step__action"><a class="btn btn-primary btn-sm" data-download="consent-check" href="https://github.com/Jelger1/consent-check/archive/refs/heads/main.zip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg><span data-label>download</span></a><small>zip &middot; 0,2 MB</small></p>
+          </li>
+          <li class="guide-step" data-n="2">
+            <h3 class="guide-step__title">Stap 2: De Terminal openen</h3>
+            <p>Druk op het toetsenbord tegelijk op <kbd>Cmd (⌘)</kbd> + <kbd>Spatiebalk</kbd> (Spotlight). Typ het woord Terminal en druk op <kbd>Enter</kbd>. Er opent nu een venstertje met tekst.</p>
+          </li>
+          <li class="guide-step" data-n="3">
+            <h3 class="guide-step__title">Stap 3: Naar de juiste map navigeren</h3>
+            <p>Typ in het Terminal-venster: <span class="cmd"><code>cd </code></span> (Let op de spatie na cd! Druk nog géén Enter.)</p>
+            <p>Pak nu de map die je in Stap 1 hebt uitgepakt en sleep deze vanuit je Downloads zó het Terminal-venster in. Laat los en druk op <kbd>Enter</kbd>.</p>
+          </li>
+          <li class="guide-step" data-n="4">
+            <h3 class="guide-step__title">Stap 4: De tool opstarten!</h3>
+            <p>Typ in de Terminal: <span class="cmd"><code>sh start.sh</code><button type="button" class="cmd__copy" data-copy="sh start.sh" aria-label="Kopieer: sh start.sh" title="kopieer"><svg class="i-copy" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h11v11H9zM5 15H4V4h11v1"/></svg><svg class="i-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button></span><span class="cmd__done" aria-live="polite"></span> en druk op <kbd>Enter</kbd>.</p>
+            <p>De tool start nu op. Laat dit venster open! Ga naar je browser en typ <a href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a> in de adresbalk. Klaar! (Ben je klaar? Sluit dan simpelweg het Terminal-venster).</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="guide__panelbody" role="tabpanel" id="guideConsentWin" aria-labelledby="guideConsentTabWin" tabindex="0" hidden>
+        <ol class="guide-steps">
+          <li class="guide-step guide-step--prep">
+            <h3 class="guide-step__title">Voorbereiding: De 'motor' installeren (éénmalig)</h3>
+            <p>Omdat deze tool op de achtergrond gebruikmaakt van JavaScript, heeft Windows een programmaatje nodig genaamd Node.js.</p>
+            <ul class="guide-list">
+              <li>Ga naar de website <a href="https://nodejs.org/" target="_blank" rel="noopener">nodejs.org</a>.</li>
+              <li>Klik op de grote groene knop waar "LTS" (Long Term Support) bij staat.</li>
+              <li>Open het gedownloade bestand en klik de installatie door: klik steeds op 'Next', vink 'I accept' aan en klik tot slot op 'Install' en 'Finish'. Vraagt Windows of het programma wijzigingen mag aanbrengen? Klik dan op 'Ja'.</li>
+            </ul>
+          </li>
+          <li class="guide-step" data-n="1">
+            <h3 class="guide-step__title">Stap 1: Jouw tool downloaden</h3>
+            <p>Klik op de 'Download' knop in dit dashboard. Open de Verkenner (het gele mapje in je taakbalk) en ga naar de map Downloads. Klik met de rechtermuisknop op het gedownloade ZIP-bestand, kies 'Alles uitpakken...' en klik op 'Uitpakken'. Je hebt nu een mapje met alle bestanden.</p>
+            <p class="guide-step__action"><a class="btn btn-primary btn-sm" data-download="consent-check" href="https://github.com/Jelger1/consent-check/archive/refs/heads/main.zip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg><span data-label>download</span></a><small>zip &middot; 0,2 MB</small></p>
+          </li>
+          <li class="guide-step" data-n="2">
+            <h3 class="guide-step__title">Stap 2: De Opdrachtprompt openen</h3>
+            <p>Druk op de <kbd>Windows-toets (⊞)</kbd> op je toetsenbord. Typ het woord cmd en druk op <kbd>Enter</kbd>. Er opent nu een zwart venstertje met tekst.</p>
+          </li>
+          <li class="guide-step" data-n="3">
+            <h3 class="guide-step__title">Stap 3: Naar de juiste map navigeren</h3>
+            <p>Typ in het zwarte venster: <span class="cmd"><code>cd </code></span> (Let op de spatie na cd! Druk nog géén Enter.)</p>
+            <p>Pak nu de map die je in Stap 1 hebt uitgepakt en sleep deze vanuit de Verkenner zó het zwarte venster in. Laat los en druk op <kbd>Enter</kbd>.</p>
+            <p class="guide-step__tip">Zit er in het uitgepakte mapje nóg een mapje met dezelfde naam? Sleep dan dat binnenste mapje.</p>
+          </li>
+          <li class="guide-step" data-n="4">
+            <h3 class="guide-step__title">Stap 4: De tool opstarten!</h3>
+            <p>Typ in het zwarte venster: <span class="cmd"><code>start.cmd</code><button type="button" class="cmd__copy" data-copy="start.cmd" aria-label="Kopieer: start.cmd" title="kopieer"><svg class="i-copy" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h11v11H9zM5 15H4V4h11v1"/></svg><svg class="i-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button></span><span class="cmd__done" aria-live="polite"></span> en druk op <kbd>Enter</kbd>.</p>
+            <p>De tool start nu op en je browser opent vanzelf. Laat dit venster open! Opent je browser niet vanzelf? Ga dan naar je browser en typ <a href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a> in de adresbalk. Klaar! (Ben je klaar? Sluit dan simpelweg het zwarte venster.)</p>
+          </li>
+        </ol>
+      </div>
+
+      <details class="guide__help">
+        <summary>Lukt het niet?</summary>
+        <ul class="guide-list">
+          <li><b>"Node.js is nog niet geïnstalleerd"</b>, terwijl je dat net hebt gedaan? Sluit het venster en open het opnieuw (stap 2). Een venster dat al openstond, ziet de nieuwe installatie nog niet.</li>
+          <li><b>"No such file or directory"</b> (Mac) of <b>"wordt niet herkend"</b> (Windows)? Dan staat het venster in de verkeerde map. Doe stap 3 opnieuw met het mapje waarin je de bestanden van de tool ziet, zoals README en start.</li>
+          <li><b>Lijkt het venster stil te staan?</b> De eerste keer haalt de tool zelf zijn onderdelen op (ongeveer 150 MB). Dat duurt een paar minuten; daarna start hij binnen een paar seconden.</li>
+          <li><b>Opent localhost:3000 niet?</b> Kijk of het venster nog openstaat. De tool werkt alleen zolang dat venster open is.</li>
+        </ul>
+        <p class="guide__more">Meer uitleg staat in de <a href="https://github.com/Jelger1/consent-check#readme" target="_blank" rel="noopener">handleiding op GitHub</a>.</p>
+      </details>
+    </div>
+  </div>
+</dialog>
 
 <script src="js/shared/tools.js"></script>
 <script src="js/shared/core.js"></script>

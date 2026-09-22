@@ -39,7 +39,7 @@
     const current = nav.dataset.toolnav;
     const links = [`<a class="toolnav__home" href="${url('index.html')}">alle tools</a>`];
     for (const tool of global.PM_TOOLS) {
-      if (tool.status === 'binnenkort') continue;
+      if (tool.status === 'binnenkort' || tool.kind) continue;   // web-apps en downloads staan alleen op het dashboard
       const here = tool.id === current ? ' aria-current="page"' : '';
       links.push(`<a href="${url(tool.href)}"${here}>${esc(tool.short || tool.name)}</a>`);
     }

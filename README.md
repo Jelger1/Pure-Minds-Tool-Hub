@@ -2,9 +2,11 @@
 
 Interne tools van Pure Minds op één plek: social posts, documenten op
 briefpapier en presentaties, allemaal in de huisstijl en direct te downloaden.
+Daarnaast drie technische tools voor websites, ads en SEO; zie
+[Techniek & analyse](#techniek--analyse).
 Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 
-**Live:** https://jelger1.github.io/Pure-Minds-Insta-Post-Maker/
+**Live:** https://jelger1.github.io/Pure-Minds-Tool-Hub/
 
 | Tool | Wat | Export |
 |---|---|---|
@@ -35,7 +37,8 @@ zodat de browser de export niet blokkeert.
 ## Structuur
 
 ```
-index.html                    de hub: begin direct, verder werken, alle tools
+index.html                    de hub: begin direct, verder werken, alle tools per blok,
+                              en de uitleg bij de Consent Check (<dialog>)
 tools/
   insta.html                  Insta Post Maker
   document.html               Document Maker
@@ -55,7 +58,8 @@ js/
   shared/pptx-writer.js       schrijft een .pptx (Office Open XML) zonder bibliotheek
   shared/brand-data.js        ingebedde logo's (gegenereerd: npm run brand)
   shared/pdf-fonts.js         Open Sans voor PDF en Word (gegenereerd, pas geladen bij export)
-  hub.js                      dashboard: snelle starts, concepten en toolkaarten
+  hub.js                      dashboard: snelle starts, concepten, toolkaarten per blok
+                              met filter, en de uitleg bij lokale tools
   insta/templates.js, app.js
   document/app.js             editor, blokken en paginering
   document/pdf.js             A4-pagina's uit de preview als vector-PDF
@@ -81,6 +85,13 @@ server/server.js              kleine statische server (npm start, Render)
 4. Optioneel: `starts` geeft tegels onder *Begin direct* (de tool leest de
    meegegeven instellingen met `PM.startParams()`), en `draft` laat het
    concept van de tool zien onder *Verder werken*.
+5. Draait de tool buiten de hub (een web-app elders, of een download)? Geef
+   hem dan `kind: 'web'` of `kind: 'lokaal'`, `href` naar de app of de
+   download, en `group: 'techniek'`. Hij staat dan alleen op het dashboard,
+   niet in de toolwisselaar van de andere tools. Een lokale tool krijgt met
+   `guide` de id van een `<dialog class="guide">` in `index.html` met de
+   uitleg; tabjes, kopiëren en de downloadknop regelt `js/hub.js`. Een nieuw
+   blok is een regel in `PM_GROUPS` (`tone: 'dark'` geeft het donkere vlak).
 
 ## Gedeelde huisstijl
 
@@ -216,6 +227,36 @@ template; de miniaturen tonen het gekozen formaat. Alle posts zijn donker.
   achtergrond, cyaan balk, logo en voetregel staan op een Pure Minds-master:
   een nieuwe slide in PowerPoint krijgt ze vanzelf. Het slidenummer is een
   veld en telt mee bij verschuiven of toevoegen.
+
+## Techniek & analyse
+
+Drie tools die buiten de hub draaien, in een eigen donker blok op het
+dashboard. Boven *Alle tools* staat een filter: alles, alleen design &
+content, of alleen techniek & analyse. De keuze staat in het adres, dus
+`index.html#techniek` opent meteen de technische tools (handig als
+bladwijzer).
+
+| Tool | Wat | Draait |
+|---|---|---|
+| [Consent Check](https://github.com/Jelger1/consent-check) | Meet per website welke cookies en trackers er vóór en ná het cookie-akkoord laden | lokaal: downloaden (zip) en starten op je eigen Mac of Windows-pc |
+| [Landingpage & Ads Optimizer](https://landingpage-ads-optimizer-qr13.vercel.app/) | Checkt of Google Ads-advertentie en landingspagina op elkaar aansluiten, met een CRO-briefing | web-app, opent in een nieuw tabblad |
+| [SEO Content Gap Analyzer](https://seo-content-gap-analyzer-1yxm.vercel.app/) | Zet een pagina naast de Google-top 10: ontbrekende koppen, termen en vragen | web-app, opent in een nieuw tabblad |
+
+- **Kaarten:** een lichte "blauwdruk"-omslag met een lijntekening (de makers
+  hebben een donkere omslag), en rechtsboven waar de tool draait: *web-app*
+  of *lokaal*. Een web-app opent in een nieuw tabblad; de pijl op de knop
+  wijst daarom schuin omhoog.
+- **Consent Check:** twee knoppen op de kaart, *download* (de zip van GitHub)
+  en *hoe werkt dit?*. Na het downloaden wijst een melding de weg naar de
+  uitleg.
+- **Uitleg** (`<dialog id="guide-consent">` in `index.html`): een paneel van
+  rechts met een tabje voor Mac en voor Windows; het tabje van je eigen
+  computer staat al open. De Mac-tekst is letterlijk die van de maker van de
+  tool. Windows gebruikt de Opdrachtprompt en `start.cmd` uit de repo: via
+  de Opdrachtprompt geeft Windows geen melding over een bestand van internet
+  (dubbelklikken kan dat wel), en in PowerShell zou je `.\start.cmd` moeten
+  typen. Opdrachten zijn te kopiëren, stap 1 heeft zelf een downloadknop, en
+  *Lukt het niet?* vangt de vier meest voorkomende problemen op.
 
 ## Bewerkbare PDF's
 
