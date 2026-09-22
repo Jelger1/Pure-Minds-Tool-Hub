@@ -1,0 +1,92 @@
+/**
+ * Presentation Maker — toolspecifieke opmaak
+ * Gedeelde bouwstenen (zeshoek-tabs, preview, strip, knoppen) staan in css/global.css.
+ * De slides zelf worden op canvas getekend: js/presentation/templates.js.
+ */
+
+.slides__nav { display: flex; flex-wrap: wrap; gap: .375rem; }
+.slides__actions { display: flex; flex-wrap: wrap; gap: .375rem; }
+
+/* --- Layout: huidige layout met een knop; de keuze klapt open --- */
+
+.layout-now {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: .6rem .75rem; border: 1px solid var(--pm-line); background: var(--pm-soft);
+}
+.layout-now__txt { display: flex; flex-direction: column; line-height: 1.3; }
+.layout-now__txt b { font-size: .9375rem; }
+.layout-now__txt i { font-style: normal; font-size: .75rem; color: var(--pm-muted); }
+
+/* --- Layoutkeuze met live miniaturen --- */
+
+.layout-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: .5rem; }
+.layout-tile {
+  position: relative; display: flex; flex-direction: column; gap: .1rem;
+  padding: .3rem .3rem .45rem; cursor: pointer;
+  border: 1px solid var(--pm-line); background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+.layout-tile input { position: absolute; opacity: 0; pointer-events: none; }
+.layout-tile canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--pm-ink); margin-bottom: .3rem; }
+.layout-tile b { font-size: .75rem; line-height: 1.3; }
+.layout-tile i { font-style: normal; font-size: .6875rem; line-height: 1.3; color: var(--pm-muted); }
+.layout-tile:hover { border-color: var(--pm-cyan); }
+.layout-tile:has(input:checked) { border-color: var(--pm-cyan); box-shadow: inset 0 0 0 1px var(--pm-cyan), 0 12px 24px -18px rgba(16, 40, 60, .5); background: var(--pm-soft); }
+.layout-tile:has(input:checked)::after {
+  content: ''; position: absolute; top: .1rem; right: .1rem;
+  width: 1.1rem; height: 1.27rem; background: var(--pm-cyan);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.layout-tile:has(input:focus-visible) { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 2px; }
+
+/* --- Tabel bewerken: raster van cellen, met een ×-knop per kolom (boven) en per rij (rechts) --- */
+
+.tbl-wrap { overflow-x: auto; padding-bottom: .25rem; }
+.tbl {
+  display: grid; gap: .25rem; align-items: center;
+  grid-template-columns: repeat(var(--cols, 4), minmax(5rem, 1fr)) 1.75rem;
+  min-width: min-content;
+}
+.tbl__cell { padding: .45rem .55rem; font-size: .8125rem; }
+.tbl__cell.is-head { font-weight: 700; background: var(--pm-tint); border-bottom: 2px solid var(--pm-cyan); }
+.tbl__del {
+  display: grid; place-items: center; height: 1.75rem; padding: 0;
+  border: 1px solid transparent; background: none;
+  font-size: 1.05rem; line-height: 1; color: var(--pm-muted);
+}
+.tbl__del:not(:disabled):hover { color: var(--pm-magenta); border-color: var(--pm-line); background: #fff; }
+.tbl__del:disabled { opacity: .25; cursor: default; }
+.tbl__del:focus-visible { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 1px; }
+.tbl-actions { display: flex; gap: .375rem; }
+
+/* --- De slide (canvas, 1920 × 1080 ontwerpraster) --- */
+
+/* Op een lage laptop begrensd, zodat preview, slides en downloadknoppen samen in beeld passen */
+#slideCanvas {
+  display: block; width: min(100%, calc((100vh - 27rem) * 16 / 9)); min-width: min(100%, 22rem); margin: 0 auto;
+  height: auto; aspect-ratio: 16 / 9;
+  box-shadow: 0 1px 2px rgba(16, 40, 60, .08), 0 24px 48px -28px rgba(16, 40, 60, .45);
+}
+#slideCanvas.can-pan { cursor: grab; touch-action: none; }   /* alleen dan: anders kun je over de preview heen scrollen */
+#slideCanvas.is-panning { cursor: grabbing; }
+
+/* --- Slides: strook met miniaturen (slepen = volgorde), acties ernaast --- */
+
+.slidebar { border-top: 1px solid var(--pm-line); background: #fff; }
+.slidebar .strip { border-top: 0; }
+.slidebar__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; padding: 0 1.25rem .75rem; }
+.slidebar__add { margin-right: auto; }
+.strip--slides .strip__item canvas { width: 7.5rem; }
+.strip__item { cursor: grab; }
+.strip__item.is-dragging { opacity: .4; }
+.strip__item.is-drop { border-color: var(--pm-magenta); }
+
+/* --- Export: pdf en PowerPoint, afbeeldingen als tweede regel --- */
+
+.export__opts--png { padding-top: 0; padding-bottom: .25rem; }
+.export__opts--png .seg { min-width: 8rem; }
+.strip__no {
+  position: absolute; left: .25rem; bottom: .25rem;
+  padding: 0 .3rem; font-size: .625rem; font-weight: 800;
+  background: var(--pm-cyan); color: var(--pm-ink);
+}

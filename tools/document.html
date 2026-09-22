@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="nl" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Maker &middot; Pure Minds</title>
+<meta name="description" content="Brieven, offertes, memo's en notities op het A4-briefpapier van Pure Minds, klaar als PDF.">
+<meta name="theme-color" content="#1ab9e2">
+<link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/document.css">
+</head>
+<body>
+<div class="bg-deco" aria-hidden="true"></div>
+
+<div class="topstrip">
+  <a href="https://www.pureminds.nl/" target="_blank" rel="noopener">pure minds</a>
+  <span class="topstrip__sep">|</span>interne tool: document maker<span class="hide-sm"> voor brieven, offertes en memo's</span>
+</div>
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <div class="site-header__brand">
+      <a href="../index.html" aria-label="Naar de Generator Hub"><img src="../assets/brand/pureminds-logo.svg" alt="Pure Minds" width="106" height="38" class="site-header__logo"></a>
+      <span class="site-header__divider hide-sm" aria-hidden="true"></span>
+      <div class="site-header__title hide-sm">
+        <h1>Document Maker</h1>
+        <p>A4-documenten op het briefpapier van Pure Minds, als PDF of Word.</p>
+      </div>
+    </div>
+    <nav class="toolnav" data-toolnav="document" aria-label="Tools"></nav>
+  </div>
+</header>
+
+<main class="container layout">
+
+  <!-- ============================================================
+       INVOER
+       ============================================================ -->
+  <section class="layout__form">
+    <form class="card card--accent editor" id="editor" autocomplete="off" novalidate>
+      <h2 class="editor__title">Maak je document<span class="dot">.</span></h2>
+
+      <!-- Eenmalig instellen: zonder bedrijfsgegevens is de voet van het briefpapier leeg -->
+      <div class="setup" id="senderNudge" role="note" hidden>
+        <span class="setup__icon hex" aria-hidden="true"></span>
+        <p class="setup__text"><b>Eén keer instellen:</b> je adres, KvK, btw en IBAN staan nog niet in de voet van het briefpapier.</p>
+        <div class="setup__actions">
+          <button type="button" class="btn btn-outline btn-sm" id="senderNudgeBtn">gegevens invullen</button>
+          <button type="button" class="linkbtn" id="senderNudgeLater">later</button>
+        </div>
+      </div>
+
+      <!-- Soort document -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step></span>Soort document</legend>
+        <div class="seg seg--4" role="radiogroup" aria-label="Soort document">
+          <input type="radio" name="type" id="t-brief" value="brief"><label for="t-brief"><b>brief</b></label>
+          <input type="radio" name="type" id="t-offerte" value="offerte"><label for="t-offerte"><b>offerte</b></label>
+          <input type="radio" name="type" id="t-memo" value="memo"><label for="t-memo"><b>memo</b></label>
+          <input type="radio" name="type" id="t-notitie" value="notitie"><label for="t-notitie"><b>notitie</b></label>
+        </div>
+      </fieldset>
+
+      <!-- Gegevens -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step></span>Gegevens</legend>
+
+        <div class="field">
+          <label class="label" for="dTitle"><span data-type-text="brief:Onderwerp|offerte:Titel van de offerte|memo:Onderwerp|notitie:Titel">Titel</span></label>
+          <input class="input" id="dTitle" data-bind="title" maxlength="120">
+        </div>
+
+        <div class="grid2" data-for="brief offerte">
+          <div class="field">
+            <label class="label" for="dRecipient"><span data-type-text="brief:Aan|offerte:Klant">Aan</span> <i>één regel per adresregel</i></label>
+            <textarea class="input" id="dRecipient" data-bind="recipient" rows="4"></textarea>
+          </div>
+          <div class="stack">
+            <div class="field" data-for="brief">
+              <label class="label" for="dRef">Kenmerk <i>optioneel</i></label>
+              <input class="input" id="dRef" data-bind="reference" maxlength="40">
+            </div>
+            <div class="field" data-for="offerte">
+              <label class="label" for="dQuoteNo">Offertenummer</label>
+              <input class="input" id="dQuoteNo" data-bind="quoteNumber" maxlength="30">
+            </div>
+            <div class="field" data-for="offerte">
+              <label class="label" for="dValid">Geldig tot</label>
+              <input class="input" type="date" id="dValid" data-bind="validUntil">
+            </div>
+          </div>
+        </div>
+
+        <div class="field" data-for="brief">
+          <label class="label" for="dSalutation">Aanhef</label>
+          <input class="input" id="dSalutation" data-bind="salutation" maxlength="80">
+        </div>
+
+        <div class="grid3" data-for="memo">
+          <div class="field">
+            <label class="label" for="dMemoTo">Aan</label>
+            <input class="input" id="dMemoTo" data-bind="memoTo" maxlength="80">
+          </div>
+          <div class="field">
+            <label class="label" for="dMemoFrom">Van</label>
+            <input class="input" id="dMemoFrom" data-bind="memoFrom" maxlength="80">
+          </div>
+          <div class="field">
+            <label class="label" for="dMemoCc">CC <i>optioneel</i></label>
+            <input class="input" id="dMemoCc" data-bind="memoCc" maxlength="80">
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label class="label" for="dDate">Datum</label>
+            <input class="input" type="date" id="dDate" data-bind="date">
+          </div>
+          <div class="field">
+            <label class="label" for="dLabel" title="Klein, boven de titel">Label <i>optioneel</i></label>
+            <input class="input" id="dLabel" data-bind="label" maxlength="40">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Tekst -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step></span>Tekst</legend>
+        <div class="rte-wrap">
+          <div class="rte-bar" role="toolbar" aria-label="Opmaak" id="rteBar">
+            <button type="button" data-block="p" title="Gewone alinea">alinea</button>
+            <button type="button" data-block="h2" title="Kop">kop</button>
+            <button type="button" data-block="h3" title="Tussenkop">tussenkop</button>
+            <span class="rte-bar__sep" aria-hidden="true"></span>
+            <button type="button" data-cmd="bold" title="Vet (Ctrl+B)" aria-label="Vet"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Cursief (Ctrl+I)" aria-label="Cursief"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Onderstrepen (Ctrl+U)" aria-label="Onderstrepen"><u>U</u></button>
+            <span class="rte-bar__sep" aria-hidden="true"></span>
+            <button type="button" data-cmd="insertUnorderedList" title="Opsomming">&bull; lijst</button>
+            <button type="button" data-cmd="insertOrderedList" title="Genummerde lijst">1. lijst</button>
+            <button type="button" data-block="blockquote" title="Citaat of nadruk">citaat</button>
+            <button type="button" data-cmd="removeFormat" title="Opmaak van de selectie wissen">wis opmaak</button>
+          </div>
+          <div class="rte" id="rte" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Tekst van het document" spellcheck="true"></div>
+        </div>
+        <p class="field-hint">Plakken uit Word of Google Docs mag: alleen koppen, lijsten, vet, cursief en onderstreept blijven over.</p>
+      </fieldset>
+
+      <!-- Offerteregels -->
+      <fieldset class="block" data-for="offerte">
+        <legend class="field-label"><span class="field-badge hex" data-step></span>Offerteregels</legend>
+        <div class="items" id="items" role="table" aria-label="Offerteregels">
+          <div class="items__head" role="row">
+            <span role="columnheader">Omschrijving</span><span role="columnheader">Aantal</span><span role="columnheader">Prijs (€)</span><span role="columnheader"><span class="sr-only">Verwijderen</span></span>
+          </div>
+          <div id="itemRows"></div>
+        </div>
+        <div class="items__foot">
+          <button type="button" class="btn btn-quiet btn-sm" id="addItem">+ regel toevoegen</button>
+          <label class="items__vat">btw
+            <select class="input input--select" data-bind="vat" id="dVat">
+              <option value="21">21%</option>
+              <option value="9">9%</option>
+              <option value="0">0% / verlegd</option>
+            </select>
+          </label>
+        </div>
+        <p class="items__total" id="itemsTotal"></p>
+        <label class="switch">
+          <input type="checkbox" data-bind="acceptBlock">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Blok &ldquo;voor akkoord&rdquo; voor de klant</span>
+        </label>
+      </fieldset>
+
+      <!-- Ondertekening -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step></span>Ondertekening</legend>
+        <label class="switch">
+          <input type="checkbox" data-bind="showSignature">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Ondertekening onder het document</span>
+        </label>
+        <div class="stack" id="signFields">
+          <div class="field">
+            <label class="label" for="dClosing">Slotgroet</label>
+            <input class="input" id="dClosing" data-bind="closing" maxlength="60">
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label class="label" for="dSignName">Naam</label>
+              <input class="input" id="dSignName" data-bind="signName" maxlength="60">
+            </div>
+            <div class="field">
+              <label class="label" for="dSignRole">Functie</label>
+              <input class="input" id="dSignRole" data-bind="signRole" maxlength="60">
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">Handtekening <i>optioneel &middot; een PNG met transparante achtergrond werkt het mooist</i></span>
+            <div class="file-tile file-tile--wide">
+              <button type="button" class="file-tile__btn" id="sigBtn">
+                <span class="file-tile__img" id="sigThumb" aria-hidden="true"></span>
+                <span class="file-tile__txt" id="sigName">handtekening kiezen</span>
+              </button>
+              <button type="button" class="iconbtn" id="sigClear" aria-label="Handtekening verwijderen" hidden>&times;</button>
+            </div>
+            <input type="file" id="sigInput" accept="image/*" hidden>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Briefpapier -->
+      <details class="block sender" id="senderPanel">
+        <summary class="field-label"><span class="field-badge hex">&#9881;</span>Briefpapier <span class="muted">afzender en bedrijfsgegevens</span></summary>
+        <p class="field-hint">Vul dit één keer in; het wordt in deze browser onthouden voor elk document. Lege velden worden weggelaten.</p>
+        <div class="field">
+          <label class="label" for="sCompany">Bedrijfsnaam</label>
+          <input class="input" id="sCompany" data-sender="company" maxlength="80">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label class="label" for="sStreet">Straat en nummer</label>
+            <input class="input" id="sStreet" data-sender="street" maxlength="80">
+          </div>
+          <div class="field">
+            <label class="label" for="sCity">Postcode en plaats</label>
+            <input class="input" id="sCity" data-sender="city" maxlength="80">
+          </div>
+          <div class="field">
+            <label class="label" for="sPhone">Telefoon</label>
+            <input class="input" id="sPhone" data-sender="phone" maxlength="40">
+          </div>
+          <div class="field">
+            <label class="label" for="sEmail">E-mail</label>
+            <input class="input" id="sEmail" data-sender="email" maxlength="80">
+          </div>
+          <div class="field">
+            <label class="label" for="sWeb">Website</label>
+            <input class="input" id="sWeb" data-sender="web" maxlength="80">
+          </div>
+          <div class="field">
+            <label class="label" for="sKvk">KvK-nummer</label>
+            <input class="input" id="sKvk" data-sender="kvk" maxlength="20">
+          </div>
+          <div class="field">
+            <label class="label" for="sVat">Btw-nummer</label>
+            <input class="input" id="sVat" data-sender="vat" maxlength="20">
+          </div>
+          <div class="field">
+            <label class="label" for="sIban">IBAN</label>
+            <input class="input" id="sIban" data-sender="iban" maxlength="34">
+          </div>
+        </div>
+      </details>
+
+      <div class="editor__foot">
+        <span>Alles wordt in deze browser onthouden.</span>
+        <button type="button" class="linkbtn" id="resetBtn">nieuw document</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============================================================
+       PREVIEW + EXPORT
+       ============================================================ -->
+  <section class="layout__preview">
+    <div class="card preview">
+      <div class="card-head">
+        <div class="card-head__left">
+          <h2 class="card-title">Preview</h2>
+          <span class="pill pill-info" id="typePill">brief</span>
+        </div>
+        <span class="pill" id="pagePill">1 pagina &middot; A4</span>
+      </div>
+
+      <div class="preview__stage preview__stage--doc" id="stage">
+        <div class="sheets-wrap" id="sheetsWrap">
+          <div class="sheets" id="sheets" aria-label="Preview van het document"></div>
+        </div>
+      </div>
+
+      <div class="notice" id="docNote" role="status" hidden></div>
+
+      <div class="export">
+      <div class="actionbar">
+        <button type="button" class="btn btn-primary btn-lg" id="pdfBtn">
+          <span data-label>download pdf</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
+        </button>
+        <button type="button" class="btn btn-outline" id="docxBtn" title="Bewerkbaar in Word en Google Docs">
+          <span data-label>word</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
+        </button>
+        <button type="button" class="btn btn-quiet" id="printBtn" title="Afdrukken via de printer">afdrukken</button>
+      </div>
+      <p class="preview__foot"><b>PDF</b> om te versturen of te printen &middot; <b>Word</b> om verder te bewerken, ook in Google Docs (upload in Drive en kies Bestand &rarr; Opslaan als Google Documenten) &middot; klik in de preview op een onderdeel om het aan te passen<span class="for-mouse"> &middot; <kbd>Ctrl</kbd> + <kbd>S</kbd> downloadt de PDF</span></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Afdrukken: de pagina's worden hier naartoe gekopieerd -->
+<div id="printRoot" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../js/shared/tools.js"></script>
+<script src="../js/shared/core.js"></script>
+<script src="../js/shared/brand-data.js"></script>
+<script src="../js/document/pdf.js"></script>
+<script src="../js/document/docx.js"></script>
+<script src="../js/document/app.js"></script>
+</body>
+</html>

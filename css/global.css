@@ -1,10 +1,13 @@
 /**
- * Pure Minds Post Maker — interface
+ * Pure Minds Generator Hub — gedeeld designsysteem voor alle tools
  *
- * De bouwstenen (kaarten, knoppen, invoervelden, zeshoek-badges, pills,
- * meldingen, achtergrond) zijn één-op-één overgenomen uit het designsysteem
- * van de interne tools (SEO-contentGap-Analyzer/styles.css), zodat deze tool
- * er precies zo uitziet. Kleuren komen uit PureMinds-Brandbook-v1.svg.
+ * Kaarten, knoppen, invoervelden, zeshoek-badges, pills, meldingen, de
+ * kop van de pagina en de achtergrond komen uit het designsysteem van de
+ * interne tools van Pure Minds, zodat de hub en elke tool er hetzelfde
+ * uitzien. Kleuren komen uit assets/brand/PureMinds-Brandbook-v1.svg.
+ *
+ * Toolspecifieke opmaak staat in css/<tool>.css; de opmaak van de output
+ * (A4-briefpapier, slides) hoort ook daar, niet in dit bestand.
  */
 
 @font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-Light.ttf") format("truetype"); font-weight: 300; font-display: swap; }
@@ -12,6 +15,8 @@
 @font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
 @font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-ExtraBold.ttf") format("truetype"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-Italic.ttf") format("truetype"); font-weight: 300 500; font-style: italic; font-display: swap; }
+@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-BoldItalic.ttf") format("truetype"); font-weight: 600 800; font-style: italic; font-display: swap; }
 
 :root {
   --pm-cyan: #1ab9e2;
@@ -59,6 +64,13 @@ kbd {
 }
 .muted { color: var(--pm-muted); font-weight: 400; }
 
+/* Tips per invoermethode: op een touchscreen geen sneltoetsen of "slepen" beloven */
+.for-touch { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .for-mouse { display: none; }
+  .for-touch { display: inline; }
+}
+
 .container { width: 100%; max-width: 80rem; margin: 0 auto; padding: 0 1rem; }
 @media (min-width: 640px) { .container { padding: 0 1.5rem; } }
 @media (max-width: 639px) { .hide-sm { display: none !important; } }
@@ -96,16 +108,14 @@ kbd {
 .site-header__logo { height: 2.4rem; width: auto; flex: none; }
 .site-header__divider { width: 1px; height: 2.25rem; background: var(--pm-line); }
 .site-header__title { min-width: 0; }
-.site-header__title h1 { font-size: 15px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
+.site-header__title h1, .site-header__name { font-size: 15px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
 .site-header__title p { font-size: .75rem; color: var(--pm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.site-header__meta { flex: none; font-size: 13px; font-weight: 600; }
-.site-header__meta span { font-weight: 400; color: var(--pm-muted); }
-@media (max-width: 1023px) { .site-header__meta { display: none; } }
 
 /* --- Indeling: invoer links, preview rechts --- */
 
+/* minmax(0, 1fr): een lange strook of brede preview scrollt binnen de kolom in plaats van de pagina te verbreden */
 .layout {
-  display: grid; gap: 1.25rem;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem;
   padding-top: 1rem; padding-bottom: 2rem;
 }
 @media (min-width: 1024px) {
@@ -258,7 +268,6 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
 
 .btn-quiet { background: transparent; border-color: var(--pm-line); color: var(--pm-muted); }
 .btn-quiet:not(:disabled):hover { border-color: var(--pm-cyan); color: var(--pm-ink); background: var(--pm-soft); }
-.btn-quiet.is-done { border-color: var(--pm-green); color: #00704f; background: #e3f4ee; }
 .btn-danger:not(:disabled):hover { border-color: var(--pm-magenta); color: #9e1744; background: #fbe8ee; }
 
 .btn-lg { padding: .8rem 1.25rem; font-size: .9375rem; }
@@ -272,27 +281,42 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
 }
 .iconbtn:hover { color: var(--pm-magenta); border-color: var(--pm-line); }
 
-/* --- Template-keuze --- */
+/* --- Bezig en klaar: feedback op de knop zelf, waar je net klikte --- */
 
-.tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: .625rem; }
-.tpl {
-  position: relative; display: flex; flex-direction: column; gap: .125rem;
-  padding: .375rem .375rem .5rem; cursor: pointer;
-  border: 1px solid var(--pm-line); background: #fff;
-  transition: border-color .15s, box-shadow .15s, transform .15s;
-}
-.tpl input { position: absolute; opacity: 0; pointer-events: none; }
-.tpl__thumb { display: block; width: 100%; height: auto; aspect-ratio: 1; background: var(--pm-canvas); margin-bottom: .3rem; }
-.tpl__name { font-size: .75rem; font-weight: 700; line-height: 1.3; }
-.tpl__sub { font-size: .6875rem; color: var(--pm-muted); line-height: 1.3; }
-.tpl:hover { border-color: var(--pm-cyan); }
-.tpl:has(input:checked) { border-color: var(--pm-cyan); box-shadow: inset 0 0 0 1px var(--pm-cyan), 0 12px 24px -18px rgba(16, 40, 60, .5); background: var(--pm-soft); }
-.tpl:has(input:checked)::after {
-  content: ''; position: absolute; top: .1rem; right: .1rem;
-  width: 1.1rem; height: 1.27rem; background: var(--pm-cyan);
+.btn.is-busy, .btn.is-done { opacity: 1; }
+.btn.is-busy { cursor: progress; }
+.btn.is-busy svg, .btn.is-done svg { display: none; }
+.btn.is-busy::before {
+  content: ''; width: .75rem; height: .866rem; flex: none; background: currentColor;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  animation: pm-spin 1.1s linear infinite;
 }
-.tpl:has(input:focus-visible) { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 2px; }
+.btn.is-done::before {
+  content: ''; width: .45rem; height: .8rem; flex: none; margin: 0 .15rem .15rem 0;
+  border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: rotate(45deg);
+}
+.btn-primary.is-done, .btn-outline.is-done { background: var(--pm-green); border-color: var(--pm-green); color: #fff; }
+.btn-quiet.is-done { border-color: var(--pm-green); color: #00704f; background: #e3f4ee; }
+@keyframes pm-spin { to { transform: rotate(360deg); } }
+
+/* --- Formaat-icoon in de echte verhouding (maat via style): donker zoals de
+       posts en slides, wit voor het briefpapier; twee streepjes als ontwerp-hint --- */
+
+.shape { position: relative; display: block; flex: none; background: var(--pm-ink); border-top: 3px solid var(--pm-cyan); }
+.shape::after {
+  content: ''; position: absolute; left: 16%; right: 16%; top: 42%; height: 22%; max-height: .5rem;
+  background:
+    linear-gradient(#fff 0 0) top left / 90% 38% no-repeat,
+    linear-gradient(var(--pm-cyan) 0 0) bottom left / 55% 38% no-repeat;
+}
+.shape--light { background: #fff; box-shadow: inset 0 0 0 1px var(--pm-border); }
+.shape--light::after {
+  top: 30%;
+  background:
+    linear-gradient(var(--pm-ink) 0 0) top left / 70% 38% no-repeat,
+    linear-gradient(var(--pm-border) 0 0) bottom left / 100% 30% no-repeat;
+}
+.shape--stack { box-shadow: 5px -5px 0 -1px #8b96a0, 10px -10px 0 -2px #c4ccd3; }
 
 /* --- Foto-upload --- */
 
@@ -317,10 +341,8 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
 .filebtn { display: flex; align-items: center; gap: .5rem; min-height: 2.6rem; }
 .filebtn__name { font-size: .75rem; color: var(--pm-muted); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* --- Carousel-slides --- */
+/* --- Zeshoek-tabs (slides in de Insta- en Presentation Maker) --- */
 
-.slides { display: flex; flex-direction: column; gap: .875rem; }
-.slides__nav { display: flex; flex-wrap: wrap; gap: .375rem; }
 .slide-tab {
   position: relative; display: grid; place-items: center;
   width: 2.3rem; height: 2.65rem; border: 0; padding: 0;
@@ -334,7 +356,6 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
 .slide-tab.is-last::after { content: ''; position: absolute; bottom: .3rem; width: .5rem; height: 2px; background: currentColor; }
 .slide-tab--add { background: var(--pm-tint); color: var(--pm-blue); font-size: 1.1rem; font-weight: 700; }
 .slide-tab--add:hover { background: var(--pm-cyan); color: var(--pm-ink); }
-.slides__actions { display: flex; flex-wrap: wrap; gap: .375rem; }
 
 /* --- Preview --- */
 
@@ -344,17 +365,6 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
 }
 @media (min-width: 640px) { .preview__stage { padding: 1.5rem; } }
 .preview__frame { width: 100%; display: flex; justify-content: center; }
-#postCanvas {
-  display: block; height: auto;
-  width: min(100%, calc((100vh - 21rem) * var(--ar, 1)));
-  min-width: min(100%, 16rem);
-  box-shadow: 0 1px 2px rgba(16, 40, 60, .08), 0 24px 48px -28px rgba(16, 40, 60, .45);
-  touch-action: none;
-}
-#postCanvas.can-pan { cursor: grab; }
-#postCanvas.is-panning { cursor: grabbing; }
-@media (max-width: 1023px) { #postCanvas { width: min(100%, 34rem); } }
-
 .preview__drop {
   position: absolute; inset: .5rem; display: none;
   flex-direction: column; align-items: center; justify-content: center; gap: .5rem;
@@ -404,7 +414,136 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
 }
 .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 .toast.is-error { border-left-color: var(--pm-magenta); }
+.toast.has-action { display: flex; align-items: center; gap: 1rem; }
+.toast.has-action.is-visible { pointer-events: auto; }
+.toast__action {
+  flex: none; padding: .25rem .6rem; border: 1px solid var(--pm-cyan); background: transparent;
+  font-size: .8125rem; font-weight: 700; color: var(--pm-cyan); cursor: pointer;
+}
+.toast__action:hover { background: var(--pm-cyan); color: var(--pm-ink); }
+.toast__action:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* --- Veldkop met hulpknop rechts: "cyaan", "vet", "+ klant" (js: PM.textTools) --- */
+
+.field__head { display: flex; align-items: flex-end; justify-content: space-between; gap: .5rem; }
+.field__tools { display: flex; gap: .375rem; }
+.emph-btn {
+  display: inline-flex; align-items: center; gap: .35rem; flex: none;
+  padding: .2rem .55rem; border: 1px solid var(--pm-border); background: #fff;
+  font-size: .75rem; font-weight: 700; color: var(--pm-ink); cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.emph-btn::before {
+  content: ''; width: .6rem; height: .69rem; flex: none; background: var(--pm-cyan);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.emph-btn--bold::before { background: var(--pm-ink); }
+.emph-btn--insert::before { display: none; }
+.emph-btn--insert { color: var(--pm-blue); }
+.emph-btn:hover { border-color: var(--pm-cyan); background: var(--pm-soft); }
+.emph-btn:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
+
+/* --- Bestandstegel: klantlogo, handtekening. Toont het bestand zelf. --- */
+
+.file-tile { display: flex; align-items: center; gap: .375rem; }
+.file-tile__btn {
+  display: flex; align-items: center; gap: .625rem; flex: 1; min-width: 0;
+  min-height: 2.75rem; padding: .3rem .75rem .3rem .3rem;
+  border: 1px dashed var(--pm-border); background: var(--pm-soft);
+  font-size: .8125rem; font-weight: 600; color: var(--pm-blue); text-align: left; cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.file-tile__btn:hover, .file-tile__btn.is-over { border-color: var(--pm-cyan); background: var(--pm-tint); }
+.file-tile__btn:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
+.file-tile__img {
+  display: grid; place-items: center; width: 2.1rem; height: 2.1rem; flex: none;
+  background: #fff center / contain no-repeat; box-shadow: inset 0 0 0 1px var(--pm-line);
+}
+.file-tile__img::before { content: '+'; font-size: 1.1rem; font-weight: 700; color: var(--pm-cyan); }
+.file-tile__btn.has-file { border-style: solid; background: #fff; color: var(--pm-ink); }
+.file-tile__btn.has-file .file-tile__img::before { content: none; }
+.file-tile__txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-tile--wide .file-tile__img { width: 4.5rem; }
+
+/* --- Uitsnede: zoomen en centreren; verschuiven doe je in de preview --- */
+
+.crop { display: flex; align-items: flex-end; gap: .75rem; }
+.crop__zoom { flex: 1; }
+
+/* --- Preview: kop met knop, klikbare lege fotoplek --- */
+
+.card-head__right { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+.card-head__right .btn svg { width: .9rem; height: .9rem; }
+canvas.needs-photo { cursor: pointer; }
+.preview canvas:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 3px; }
+
+/* --- Export: eerst de keuze, dan de hoofdactie --- */
+
+.export { border-top: 1px solid var(--pm-line); margin-top: .75rem; }
+.export__opts { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; padding: 1rem 1.25rem 0; }
+.export__label { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--pm-muted); }
+.export .actionbar { padding-top: .75rem; }
+.export .preview__foot { line-height: 1.5; }
+
+/* --- Mobiel: zwevende live preview zolang de grote uit beeld is (PM.miniPreview) --- */
+
+.pip {
+  position: fixed; top: .75rem; right: .75rem; z-index: 40;
+  display: flex; flex-direction: column; width: var(--pip-w, 5.75rem); padding: 0;
+  border: 2px solid var(--pm-cyan); background: var(--pm-ink); cursor: pointer;
+  box-shadow: 0 12px 28px -10px rgba(16, 40, 60, .55);
+}
+.pip canvas { display: block; width: 100%; height: auto; }
+.pip__label {
+  padding: .15rem 0; background: var(--pm-cyan); color: var(--pm-ink);
+  font-size: .625rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; text-align: center;
+}
+.pip:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
+@media (min-width: 1024px) { .pip { display: none !important; } }
+
+/* Een veld kort laten oplichten nadat je erop klikte in de preview */
+@keyframes pm-flash { 0% { box-shadow: 0 0 0 4px rgba(26, 185, 226, .55); } 100% { box-shadow: 0 0 0 4px rgba(26, 185, 226, 0); } }
+.is-flash { animation: pm-flash 1.2s ease-out; }
+
+/* --- Toolwisselaar in de kop (gevuld door js/shared/core.js) --- */
+
+.toolnav { display: flex; align-items: center; gap: .25rem; flex: none; }
+.toolnav a {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .4rem .65rem; font-size: .8125rem; font-weight: 600;
+  color: var(--pm-muted); text-decoration: none;
+  border-bottom: 3px solid transparent;
+  transition: color .15s, border-color .15s, background-color .15s;
+}
+.toolnav a:hover { color: var(--pm-ink); background: var(--pm-soft); }
+.toolnav a[aria-current="page"] { color: var(--pm-ink); border-bottom-color: var(--pm-cyan); }
+.toolnav__home { margin-right: .25rem; }
+.toolnav__home::before {
+  content: ''; width: .7rem; height: .8rem; background: var(--pm-cyan);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+@media (max-width: 1023px) { .toolnav a:not(.toolnav__home) { display: none; } }
+
+.site-header__brand a { display: flex; flex: none; }
+
+/* --- Overgang tussen pagina's: kop en balk blijven staan, de inhoud vloeit over
+       (Chromium en Safari 18.2+; andere browsers wisselen gewoon van pagina) --- */
+
+@view-transition { navigation: auto; }
+.topstrip { view-transition-name: topstrip; }
+.site-header { view-transition-name: site-header; }
+::view-transition-group(*) { animation-duration: .2s; }
+
+/* --- Hulpjes --- */
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.noscript { margin: 1rem; padding: 1rem; border-left: 4px solid var(--pm-magenta); background: #fbe8ee; color: #9e1744; font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
+  .btn.is-busy::before { animation: none; }
+  @view-transition { navigation: none; }
 }

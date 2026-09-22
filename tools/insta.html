@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="nl" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insta Post Maker &middot; Pure Minds</title>
+<meta name="description" content="Maak Instagram- en LinkedIn-posts in de huisstijl van Pure Minds: vijf templates, live preview en direct downloaden.">
+<meta name="theme-color" content="#1ab9e2">
+<link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/insta.css">
+</head>
+<body>
+<div class="bg-deco" aria-hidden="true"></div>
+
+<!-- Cyaan balk, zoals bovenaan pureminds.nl en de andere interne tools -->
+<div class="topstrip">
+  <a href="https://www.pureminds.nl/" target="_blank" rel="noopener">pure minds</a>
+  <span class="topstrip__sep">|</span>interne tool: post maker<span class="hide-sm"> voor Instagram en LinkedIn</span>
+</div>
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <div class="site-header__brand">
+      <a href="../index.html" aria-label="Naar de Generator Hub"><img src="../assets/brand/pureminds-logo.svg" alt="Pure Minds" width="106" height="38" class="site-header__logo"></a>
+      <span class="site-header__divider hide-sm" aria-hidden="true"></span>
+      <div class="site-header__title hide-sm">
+        <h1>Insta Post Maker</h1>
+        <p>Instagram- en LinkedIn-posts in de huisstijl, klaar om te downloaden.</p>
+      </div>
+    </div>
+    <nav class="toolnav" data-toolnav="insta" aria-label="Tools"></nav>
+  </div>
+</header>
+
+<main class="container layout">
+
+  <!-- ============================================================
+       INVOER
+       ============================================================ -->
+  <section class="layout__form">
+    <form class="card card--accent editor" id="editor" autocomplete="off" novalidate>
+      <h2 class="editor__title">Maak je post<span class="dot">.</span></h2>
+
+      <!-- Template en formaat: samen de keuze "wat maak ik" -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step>1</span>Kies template en formaat</legend>
+        <div class="tpl-grid" role="radiogroup" aria-label="Template">
+          <label class="tpl"><input type="radio" name="template" value="photo"><canvas class="tpl__thumb" data-thumb="photo" width="240" height="240" aria-hidden="true"></canvas><span class="tpl__name">Standaard foto</span><span class="tpl__sub">strak en simpel</span></label>
+          <label class="tpl"><input type="radio" name="template" value="overlay"><canvas class="tpl__thumb" data-thumb="overlay" width="240" height="240" aria-hidden="true"></canvas><span class="tpl__name">Foto met tekst</span><span class="tpl__sub">tekst op beeld</span></label>
+          <label class="tpl"><input type="radio" name="template" value="blog"><canvas class="tpl__thumb" data-thumb="blog" width="240" height="240" aria-hidden="true"></canvas><span class="tpl__name">Pure blog post</span><span class="tpl__sub">nieuwe blog + cta</span></label>
+          <label class="tpl"><input type="radio" name="template" value="case"><canvas class="tpl__thumb" data-thumb="case" width="240" height="240" aria-hidden="true"></canvas><span class="tpl__name">Pure case post</span><span class="tpl__sub">klant en resultaat</span></label>
+          <label class="tpl"><input type="radio" name="template" value="carousel"><canvas class="tpl__thumb" data-thumb="carousel" width="240" height="240" aria-hidden="true"></canvas><span class="tpl__name">Info carousel</span><span class="tpl__sub">swipe-post in slides</span></label>
+        </div>
+
+        <div class="fmt-grid" role="radiogroup" aria-label="Formaat">
+          <label class="fmt"><input type="radio" name="format" value="square"><span class="fmt__art"><span class="shape" style="width:2.2rem;height:2.2rem"></span></span><span class="fmt__txt"><b>1:1</b><i>feed</i></span></label>
+          <label class="fmt"><input type="radio" name="format" value="portrait"><span class="fmt__art"><span class="shape" style="width:2rem;height:2.5rem"></span></span><span class="fmt__txt"><b>4:5</b><i>portret</i></span></label>
+          <label class="fmt"><input type="radio" name="format" value="story"><span class="fmt__art"><span class="shape" style="width:1.45rem;height:2.58rem"></span></span><span class="fmt__txt"><b>9:16</b><i>story</i></span></label>
+        </div>
+        <p class="field-hint" data-for-format="story">Story: label en logo blijven buiten de balken van Instagram (250 px boven en onder).</p>
+      </fieldset>
+
+      <!-- Foto: het grootste beeldelement, dus vóór de tekst -->
+      <fieldset class="block" data-for="photo overlay blog case">
+        <legend class="field-label"><span class="field-badge hex" data-step>2</span>Foto <span class="muted" data-for="case">optioneel</span></legend>
+
+        <div class="drop" id="photoDrop" tabindex="0" role="button" aria-label="Foto kiezen of hierheen slepen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/></svg>
+          <span class="drop__title">foto toevoegen</span>
+          <span class="drop__sub"><span class="for-mouse">klik, sleep hem hierheen of op de preview, of plak met Ctrl + V</span><span class="for-touch">tik om een foto te kiezen of te maken</span></span>
+          <input type="file" id="photoInput" accept="image/*" hidden>
+        </div>
+
+        <div class="filecard" id="photoCard" hidden>
+          <span class="filecard__thumb hex" id="photoThumb"></span>
+          <span class="filecard__meta"><b id="photoName">foto.jpg</b><i id="photoSize"></i></span>
+          <button type="button" class="btn btn-quiet btn-xs" id="photoReplace">vervang</button>
+          <button type="button" class="iconbtn" id="photoClear" aria-label="Foto verwijderen">&times;</button>
+        </div>
+
+        <div class="field" data-for="photo">
+          <span class="label">Foto staat</span>
+          <div class="seg seg--2" role="radiogroup" aria-label="Stijl van de foto">
+            <input type="radio" name="style" id="st-full" value="full" data-bind="style"><label for="st-full"><b>volledig beeld</b></label>
+            <input type="radio" name="style" id="st-hex" value="hex" data-bind="style"><label for="st-hex"><b>in zeshoek</b></label>
+          </div>
+        </div>
+
+        <label class="switch" data-for="case">
+          <input type="checkbox" data-bind="photoBg">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Foto als donkere achtergrond gebruiken</span>
+        </label>
+
+        <div class="crop" id="cropControls" hidden>
+          <div class="field crop__zoom">
+            <label class="label" for="cropZoom">Inzoomen <output id="cropZoomVal">100%</output></label>
+            <input type="range" id="cropZoom" min="100" max="300" step="1" value="100" data-crop="zoom">
+          </div>
+          <button type="button" class="btn btn-quiet btn-sm" id="cropReset">centreren</button>
+        </div>
+        <p class="field-hint" id="cropHint" hidden>Verschuif de foto door hem in de preview te slepen<span class="for-mouse">, of klik erop en gebruik de pijltjestoetsen</span>.</p>
+      </fieldset>
+
+      <!-- Tekst: het belangrijkste veld eerst, het label als laatste -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step>3</span>Tekst</legend>
+
+        <!-- Foto met tekst -->
+        <div class="field" data-for="overlay">
+          <div class="field__head"><label class="label" for="oTitle">Kop</label><button type="button" class="emph-btn" data-emph-for="oTitle" title="Selecteer woorden en maak ze cyaan">cyaan</button></div>
+          <textarea class="input" id="oTitle" data-bind="title" rows="2"></textarea>
+        </div>
+        <div class="field" data-for="overlay">
+          <label class="label" for="oSub">Toelichting <i>optioneel</i></label>
+          <textarea class="input" id="oSub" data-bind="subtitle" rows="2"></textarea>
+        </div>
+
+        <!-- Blog -->
+        <div class="field" data-for="blog">
+          <div class="field__head"><label class="label" for="bTitle">Titel van de blog</label><button type="button" class="emph-btn" data-emph-for="bTitle" title="Selecteer woorden en maak ze cyaan">cyaan</button></div>
+          <textarea class="input" id="bTitle" data-bind="title" rows="2"></textarea>
+        </div>
+        <div class="field" data-for="blog">
+          <label class="label" for="bTopic">Onderwerp <i>komt in de zin eronder</i></label>
+          <input class="input" id="bTopic" data-bind="topic" maxlength="80">
+        </div>
+        <div class="field" data-for="blog">
+          <div class="field__head"><label class="label" for="bCta">Call-to-action</label><button type="button" class="emph-btn emph-btn--insert" data-insert-for="bCta" data-insert="{onderwerp}" title="Zet het onderwerp op de plek van de cursor">+ onderwerp</button></div>
+          <textarea class="input" id="bCta" data-bind="cta" rows="2"></textarea>
+        </div>
+        <div class="field" data-for="blog">
+          <label class="label" for="bButton">Knoptekst <i>kleine letters</i></label>
+          <input class="input" id="bButton" data-bind="button" maxlength="32">
+        </div>
+
+        <!-- Case -->
+        <div class="grid2" data-for="case">
+          <div class="field">
+            <label class="label" for="cClient">Klantnaam</label>
+            <input class="input" id="cClient" data-bind="client" maxlength="60">
+          </div>
+          <div class="field">
+            <span class="label">Klantlogo <i>optioneel</i></span>
+            <div class="file-tile">
+              <button type="button" class="file-tile__btn" id="clientLogoBtn">
+                <span class="file-tile__img" id="clientLogoThumb" aria-hidden="true"></span>
+                <span class="file-tile__txt" id="clientLogoName">logo kiezen</span>
+              </button>
+              <button type="button" class="iconbtn" id="clientLogoClear" aria-label="Klantlogo verwijderen" hidden>&times;</button>
+            </div>
+            <input type="file" id="clientLogoInput" accept="image/*" hidden>
+          </div>
+        </div>
+        <div class="field" data-for="case">
+          <span class="label">Wat hebben we gedaan? <i>één of meer diensten</i></span>
+          <div class="stack">
+            <input class="input" data-bind="services.0" maxlength="60" placeholder="bijv. Google Ads" aria-label="Dienst 1">
+            <input class="input" data-bind="services.1" maxlength="60" placeholder="bijv. een nieuwe landingspagina" aria-label="Dienst 2">
+            <input class="input" data-bind="services.2" maxlength="60" placeholder="optioneel" aria-label="Dienst 3">
+          </div>
+        </div>
+        <div class="field" data-for="case">
+          <div class="field__head">
+            <label class="label" for="cSentence">Zin</label>
+            <span class="field__tools">
+              <button type="button" class="emph-btn emph-btn--insert" data-insert-for="cSentence" data-insert="{klant}" title="Zet de klantnaam op de plek van de cursor">+ klant</button>
+              <button type="button" class="emph-btn emph-btn--insert" data-insert-for="cSentence" data-insert="{diensten}" title="Zet de diensten op de plek van de cursor">+ diensten</button>
+            </span>
+          </div>
+          <input class="input" id="cSentence" data-bind="sentence" maxlength="160">
+        </div>
+        <div class="grid2 grid2--narrow-first" data-for="case">
+          <div class="field">
+            <label class="label" for="cValue">Resultaat</label>
+            <input class="input" id="cValue" data-bind="resultValue" maxlength="10" placeholder="+184%">
+          </div>
+          <div class="field">
+            <label class="label" for="cLabel">Toelichting resultaat</label>
+            <input class="input" id="cLabel" data-bind="resultLabel" maxlength="70">
+          </div>
+        </div>
+
+        <!-- Carousel -->
+        <div class="slides" data-for="carousel">
+          <div class="slides__nav" id="slideNav" role="tablist" aria-label="Slides"></div>
+          <div class="field">
+            <div class="field__head"><label class="label" for="sTitle">Titel <span class="label__slide" id="slideNo">slide 1</span></label><button type="button" class="emph-btn" data-emph-for="sTitle" title="Selecteer woorden en maak ze cyaan">cyaan</button></div>
+            <textarea class="input" id="sTitle" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <div class="field__head"><label class="label" for="sBody">Tekst <i>een regel met - ervoor wordt een opsomming</i></label><button type="button" class="emph-btn emph-btn--bold" data-emph-for="sBody" title="Selecteer woorden en maak ze vet">vet</button></div>
+            <textarea class="input" id="sBody" rows="5"></textarea>
+          </div>
+          <div class="slides__actions">
+            <button type="button" class="btn btn-quiet btn-xs" id="slideLeft" aria-label="Slide naar voren">&larr; eerder</button>
+            <button type="button" class="btn btn-quiet btn-xs" id="slideRight" aria-label="Slide naar achteren">later &rarr;</button>
+            <button type="button" class="btn btn-quiet btn-xs" id="slideDup">dupliceer</button>
+            <button type="button" class="btn btn-quiet btn-xs btn-danger" id="slideDel">verwijder</button>
+          </div>
+          <p class="field-hint">De laatste slide krijgt vanzelf pureminds.nl in plaats van de swipe-aanwijzing.</p>
+        </div>
+
+        <!-- Label: bij elk template, optioneel, dus als laatste -->
+        <div class="field">
+          <label class="label" for="fLabel">Label <i>klein, linksboven &middot; optioneel</i></label>
+          <input class="input" id="fLabel" data-bind="label" maxlength="40" placeholder="bijv. pure kennis">
+        </div>
+      </fieldset>
+
+      <!-- Details: fijnafstelling, pas nodig als de rest staat -->
+      <fieldset class="block" data-for="overlay blog case carousel">
+        <legend class="field-label"><span class="field-badge hex" data-step>4</span>Details</legend>
+
+        <div class="grid2" data-for="overlay">
+          <div class="field">
+            <label class="label" for="oStrength">Donker verloop over de foto <output id="oStrengthVal">80%</output></label>
+            <input type="range" id="oStrength" min="30" max="100" step="1" data-bind="strength">
+          </div>
+          <div class="field">
+            <span class="label">Tekst staat</span>
+            <div class="seg seg--2 seg--sm" role="radiogroup" aria-label="Positie van de tekst">
+              <input type="radio" name="position" id="pos-bottom" value="bottom" data-bind="position"><label for="pos-bottom"><b>onder</b></label>
+              <input type="radio" name="position" id="pos-middle" value="middle" data-bind="position"><label for="pos-middle"><b>midden</b></label>
+            </div>
+          </div>
+        </div>
+
+        <label class="switch" data-for="overlay">
+          <input type="checkbox" data-bind="decor">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Cyaan zeshoek rechtsboven</span>
+        </label>
+
+        <label class="switch" data-for="overlay blog case carousel">
+          <input type="checkbox" id="dotToggle">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Cyaan punt achter de kop <span class="muted">zoals in &ldquo;Pure Minds.&rdquo;</span></span>
+        </label>
+      </fieldset>
+
+      <div class="editor__foot">
+        <span>Alles wordt in deze browser onthouden, ook je foto.</span>
+        <button type="button" class="linkbtn" id="resetBtn">alles wissen</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============================================================
+       PREVIEW + EXPORT
+       ============================================================ -->
+  <section class="layout__preview">
+    <div class="card preview">
+      <div class="card-head">
+        <div class="card-head__left">
+          <h2 class="card-title">Preview</h2>
+          <span class="pill pill-info" id="tplPill">template</span>
+        </div>
+        <div class="card-head__right">
+          <button type="button" class="btn btn-outline btn-sm" id="previewPhotoBtn" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>foto toevoegen
+          </button>
+          <span class="pill" id="dimPill">1080 &times; 1080</span>
+        </div>
+      </div>
+
+      <div class="preview__stage" id="stage">
+        <div class="preview__frame" id="frame">
+          <canvas id="postCanvas" width="1080" height="1080" role="img" aria-label="Preview van de post"></canvas>
+        </div>
+        <div class="preview__drop" id="dropHint" aria-hidden="true">
+          <span class="field-badge hex">+</span>
+          <b>laat los om de foto te plaatsen</b>
+        </div>
+      </div>
+
+      <div class="strip" id="slideStrip" data-for="carousel" aria-label="Alle slides"></div>
+
+      <div class="notice notice-warn" id="warning" role="status" hidden></div>
+
+      <div class="export">
+        <div class="export__opts">
+          <span class="export__label" id="destLabel">Voor</span>
+          <div class="seg seg--3 seg--sm export__dest" role="radiogroup" aria-labelledby="destLabel">
+            <input type="radio" name="dest" id="dest-ig" value="1080"><label for="dest-ig"><b>Instagram</b><i>1080 px</i></label>
+            <input type="radio" name="dest" id="dest-li" value="1200"><label for="dest-li"><b>LinkedIn</b><i>1200 px</i></label>
+            <input type="radio" name="dest" id="dest-hd" value="2160"><label for="dest-hd"><b>Extra scherp</b><i>2160 px</i></label>
+          </div>
+          <div class="seg seg--2 seg--sm export__type" role="radiogroup" aria-label="Bestandstype">
+            <input type="radio" name="exportType" id="ex-png" value="png"><label for="ex-png"><b>PNG</b></label>
+            <input type="radio" name="exportType" id="ex-jpg" value="jpg"><label for="ex-jpg"><b>JPG</b></label>
+          </div>
+        </div>
+        <div class="actionbar">
+          <button type="button" class="btn btn-primary btn-lg" id="downloadBtn">
+            <span data-label>download post</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
+          </button>
+          <button type="button" class="btn btn-quiet" id="slideBtn" data-for="carousel"><span data-label>alleen deze slide</span></button>
+          <button type="button" class="btn btn-quiet" id="copyBtn" title="Kopieer als PNG, om direct te plakken"><span data-label>kopieer</span></button>
+        </div>
+        <p class="preview__foot" id="exportNote"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../js/shared/tools.js"></script>
+<script src="../js/shared/core.js"></script>
+<script src="../js/shared/brand-data.js"></script>
+<script src="../js/shared/canvas-kit.js"></script>
+<script src="../js/shared/pdf-canvas.js"></script>
+<script src="../js/insta/templates.js"></script>
+<script src="../js/insta/app.js"></script>
+</body>
+</html>

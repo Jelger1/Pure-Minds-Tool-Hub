@@ -1,0 +1,79 @@
+/**
+ * Insta Post Maker — toolspecifieke opmaak
+ * Gedeelde bouwstenen staan in css/global.css.
+ */
+
+/* --- Template-keuze --- */
+
+.tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: .625rem; }
+.tpl {
+  position: relative; display: flex; flex-direction: column; gap: .125rem;
+  padding: .375rem .375rem .5rem; cursor: pointer;
+  border: 1px solid var(--pm-line); background: #fff;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.tpl input { position: absolute; opacity: 0; pointer-events: none; }
+.tpl__thumb { display: block; width: 100%; height: auto; aspect-ratio: 1; background: var(--pm-canvas); margin-bottom: .3rem; }
+.tpl__name { font-size: .75rem; font-weight: 700; line-height: 1.3; }
+.tpl__sub { font-size: .6875rem; color: var(--pm-muted); line-height: 1.3; }
+.tpl:hover { border-color: var(--pm-cyan); }
+.tpl:has(input:checked) { border-color: var(--pm-cyan); box-shadow: inset 0 0 0 1px var(--pm-cyan), 0 12px 24px -18px rgba(16, 40, 60, .5); background: var(--pm-soft); }
+.tpl:has(input:checked)::after {
+  content: ''; position: absolute; top: .1rem; right: .1rem;
+  width: 1.1rem; height: 1.27rem; background: var(--pm-cyan);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.tpl:has(input:focus-visible) { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 2px; }
+
+/* --- Formaat: kaartjes met de echte verhouding, direct onder het template --- */
+
+.fmt-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .25rem; }
+.fmt {
+  position: relative; display: flex; align-items: center; gap: .75rem;
+  padding: .5rem .75rem; min-height: 3.75rem; cursor: pointer;
+  border: 1px solid var(--pm-line); background: #fff;
+  transition: border-color .15s, box-shadow .15s, background-color .15s;
+}
+.fmt input { position: absolute; opacity: 0; pointer-events: none; }
+.fmt__art { display: grid; place-items: center; width: 2.4rem; height: 2.75rem; flex: none; }
+.fmt__txt { display: flex; flex-direction: column; line-height: 1.25; }
+.fmt__txt b { font-size: .9375rem; font-weight: 800; }
+.fmt__txt i { font-style: normal; font-size: .75rem; color: var(--pm-muted); }
+.fmt:hover { border-color: var(--pm-cyan); }
+.fmt:has(input:checked) { border-color: var(--pm-cyan); background: var(--pm-soft); box-shadow: inset 0 0 0 1px var(--pm-cyan), inset 0 -3px 0 var(--pm-cyan); }
+.fmt:has(input:focus-visible) { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
+@media (max-width: 479px) {
+  .fmt { flex-direction: column; align-items: flex-start; gap: .35rem; }
+}
+
+/* --- Carousel-slides --- */
+
+.slides { display: flex; flex-direction: column; gap: .875rem; }
+.slides__nav { display: flex; flex-wrap: wrap; gap: .375rem; }
+.slides__actions { display: flex; flex-wrap: wrap; gap: .375rem; }
+
+/* --- De post zelf (canvas, 1080 px breed ontwerpraster) --- */
+
+/* --chrome = hoogte van kop, exportdeel (en slidestrook): de downloadknop blijft in beeld */
+#postCanvas {
+  --chrome: 24.5rem;
+  display: block; height: auto;
+  width: min(100%, calc((100vh - var(--chrome)) * var(--ar, 1)));
+  min-width: min(100%, calc(16rem * var(--ar, 1)));   /* een story mag smaller: anders valt de downloadknop weg */
+  box-shadow: 0 1px 2px rgba(16, 40, 60, .08), 0 24px 48px -28px rgba(16, 40, 60, .45);
+}
+.preview[data-template="carousel"] #postCanvas { --chrome: 29rem; }
+#postCanvas.can-pan { cursor: grab; touch-action: none; }   /* alleen dan: anders kun je over de preview heen scrollen */
+#postCanvas.is-panning { cursor: grabbing; }
+@media (max-width: 1023px) { #postCanvas { width: min(100%, 34rem); } }
+
+
+/* --- Export: de Insta-specifieke maten (de basis staat in global.css) --- */
+
+.export__dest { flex: 1 1 18rem; }
+.export__dest label { flex-direction: column; gap: 0; line-height: 1.25; }
+.export__dest label i { color: var(--pm-muted); }
+.export__type { flex: 0 0 7.5rem; }
+@media (max-width: 639px) {
+  .export__type { flex: 1 1 100%; }
+}

@@ -1,0 +1,295 @@
+/**
+ * Generator Hub — dashboard met een kaart per tool
+ * Gedeelde bouwstenen staan in css/global.css.
+ */
+
+.hub { padding-top: 2rem; padding-bottom: 2.5rem; }
+@media (min-width: 1024px) { .hub { padding-top: 3rem; } }
+
+/* --- Intro: de vraag, de belofte en drie stappen --- */
+
+.hub__intro { display: grid; gap: 1.5rem 3rem; margin-bottom: 2rem; }
+@media (min-width: 1024px) { .hub__intro { grid-template-columns: minmax(0, 1fr) auto; align-items: end; } }
+
+.hub__title {
+  font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 800; line-height: 1.1; letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.hub__lead { margin-top: .75rem; max-width: 40rem; text-wrap: pretty; font-size: 1rem; line-height: 1.6; color: var(--pm-muted); }
+.hub__lead strong { font-weight: 700; color: var(--pm-ink); }
+
+/* Dezelfde zeshoek-badges als in de tools; stap 1 staat aan, want daar ben je nu */
+.steps {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem;
+  margin: 0; padding: 0; list-style: none;
+  font-size: .8125rem; font-weight: 600; line-height: 1.3; color: var(--pm-muted);
+}
+.steps__item { display: flex; flex-direction: column; align-items: flex-start; gap: .375rem; }
+.steps__item.is-current { color: var(--pm-ink); }
+.steps__item.is-current .field-badge { background: var(--pm-cyan); color: var(--pm-ink); }
+@media (min-width: 640px) {
+  .steps { display: flex; align-items: center; gap: 0; font-size: .875rem; }
+  .steps__item { flex-direction: row; align-items: center; gap: .5rem; }
+  .steps__item + .steps__item::before { content: ''; width: 1.75rem; height: 2px; margin: 0 .25rem 0 .5rem; background: var(--pm-border); }
+}
+
+/* --- Secties: klein kopje met zeshoek, zoals de labels in de tools --- */
+
+.hub__section { margin-bottom: 2.25rem; }
+.hub__h2 {
+  display: flex; align-items: center; gap: .5rem; margin-bottom: .875rem;
+  font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--pm-blue);
+}
+.hub__h2::before {
+  content: ''; width: .6rem; height: .69rem; flex: none; background: var(--pm-cyan);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.hub__h2row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .25rem 1rem; }
+.hub__note { margin-bottom: .875rem; font-size: .8125rem; color: var(--pm-muted); }
+
+/* --- Begin direct: per soort de formaten; één klik opent de tool in dat formaat --- */
+
+.starts { display: flex; flex-wrap: wrap; gap: 1.25rem 2.5rem; }
+.starts__group { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.starts__caption { font-size: .8125rem; font-weight: 600; color: var(--pm-muted); }
+.starts__list { display: flex; gap: .625rem; margin: 0; padding: 0; list-style: none; }
+.start {
+  display: flex; flex-direction: column; align-items: flex-start; gap: .1rem;
+  width: 8.75rem; height: 100%; padding: .75rem .8rem .7rem;
+  background: #fff; border: 1px solid var(--pm-line);
+  box-shadow: 0 1px 2px rgba(16, 40, 60, .05);
+  color: inherit; text-decoration: none;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.start__art { display: flex; align-items: flex-end; height: 3.4rem; margin-bottom: .55rem; padding-top: .4rem; }
+.start__label { font-size: .875rem; font-weight: 700; line-height: 1.3; }
+.start__sub { font-size: .75rem; line-height: 1.35; color: var(--pm-muted); }
+.start:hover { border-color: var(--pm-cyan); box-shadow: 0 12px 24px -16px rgba(16, 40, 60, .45); }
+.start:hover .start__label { color: var(--pm-magenta); }
+.start:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .start:hover { transform: translateY(-2px); }
+}
+@media (max-width: 639px) {
+  .starts { display: grid; gap: 1rem; }
+  .starts__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+  .start { width: auto; padding: .6rem .6rem .55rem; }
+  .start__label { font-size: .8125rem; }
+}
+
+/* --- Verder werken: het concept per tool, met titel, soort en tijd --- */
+
+.drafts {
+  display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+.draft {
+  display: flex; align-items: center; gap: .875rem; height: 100%;
+  padding: .75rem 1rem; min-height: 4.25rem;
+  background: #fff; border: 1px solid var(--pm-line); border-left: 4px solid var(--pm-cyan);
+  box-shadow: 0 1px 2px rgba(16, 40, 60, .05);
+  color: inherit; text-decoration: none;
+  transition: background-color .15s, border-color .15s;
+}
+.draft:hover { background: var(--pm-soft); border-color: var(--pm-cyan); }
+.draft:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
+.draft__art { display: grid; place-items: center; width: 3.25rem; height: 2.5rem; flex: none; }
+.draft__art .shape { border-top-width: 2px; }
+.draft__text { display: flex; flex-direction: column; gap: .1rem; flex: 1; min-width: 0; }
+.draft__title {
+  font-size: .9375rem; font-weight: 700; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.draft__meta { font-size: .8125rem; color: var(--pm-muted); }
+.draft__cta { display: inline-flex; align-items: center; gap: .375rem; flex: none; font-weight: 700; color: var(--pm-magenta); }
+.draft__cta svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2.5; transition: transform .2s ease-out; }
+.draft:hover .draft__cta svg { transform: translateX(3px); }
+
+/* --- Alle tools: gelijke kaarten, drie naast elkaar op een breed scherm --- */
+
+.tool-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+@media (min-width: 1024px) { .tool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* --- Kaart --- */
+
+.tool-card {
+  position: relative; display: flex; flex-direction: column;
+  background: #fff; border: 1px solid var(--pm-line);
+  box-shadow: 0 1px 2px rgba(16, 40, 60, .05), 0 24px 48px -32px rgba(16, 40, 60, .35);
+  transition: transform .2s ease-out, box-shadow .2s ease-out, border-color .2s;
+}
+@media (hover: hover) {
+  .tool-card:not(.is-soon):hover {
+    border-color: var(--pm-cyan);
+    box-shadow: 0 1px 2px rgba(16, 40, 60, .05), 0 32px 56px -30px rgba(16, 40, 60, .5);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tool-card:not(.is-soon):active { transform: translateY(-1px) scale(.99); transition-duration: .08s; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .tool-card:not(.is-soon):hover { transform: translateY(-4px); }
+}
+.tool-card:has(.tool-card__link:focus-visible) { outline: 3px solid var(--pm-blue); outline-offset: 3px; }
+.tool-card.is-soon { opacity: .7; }
+
+/* De naam is de link; ::after maakt de hele kaart klikbaar */
+.tool-card__link { color: inherit; text-decoration: none; }
+.tool-card__link::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+.tool-card__link:focus-visible { outline: none; }
+
+/* Omslag: inkt met zeshoekpatroon en een cyaan gloed, zoals de posts */
+.tool-card__cover {
+  position: relative; display: grid; place-items: center;
+  aspect-ratio: 2 / 1; overflow: hidden;
+  background:
+    radial-gradient(22rem 14rem at 100% 0%, rgba(26, 185, 226, .22), transparent 70%),
+    var(--pm-ink);
+  border-top: 4px solid var(--pm-cyan);
+}
+.tool-card__cover::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='180' viewBox='0 0 103.92 180'%3E%3Cpath d='M0 60 51.96 30 103.92 60v60L51.96 150 0 120zM51.96 0v30m0 120v30' fill='none' stroke='%23ffffff' stroke-opacity='.09'/%3E%3C/svg%3E") 0 0 / 104px 180px;
+  -webkit-mask-image: linear-gradient(#000, transparent 85%);
+  mask-image: linear-gradient(#000, transparent 85%);
+}
+
+/* Status: het enige cyaan vlak op de donkere omslag, dus je ziet het meteen */
+.tool-card__status {
+  position: absolute; top: 1rem; left: .75rem; z-index: 2; pointer-events: none;
+  display: inline-flex; align-items: center; gap: .375rem;
+  padding: .2rem .6rem .2rem .5rem;
+  font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  background: var(--pm-cyan); color: var(--pm-ink);
+  box-shadow: 0 8px 20px -8px rgba(26, 185, 226, .8);
+}
+.tool-card__status .hex { display: block; width: .55rem; height: .64rem; background: currentColor; }
+.tool-card__status--soon { background: #fff; color: var(--pm-muted); box-shadow: none; }
+
+.tool-card__body { display: flex; flex-direction: column; gap: .5rem; flex: 1; padding: 1.25rem 1.25rem 1rem; }
+.tool-card__name { font-size: 1.1875rem; font-weight: 800; line-height: 1.25; letter-spacing: -.01em; }
+.tool-card__desc { font-size: .9375rem; line-height: 1.55; color: var(--pm-muted); }
+
+/* Exports: één regel, onderaan de tekst (formaten staan al bij "Begin direct") */
+.tool-card__exports { display: flex; flex-wrap: wrap; gap: .375rem; margin: auto 0 0; padding: .75rem 0 0; list-style: none; border-top: 1px dashed var(--pm-border); }
+.tool-card__exports .pill { font-weight: 600; background: var(--pm-tint); color: var(--pm-blue); }
+
+/* Knop: omlijnd, vol magenta bij hover of focus */
+.tool-card__foot { padding: 0 1.25rem 1.25rem; }
+.tool-card__cta {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  min-height: 3rem; padding: 0 1rem;
+  border: 2px solid var(--pm-magenta); color: var(--pm-magenta);
+  font-size: .9375rem; font-weight: 700;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.tool-card__cta svg { width: 1.1rem; height: 1.1rem; flex: none; fill: none; stroke: currentColor; stroke-width: 2.5; transition: transform .2s ease-out; }
+.tool-card:not(.is-soon):hover .tool-card__cta,
+.tool-card:has(.tool-card__link:focus-visible) .tool-card__cta { background: var(--pm-magenta); color: #fff; }
+.tool-card:not(.is-soon):hover .tool-card__cta svg { transform: translateX(4px); }
+.tool-card.is-soon .tool-card__cta { border-color: var(--pm-border); color: var(--pm-muted); }
+
+/* --- Illustraties per tool (alleen HTML en CSS) --- */
+
+.art { position: relative; display: grid; place-items: center; width: 100%; height: 100%; }
+.art i { position: absolute; display: block; }
+.art__bar { top: 0; left: 0; right: 0; height: 5%; background: var(--pm-cyan); }
+.art__line { height: 4%; background: rgba(255, 255, 255, .7); left: 12%; width: 76%; }
+.art__line--w80 { width: 62%; }
+.art__line--w70 { width: 58%; }
+.art__line--w55 { width: 44%; }
+
+/* Bij hover trekt het voorbeeld recht: klaar om te maken */
+.art__post, .art__sheet, .art__slide { transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .tool-card:hover .art__post { transform: rotate(0) scale(1.05); }
+  .tool-card:hover .art__sheet { transform: rotate(0) scale(1.05); }
+  .tool-card:hover .art__slide:not(.art__slide--back) { transform: scale(1.04); }
+  .tool-card:hover .art__slide--back { transform: translate(12%, -16%) scale(.92); }
+}
+
+/* Post: vierkant, label, kop, logo rechtsonder */
+.art__post {
+  position: relative; width: 38%; aspect-ratio: 1;
+  background: #3a4652;
+  box-shadow: 0 18px 30px -18px rgba(0, 0, 0, .7);
+  transform: rotate(-4deg);
+}
+.art__post::before {
+  content: ''; position: absolute; right: -20%; top: -18%; width: 62%; aspect-ratio: .866;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 86.6 100'%3E%3Cpath d='M43.3 3 84 26.5v47L43.3 97 2.6 73.5v-47z' fill='none' stroke='%231ab9e2' stroke-width='5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.art--post .art__label { top: 16%; left: 12%; width: 28%; height: 4%; background: var(--pm-cyan); }
+.art--post .art__line { top: 54%; height: 8%; background: #fff; }
+.art--post .art__line--w55 { top: 66%; background: var(--pm-cyan); }
+.art__logo {
+  right: 9%; bottom: 8%; width: 14%; aspect-ratio: .866;
+  background: #fff;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%, 50% 0, 50% 12%, 12% 31%, 12% 69%, 50% 88%, 88% 69%, 88% 31%, 50% 12%);
+}
+
+/* Document: A4-vel met kleurlogo en tekstregels */
+.art__sheet {
+  position: relative; width: 30%; aspect-ratio: 210 / 297;
+  background: #fff;
+  box-shadow: 0 18px 30px -18px rgba(0, 0, 0, .7);
+  transform: rotate(3deg);
+}
+.art--doc .art__brand {
+  top: 8%; left: 12%; width: 12%; aspect-ratio: .866;
+  background: var(--pm-ink);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%, 50% 0, 50% 14%, 13% 32%, 13% 68%, 50% 86%, 87% 68%, 87% 32%, 50% 14%);
+}
+.art--doc .art__title { top: 26%; left: 12%; width: 56%; height: 5%; background: var(--pm-ink); }
+.art--doc .art__line { background: #d5dee5; height: 2.4%; }
+.art--doc .art__line:nth-of-type(4) { top: 38%; }
+.art--doc .art__line:nth-of-type(5) { top: 44%; }
+.art--doc .art__line:nth-of-type(6) { top: 50%; }
+.art--doc .art__line:nth-of-type(7) { top: 60%; }
+.art--doc .art__line:nth-of-type(8) { top: 66%; }
+
+/* Slides: twee 16:9-vlakken, de voorste met een zeshoek */
+.art__slide {
+  position: relative; width: 58%; aspect-ratio: 16 / 9;
+  background: #3a4652;
+  box-shadow: 0 18px 30px -18px rgba(0, 0, 0, .7);
+}
+.art__slide--back { position: absolute; transform: translate(9%, -12%) scale(.92); background: #2a3138; box-shadow: none; }
+.art--slides .art__hex {
+  right: 8%; top: 18%; width: 28%; aspect-ratio: .866;
+  background: var(--pm-cyan);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.art--slides .art__title { top: 34%; left: 9%; width: 46%; height: 10%; background: #fff; }
+.art--slides .art__line { top: 52%; left: 9%; height: 6%; }
+
+.art__big-hex {
+  position: relative !important; width: 22%; aspect-ratio: .866;
+  background: var(--pm-cyan);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+/* --- Voet: de ontwikkelaarsnotitie staat ingeklapt, de gebruiker heeft hem niet nodig --- */
+
+.hub__foot {
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .5rem 1.5rem;
+  margin-top: 3rem; padding-top: .5rem; border-top: 1px solid var(--pm-line);
+  font-size: .8125rem; color: var(--pm-muted);
+}
+.devnote summary {
+  display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem;
+  font-weight: 600; cursor: pointer; list-style: none;
+}
+.devnote summary::-webkit-details-marker { display: none; }
+.devnote summary::before {
+  content: ''; width: .4rem; height: .4rem; margin: 0 .15rem;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s;
+}
+.devnote[open] summary::before { transform: rotate(45deg); }
+.devnote summary:hover { color: var(--pm-ink); }
+.devnote summary:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
+.devnote ol { margin: 0 0 .75rem; padding-left: 1.5rem; line-height: 1.8; }
+.hub__foot code { font-size: .75rem; background: var(--pm-track); padding: 0 .3rem; color: var(--pm-ink); }
+.hub__foot > a { display: inline-flex; align-items: center; min-height: 2.75rem; font-weight: 700; color: var(--pm-ink); text-decoration: none; }
+.hub__foot > a:hover { color: var(--pm-magenta); }

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="nl" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presentation Maker &middot; Pure Minds</title>
+<meta name="description" content="16:9-slides in de huisstijl van Pure Minds: zeven layouts met tabel, eigen tekst en foto's, download als PDF, PowerPoint of PNG.">
+<meta name="theme-color" content="#1ab9e2">
+<link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+<div class="bg-deco" aria-hidden="true"></div>
+
+<div class="topstrip">
+  <a href="https://www.pureminds.nl/" target="_blank" rel="noopener">pure minds</a>
+  <span class="topstrip__sep">|</span>interne tool: presentation maker<span class="hide-sm"> voor 16:9-slides</span>
+</div>
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <div class="site-header__brand">
+      <a href="../index.html" aria-label="Naar de Generator Hub"><img src="../assets/brand/pureminds-logo.svg" alt="Pure Minds" width="106" height="38" class="site-header__logo"></a>
+      <span class="site-header__divider hide-sm" aria-hidden="true"></span>
+      <div class="site-header__title hide-sm">
+        <h1>Presentation Maker</h1>
+        <p>16:9-slides in de huisstijl, als PDF, PowerPoint of PNG.</p>
+      </div>
+    </div>
+    <nav class="toolnav" data-toolnav="presentation" aria-label="Tools"></nav>
+  </div>
+</header>
+
+<main class="container layout">
+
+  <!-- ============================================================
+       INVOER
+       ============================================================ -->
+  <section class="layout__form">
+    <form class="card card--accent editor" id="editor" autocomplete="off" novalidate>
+      <h2 class="editor__title">Maak je presentatie<span class="dot">.</span></h2>
+
+      <!-- Layout: ingeklapt tot je een andere wilt; bij een nieuwe slide open -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step>1</span>Layout <span class="label__slide" id="slideNo">slide 1</span></legend>
+        <div class="layout-now">
+          <span class="layout-now__txt"><b id="layoutNowName">Titelslide</b><i id="layoutNowSub">opening met foto</i></span>
+          <button type="button" class="btn btn-quiet btn-sm" id="layoutToggle" aria-expanded="false" aria-controls="layoutGrid">andere layout</button>
+        </div>
+        <div class="layout-grid" id="layoutGrid" role="radiogroup" aria-label="Layout van deze slide" hidden></div>
+      </fieldset>
+
+      <!-- 3. Inhoud -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step>2</span>Inhoud</legend>
+
+        <div class="field" data-for="quote">
+          <span class="label">Soort</span>
+          <div class="seg seg--2" role="radiogroup" aria-label="Citaat of kerncijfer">
+            <input type="radio" name="style" id="qs-quote" value="quote" data-bind="style"><label for="qs-quote"><b>citaat</b></label>
+            <input type="radio" name="style" id="qs-stat" value="stat" data-bind="style"><label for="qs-stat"><b>kerncijfer</b></label>
+          </div>
+        </div>
+
+        <div class="field" data-for="title section bullets split table closing">
+          <div class="field__head"><label class="label" for="sTitle">Titel</label><button type="button" class="emph-btn" data-emph-for="sTitle" title="Selecteer woorden en maak ze cyaan">cyaan</button></div>
+          <textarea class="input" id="sTitle" data-bind="title" rows="2"></textarea>
+        </div>
+
+        <div class="field" data-for="quote.quote">
+          <div class="field__head"><label class="label" for="sQuote">Citaat</label><button type="button" class="emph-btn" data-emph-for="sQuote" title="Selecteer woorden en maak ze cyaan">cyaan</button></div>
+          <textarea class="input" id="sQuote" data-bind="quote" rows="3"></textarea>
+        </div>
+
+        <div class="field" data-for="quote.stat">
+          <label class="label" for="sValue">Kerncijfer</label>
+          <input class="input" id="sValue" data-bind="value" maxlength="12" placeholder="+184%">
+        </div>
+
+        <div class="field" data-for="table">
+          <span class="label">Tabel <i>Tab en Enter springen door de cellen &middot; plakken uit Excel of Google Sheets kan</i></span>
+          <div class="tbl-wrap">
+            <div class="tbl" id="tableGrid" role="group" aria-label="Cellen van de tabel"></div>
+          </div>
+          <div class="tbl-actions">
+            <button type="button" class="btn btn-quiet btn-xs" id="addRow">+ rij</button>
+            <button type="button" class="btn btn-quiet btn-xs" id="addCol">+ kolom</button>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="tableHeader">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Eerste rij is de <b>kopregel</b></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="tableFirstCol">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Eerste kolom <b>vet</b> <span class="muted">als label per rij</span></span>
+          </label>
+        </div>
+
+        <div class="field" data-for="title section closing quote.stat table">
+          <label class="label" for="sSubtitle"><span data-layout-text="title:Ondertitel|section:Ondertitel|closing:Ondertitel|quote:Toelichting bij het cijfer|table:Toelichting onder de tabel">Ondertitel</span> <i>optioneel</i></label>
+          <textarea class="input" id="sSubtitle" data-bind="subtitle" rows="2"></textarea>
+        </div>
+
+        <div class="field" data-for="quote">
+          <label class="label" for="sAuthor"><span data-layout-text="quote:Naam en functie">Naam</span> <i>optioneel</i></label>
+          <input class="input" id="sAuthor" data-bind="author" maxlength="90">
+        </div>
+
+        <div class="field" data-for="title">
+          <label class="label" for="sMeta">Regel onderaan <i>bijv. naam &middot; datum</i></label>
+          <input class="input" id="sMeta" data-bind="meta" maxlength="90">
+        </div>
+
+        <div class="field" data-for="bullets split closing">
+          <div class="field__head"><label class="label" for="sBody"><span data-layout-text="bullets:Punten|split:Tekst|closing:Contactgegevens">Tekst</span> <i data-layout-text="bullets:één punt per regel|split:een regel met - ervoor wordt een opsomming|closing:één regel per gegeven">één punt per regel</i></label><button type="button" class="emph-btn" id="bodyEmph" data-emph-for="sBody" title="Selecteer woorden en laat ze opvallen">vet</button></div>
+          <textarea class="input" id="sBody" data-bind="body" rows="5"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sLabel">Label <i>klein, linksboven &middot; optioneel</i></label>
+          <input class="input" id="sLabel" data-bind="label" maxlength="40" placeholder="bijv. analyse">
+        </div>
+      </fieldset>
+
+      <!-- 4. Foto -->
+      <fieldset class="block" data-for="title split closing">
+        <legend class="field-label"><span class="field-badge hex" data-step>3</span>Foto <span class="muted" data-layout-text="title:optioneel, in een zeshoek|split:vult de helft van de slide|closing:optioneel, in een zeshoek"></span></legend>
+
+        <div class="drop" id="photoDrop" tabindex="0" role="button" aria-label="Foto kiezen of hierheen slepen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/></svg>
+          <span class="drop__title">foto toevoegen</span>
+          <span class="drop__sub"><span class="for-mouse">klik, sleep hem hierheen of op de preview, of plak met Ctrl + V</span><span class="for-touch">tik om een foto te kiezen of te maken</span></span>
+          <input type="file" id="photoInput" accept="image/*" hidden>
+        </div>
+
+        <div class="filecard" id="photoCard" hidden>
+          <span class="filecard__thumb hex" id="photoThumb"></span>
+          <span class="filecard__meta"><b id="photoName">foto.jpg</b><i id="photoSize"></i></span>
+          <button type="button" class="btn btn-quiet btn-xs" id="photoReplace">vervang</button>
+          <button type="button" class="iconbtn" id="photoClear" aria-label="Foto verwijderen">&times;</button>
+        </div>
+
+        <div class="field" data-for="split">
+          <span class="label">Foto staat</span>
+          <div class="seg seg--2 seg--sm" role="radiogroup" aria-label="Kant van de foto">
+            <input type="radio" name="imageSide" id="side-left" value="left" data-bind="imageSide"><label for="side-left"><b>links</b></label>
+            <input type="radio" name="imageSide" id="side-right" value="right" data-bind="imageSide"><label for="side-right"><b>rechts</b></label>
+          </div>
+        </div>
+
+        <div class="crop" id="cropControls" hidden>
+          <div class="field crop__zoom">
+            <label class="label" for="cropZoom">Inzoomen <output id="cropZoomVal">100%</output></label>
+            <input type="range" id="cropZoom" min="100" max="300" step="1" value="100" data-crop="zoom">
+          </div>
+          <button type="button" class="btn btn-quiet btn-sm" id="cropReset">centreren</button>
+        </div>
+        <p class="field-hint" id="cropHint" hidden>Verschuif de foto door hem in de preview te slepen<span class="for-mouse">, of klik erop en gebruik de pijltjestoetsen</span>.</p>
+      </fieldset>
+
+      <!-- Presentatie -->
+      <fieldset class="block">
+        <legend class="field-label"><span class="field-badge hex" data-step>4</span>Hele presentatie</legend>
+        <label class="switch">
+          <input type="checkbox" id="showNumbers">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Slidenummers naast het logo</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="dotToggle">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Cyaan punt achter de titels <span class="muted">zoals in &ldquo;Pure Minds.&rdquo;</span></span>
+        </label>
+      </fieldset>
+
+      <div class="editor__foot">
+        <span>Tekst en foto's worden in deze browser onthouden.</span>
+        <button type="button" class="linkbtn" id="resetBtn">nieuwe presentatie</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============================================================
+       PREVIEW + EXPORT
+       ============================================================ -->
+  <section class="layout__preview">
+    <div class="card preview">
+      <div class="card-head">
+        <div class="card-head__left">
+          <h2 class="card-title">Preview</h2>
+          <span class="pill pill-info" id="slidePill">slide 1 van 6</span>
+        </div>
+        <div class="card-head__right">
+          <button type="button" class="btn btn-outline btn-sm" id="previewPhotoBtn" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>foto toevoegen
+          </button>
+          <span class="pill" id="dimPill">1920 &times; 1080 px</span>
+        </div>
+      </div>
+
+      <div class="preview__stage" id="stage">
+        <div class="preview__frame">
+          <canvas id="slideCanvas" width="1920" height="1080" role="img" aria-label="Preview van de slide"></canvas>
+        </div>
+        <div class="preview__drop" aria-hidden="true">
+          <span class="field-badge hex">+</span>
+          <b>laat los om de foto op deze slide te zetten</b>
+        </div>
+      </div>
+
+      <div class="slidebar">
+        <div class="strip strip--slides" id="slideStrip" aria-label="Alle slides; sleep om de volgorde te veranderen"></div>
+        <div class="slidebar__actions">
+          <button type="button" class="btn btn-outline btn-xs slidebar__add" id="slideAdd"><span aria-hidden="true">+</span> slide</button>
+          <button type="button" class="btn btn-quiet btn-xs" id="slideLeft" aria-label="Slide een plek naar voren" title="Naar voren">&larr;</button>
+          <button type="button" class="btn btn-quiet btn-xs" id="slideRight" aria-label="Slide een plek naar achteren" title="Naar achteren">&rarr;</button>
+          <button type="button" class="btn btn-quiet btn-xs" id="slideDup">dupliceer</button>
+          <button type="button" class="btn btn-quiet btn-xs btn-danger" id="slideDel">verwijder</button>
+        </div>
+      </div>
+
+      <div class="notice notice-warn" id="warning" role="status" hidden></div>
+
+      <div class="export">
+        <div class="actionbar">
+          <button type="button" class="btn btn-primary btn-lg" id="pdfBtn">
+            <span data-label>download pdf</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
+          </button>
+          <button type="button" class="btn btn-outline" id="pptxBtn" title="Bewerkbaar in PowerPoint en Google Presentaties">
+            <span data-label>powerpoint</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
+          </button>
+        </div>
+        <div class="export__opts export__opts--png">
+          <span class="export__label">Als afbeelding</span>
+          <button type="button" class="btn btn-quiet btn-sm" id="pngBtn"><span data-label>deze slide</span></button>
+          <button type="button" class="btn btn-quiet btn-sm" id="pngAllBtn"><span data-label>alle slides</span></button>
+          <div class="seg seg--2 seg--sm" role="radiogroup" aria-label="Resolutie van de afbeeldingen">
+            <input type="radio" name="res" id="res-hd" value="1920"><label for="res-hd"><b>Full HD</b></label>
+            <input type="radio" name="res" id="res-4k" value="3840"><label for="res-4k"><b>4K</b></label>
+          </div>
+        </div>
+        <p class="preview__foot"><b>PDF</b> om te presenteren of te versturen &middot; <b>PowerPoint</b> om verder te bewerken, ook in Google Presentaties (upload in Drive en kies Bestand &rarr; Opslaan als Google Presentaties)<span class="for-mouse"> &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> bladert door de slides &middot; <kbd>Ctrl</kbd> + <kbd>S</kbd> downloadt de PDF</span></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../js/shared/tools.js"></script>
+<script src="../js/shared/core.js"></script>
+<script src="../js/shared/brand-data.js"></script>
+<script src="../js/shared/canvas-kit.js"></script>
+<script src="../js/shared/pdf-canvas.js"></script>
+<script src="../js/shared/pptx-writer.js"></script>
+<script src="../js/presentation/templates.js"></script>
+<script src="../js/presentation/pptx.js"></script>
+<script src="../js/presentation/app.js"></script>
+</body>
+</html>
