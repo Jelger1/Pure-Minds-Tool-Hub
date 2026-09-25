@@ -10,8 +10,8 @@
      - cyaan balk van 12 px bovenaan, zoals op elk artboard in het brandbook
      - label linksboven: zeshoek-bullet + Open Sans Bold in hoofdletters
      - logo rechtsonder in een inkt-zeshoek, in elk template op dezelfde plek
-     - voetregel links (pureminds.nl of de swipe-indicator), verticaal
-       gecentreerd op het logo
+     - bij de carousel de swipe-indicator linksonder, verticaal gecentreerd
+       op het logo; de posts hebben verder geen voetregel
      - koppen Open Sans ExtraBold met -2% tracking, tekst Open Sans Regular
      - de zeshoek-duo (foto of vlak + verschoven cyaan lijn) als vormelement
 
@@ -25,7 +25,7 @@
     COLORS, CAP, DESC, SQRT3, flags,
     clamp, rgba, setFont, hexPath, hexPattern, paintBackground,
     runsFrom, layoutText, fitText, drawText, layoutBody, drawBody,
-    drawLabel, drawDomain, drawLogo, drawArrow, planButton,
+    drawLabel, drawLogo, drawArrow, planButton,
     drawPhoto, drawContain, hexEcho, prepare, finish,
   } = global.PMCanvas;
 
@@ -60,7 +60,7 @@
   const PAL = {
     text: '#ffffff', body: 'rgba(255,255,255,.88)', soft: 'rgba(255,255,255,.72)',
     label: '#ffffff', bullet: COLORS.cyan, em: COLORS.cyan,
-    pattern: '#ffffff', patternAlpha: 0.08, dot: 'rgba(255,255,255,.45)', domain: '#ffffff',
+    pattern: '#ffffff', patternAlpha: 0.08, dot: 'rgba(255,255,255,.45)',
   };
 
   const TEMPLATE_META = [
@@ -176,13 +176,12 @@
       hexEcho(ctx, cx, cy, r);
       const photo = drawPhoto(ctx, env.photo, { x: cx - (r * SQRT3) / 2, y: cy - r, w: r * SQRT3, h: r * 2, hex: { cx, cy, r } }, env.crop);
       drawLabel(ctx, fr, d.label, PAL);
-      drawDomain(ctx, fr, PAL.domain);
       return { photo };
     }
 
     const photo = drawPhoto(ctx, env.photo, { x: 0, y: 0, w: fr.w, h: fr.h }, env.crop);
     if (env.photo) {
-      // Rustige verlopen onder label en voetregel, zodat die leesbaar blijven
+      // Rustige verlopen onder het label en het logo, zodat die leesbaar blijven
       const bottom = ctx.createLinearGradient(0, fr.logo.y - 220, 0, fr.h);
       bottom.addColorStop(0, rgba(COLORS.navy, 0));
       bottom.addColorStop(1, rgba(COLORS.navy, 0.62));
@@ -197,7 +196,6 @@
       }
     }
     drawLabel(ctx, fr, d.label, PAL);
-    drawDomain(ctx, fr, '#ffffff');
     return { photo };
   }
 
@@ -242,7 +240,6 @@
 
     drawText(ctx, title, fr.m, top, { color: '#ffffff', em: COLORS.cyan });
     drawText(ctx, sub, fr.m, top + title.height + gap, { color: 'rgba(255,255,255,.9)', em: '#ffffff' });
-    drawDomain(ctx, fr, '#ffffff');
     return { photo };
   }
 
@@ -276,7 +273,6 @@
 
     drawText(ctx, cta, fr.m, ctaTop, { color: pal.body, em: pal.text });
     button.draw(fr.m, buttonY);
-    drawDomain(ctx, fr, pal.domain);
     return { photo };
   }
 
@@ -377,7 +373,6 @@
     drawText(ctx, title, fr.m, fr.contentTop, { color: pal.text, em: pal.em });
 
     if (result) result.draw(resultY);
-    drawDomain(ctx, fr, pal.domain);
     return { photo };
   }
 
@@ -425,9 +420,8 @@
     drawText(ctx, title, fr.m, top, { color: pal.text, em: pal.em });
     drawBody(ctx, body, fr.m, top + title.height + gap, { color: pal.body, em: pal.text });
 
-    if (last) {
-      drawDomain(ctx, fr, pal.domain);
-    } else {
+    // De laatste slide nodigt niet uit om door te swipen
+    if (!last) {
       drawSwipe(ctx, fr, index, slides.length, pal);
       drawEdgeCue(ctx, fr);
     }

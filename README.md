@@ -103,7 +103,8 @@ kleine letters; koppen krijgen de cyaan punt uit "Pure Minds.".
 
 Posts en slides delen `js/shared/canvas-kit.js`, en dus hetzelfde:
 zeshoek (puntig, zoals het logo), zeshoekpatroon, label met zeshoek-bullet,
-`**nadruk**` in cyaan, voetregel `pureminds.nl` en het witte logo rechtsonder.
+`**nadruk**` in cyaan en het witte logo rechtsonder. De voetregel
+`pureminds.nl` linksonder staat alleen op slides, niet op posts.
 
 ## Gedeelde interactie
 
@@ -128,8 +129,8 @@ De tools voelen hetzelfde aan, omdat ze dezelfde bouwstenen uit
 ## Insta Post Maker
 
 Vijf templates: standaard foto, foto met tekst, Pure Blog, Pure Case en een
-informatieve carousel met swipe-indicator (de laatste slide krijgt vanzelf
-pureminds.nl). Formaten 1:1, 4:5 en 9:16 (story), gekozen direct onder het
+informatieve carousel met swipe-indicator (de laatste slide krijgt er vanzelf
+geen). Formaten 1:1, 4:5 en 9:16 (story), gekozen direct onder het
 template; de miniaturen tonen het gekozen formaat. Alle posts zijn donker.
 
 - **Volgorde:** template en formaat, foto, tekst (belangrijkste veld eerst,

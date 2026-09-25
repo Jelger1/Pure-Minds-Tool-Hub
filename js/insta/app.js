@@ -133,8 +133,8 @@
   const carousel = () => state.data.carousel;
   const isCarousel = () => state.template === 'carousel';
 
-  // De laatste slide toont pureminds.nl in plaats van de swipe-aanwijzing; dat
-  // volgt uit de volgorde, dus het kan niet meer vergeten of verkeerd staan
+  // De laatste slide krijgt geen swipe-aanwijzing; dat volgt uit de volgorde,
+  // dus het kan niet meer vergeten of verkeerd staan
   function syncLast() {
     const slides = carousel().slides;
     slides.forEach((s, i) => { s.last = i === slides.length - 1; });
