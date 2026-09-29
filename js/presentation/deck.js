@@ -45,6 +45,14 @@
     'quote.stat': ['value', 'subtitle', 'author', 'label'],
     table: ['title', 'table', 'subtitle', 'label'],
     closing: ['title', 'subtitle', 'body', 'label'],
+    // De layouts van het voorstel en de positionering
+    tekst: ['title', 'body', 'label'],
+    kolommen: ['title', 'subtitle', 'body', 'label'],
+    vragen: ['title', 'subtitle', 'body', 'label'],
+    vpc: ['vpc', 'label'],
+    // Alleen in de positionering
+    bmc: ['bmc', 'label'],
+    toelichting: ['title', 'body', 'label'],
   };
 
   // Naam van een veld: [label, met lidwoord]
@@ -58,12 +66,20 @@
     value: ['kerncijfer', 'het kerncijfer'],
     body: ['tekst', 'de tekst'],
     table: ['tabel', 'de tabel'],
+    vpc: ['waardepropositie', 'de waardepropositie'],
+    // De naam van de methode, zoals overal in de positionering
+    bmc: ['Business Model Canvas', 'het Business Model Canvas'],
   };
   const NAMES_BY = {
     'quote.stat': { subtitle: ['toelichting', 'de toelichting bij het cijfer'], author: ['bron', 'de bron'] },
     table: { subtitle: ['toelichting', 'de toelichting onder de tabel'] },
     bullets: { body: ['punten', 'de punten'] },
     closing: { body: ['contactgegevens', 'de contactgegevens'] },
+    kolommen: { subtitle: ['inleiding', 'de inleiding'], body: ['kolommen', 'de kolommen'] },
+    vragen: { subtitle: ['inleiding', 'de inleiding'], body: ['vragen', 'de vragen'] },
+    toelichting: { body: ['toelichting', 'de toelichting'] },
+    // De volle waardepropositie van de positionering heet zoals het canvas
+    'vpc.vol': { vpc: ['Waarde Propositie Canvas', 'het Waarde Propositie Canvas'] },
   };
 
   const variant = (slide) => {
@@ -74,7 +90,9 @@
 
   function nameOf(slide, key) {
     const v = variant(slide);
-    const n = (NAMES_BY[v] && NAMES_BY[v][key]) || (NAMES_BY[slide && slide.layout] && NAMES_BY[slide.layout][key]) || NAMES[key] || [key, key];
+    // Eerst een stijl met eigen namen (de volle waardepropositie)
+    const own = slide ? NAMES_BY[`${slide.layout}.${slide.style}`] : null;
+    const n = (own && own[key]) || (NAMES_BY[v] && NAMES_BY[v][key]) || (NAMES_BY[slide && slide.layout] && NAMES_BY[slide.layout][key]) || NAMES[key] || [key, key];
     return { label: n[0], name: n[1] };
   }
 
@@ -143,6 +161,14 @@
           const ph = flat.flatMap(placeholders);
           if (ph.length) add(f, 'invulplek', ph.slice(0, 3).join(', '));
           else if (opts.exampleTable && sameCells(cells, opts.exampleTable)) add(f, 'voorbeeld', 'de voorbeeldcijfers');
+          continue;
+        }
+        if (f.key === 'vpc' || f.key === 'bmc') {
+          // Een leeg canvas mag: de vakken en blokken tonen dan hun uitleg
+          filled = true;
+          const box = slide[f.key] && typeof slide[f.key] === 'object' ? slide[f.key] : {};
+          const ph = Object.values(box).flatMap(placeholders);
+          if (ph.length) add(f, 'invulplek', ph.slice(0, 3).join(', '));
           continue;
         }
         const value = String(slide[f.key] == null ? '' : slide[f.key]);

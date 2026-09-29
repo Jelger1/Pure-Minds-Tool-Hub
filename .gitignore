@@ -11,3 +11,8 @@ __pycache__/
 
 # Lokaal houden
 /brag-output/
+
+# Referentiedecks van klanten (met prijzen): alleen gebruikt om de sjablonen
+# Voorstel en Positionering te bouwen, de tool heeft ze niet nodig
+/assets/positioneringPresentaties/
+/assets/voorstelPresentaties/

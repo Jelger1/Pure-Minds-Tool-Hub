@@ -288,7 +288,8 @@
    */
   function layoutBody(ctx, text, maxW, st) {
     const indent = st.size * 1.15;
-    const gap = st.size * 0.5;
+    // st.itemGap: ruimte tussen de punten als factor van het korps (standaard 0.5)
+    const gap = st.size * (st.itemGap != null ? st.itemGap : 0.5);
     const items = [];
     let height = 0;
     for (const line of parseBody(text)) {

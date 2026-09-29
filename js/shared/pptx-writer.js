@@ -3,11 +3,11 @@
    -----------------------------------------------------------------------------
    Een .pptx is een zip met XML (Office Open XML). Deze schrijver kent precies
    genoeg daarvan voor de Presentation Maker: een master met achtergrond en
-   vaste onderdelen, en per slide tekstvakken, vormen (rechthoek, zeshoek),
-   foto's en het slidenummer. Alles wordt opgegeven in ontwerp-pixels
-   (1920 × 1080); de schrijver rekent om naar EMU's en punten. De slide is
-   13,333 × 7,5 inch ("breedbeeld" in PowerPoint), dus 1 ontwerp-px = 0,5 pt,
-   net als in de PDF-export.
+   vaste onderdelen, en per slide tekstvakken, vormen (rechthoek, zeshoek,
+   ovaal, lijn), foto's en het slidenummer. Alles wordt opgegeven in
+   ontwerp-pixels (1920 × 1080); de schrijver rekent om naar EMU's en punten.
+   De slide is 13,333 × 7,5 inch ("breedbeeld" in PowerPoint), dus
+   1 ontwerp-px = 0,5 pt, net als in de PDF-export.
 
      const deck = new PMPptxWriter({ width: 1920, height: 1080, title });
      const foto = deck.image(blob, 'jpeg', 'sleutel');
@@ -17,8 +17,12 @@
      const blob = await deck.build();
 
    Objecten (maten in ontwerp-px, kleuren als '#rrggbb' of 'rgba(...)'):
-     { kind: 'rect', x, y, w, h, fill, line, name }
+     { kind: 'rect', x, y, w, h, fill, line, name }       fill: null = alleen de rand
      { kind: 'hex', cx, cy, r, fill, line, text, name }   puntige zeshoek, r = straal
+     { kind: 'ellipse', cx, cy, rx, ry, fill, line, text, name }   ovaal of cirkel om (cx, cy)
+     { kind: 'line', x1, y1, x2, y2, line, head, tail, name }   rechte lijn van
+           (x1, y1) naar (x2, y2); head / tail: pijlpunt aan begin / eind, als
+           'triangle' of { type: 'triangle', w, len } (w, len: 'sm' | 'med' | 'lg')
      { kind: 'pic', x, y, w, h, image, crop, name }       crop: { l, t, r, b } als fractie
      { kind: 'text', x, y, w, h, anchor, wrap, autofit, paragraphs, name }
      { kind: 'sldnum', x, y, w, h, align, run }           slidenummer (veld)
@@ -29,7 +33,11 @@
    line:  { color, alpha, width } | null
    text:  { anchor: 't' | 'ctr' | 'b', wrap: true | false,
             autofit: 'shrink' | 'none', paragraphs }
-   paragraphs: [{ runs, lh, spcBef, align, bullet, indent }]
+   paragraphs: [{ runs, lh, spcBef, align, bullet, indent, marL }]
+          lh: afstand tussen de regels als factor van het korps (zoals op het canvas)
+          indent: hangend inspringen (het opsommingsteken links, de tekst op indent)
+          marL: alleen inspringen, zonder teken: het vervolg van een opsommingspunt
+                dat doorloopt in de volgende kolom (genegeerd naast indent)
    runs:  [{ text, size, weight, italic, color, alpha, track, caps }]
           size in ontwerp-px, track als fractie van de korpsgrootte
    bullet: { char, font, color, size }  size als fractie van de tekstgrootte
@@ -40,7 +48,9 @@
   const PM = global.PM;
 
   const SLIDE_CX = 12192000;   // 13,333 inch in EMU (914400 per inch)
-  const LINE = 1.362;          // regelhoogte van Open Sans bij regelafstand 100%, in em
+  // Regelafstand 100% is in PowerPoint 1,2 × het korps (gemeten met Open Sans; niet
+  // de 1,362 em van het lettertype zelf). lh 1,45 wordt dus 121%
+  const PPT_SINGLE = 1.2;
   const XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
   const NS_A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
   const NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
@@ -48,6 +58,7 @@
   const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/';
   const CT = 'application/vnd.openxmlformats-officedocument.';
   const SLIDENUM_ID = '{B6F15528-21DE-4FAA-801E-634DDDAF4B2B}';
+  const LINE_ENDS = ['triangle', 'stealth', 'diamond', 'oval', 'arrow'];  // uiteinden die het schema kent
 
   const esc = (s) => String(s == null ? '' : s)
     .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '')
@@ -138,8 +149,8 @@
 
     /* --- bouwstenen --- */
 
-    xfrm(o) {
-      return `<a:xfrm><a:off x="${this.px(o.x)}" y="${this.px(o.y)}"/><a:ext cx="${this.px(o.w)}" cy="${this.px(o.h)}"/></a:xfrm>`;
+    xfrm(o, flip = '') {
+      return `<a:xfrm${flip}><a:off x="${this.px(o.x)}" y="${this.px(o.y)}"/><a:ext cx="${this.px(o.w)}" cy="${this.px(o.h)}"/></a:xfrm>`;
     }
 
     srcRect(crop) {
@@ -161,9 +172,19 @@
       return `<a:solidFill>${clr(fill.color, fill.alpha)}</a:solidFill>`;
     }
 
-    lineXml(line) {
+    // head / tail: pijlpunt aan het begin / eind van een lijn (na miter, zoals het schema eist).
+    // Zonder maat kiest PowerPoint 'med': drie keer de lijndikte
+    lineXml(line, head, tail) {
       if (!line) return '<a:ln><a:noFill/></a:ln>';
-      return `<a:ln w="${this.px(line.width || 1)}" cap="flat"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill><a:miter lim="800000"/></a:ln>`;
+      const size = (v) => (['sm', 'med', 'lg'].includes(v) ? v : 'med');
+      const end = (tag, e) => {
+        if (!e) return '';
+        const t = e.type || e;
+        const type = LINE_ENDS.includes(t) ? t : 'triangle';
+        const dims = e.w || e.len ? ` w="${size(e.w)}" len="${size(e.len)}"` : '';
+        return `<a:${tag} type="${type}"${dims}/>`;
+      };
+      return `<a:ln w="${this.px(line.width || 1)}" cap="flat"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill><a:miter lim="800000"/>${end('headEnd', head)}${end('tailEnd', tail)}</a:ln>`;
     }
 
     // Puntige zeshoek (punt boven), zoals het logo
@@ -196,9 +217,10 @@
     paraXml(p, part) {
       const attrs = [];
       if (p.indent) attrs.push(`marL="${this.px(p.indent)}" indent="-${this.px(p.indent)}"`);
+      else if (p.marL) attrs.push(`marL="${this.px(p.marL)}" indent="0"`);
       if (p.align) attrs.push(`algn="${p.align}"`);
       let props = '';
-      if (p.lh) props += `<a:lnSpc><a:spcPct val="${Math.round((p.lh / LINE) * 100000)}"/></a:lnSpc>`;
+      if (p.lh) props += `<a:lnSpc><a:spcPct val="${Math.round((p.lh / PPT_SINGLE) * 100000)}"/></a:lnSpc>`;
       props += `<a:spcBef><a:spcPts val="${Math.max(0, Math.round((p.spcBef || 0) * 50))}"/></a:spcBef>`;
       if (p.bullet && p.bullet.image != null) {
         // Opsommingsteken als afbeelding
@@ -250,6 +272,18 @@
           const w = o.r * Math.sqrt(3);
           const h = o.r * 2;
           return this.spXml(part, { ...o, x: o.cx - w / 2, y: o.cy - o.r, w, h }, this.hexGeom(w, h));
+        }
+        case 'ellipse':
+          return this.spXml(part, { ...o, x: o.cx - o.rx, y: o.cy - o.ry, w: o.rx * 2, h: o.ry * 2 }, '<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom>');
+        case 'line': {
+          // Een lijn loopt van linksboven naar rechtsonder in zijn kader. Spiegelen
+          // legt het begin op (x1, y1): flipH als hij naar links loopt, flipV als hij
+          // omhoog loopt. Zo staat een pijlpunt (head/tail) ook aan de goede kant.
+          const id = part.ids++;
+          const box = { x: Math.min(o.x1, o.x2), y: Math.min(o.y1, o.y2), w: Math.abs(o.x2 - o.x1), h: Math.abs(o.y2 - o.y1) };
+          const flip = `${o.x2 < o.x1 ? ' flipH="1"' : ''}${o.y2 < o.y1 ? ' flipV="1"' : ''}`;
+          return `<p:cxnSp><p:nvCxnSpPr><p:cNvPr id="${id}" name="${esc(o.name || 'Lijn')}"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr>`
+            + `<p:spPr>${this.xfrm(box, flip)}<a:prstGeom prst="line"><a:avLst/></a:prstGeom>${this.lineXml(o.line, o.head, o.tail)}</p:spPr></p:cxnSp>`;
         }
         case 'pic': {
           const id = part.ids++;

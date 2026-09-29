@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Presentation Maker &middot; Pure Minds</title>
-<meta name="description" content="16:9-slides in de huisstijl van Pure Minds: zeven layouts met tabel, eigen tekst en foto's, download als PDF, PowerPoint of PNG.">
+<meta name="description" content="16:9-slides in de huisstijl van Pure Minds: zeven layouts met tabel, en voorstellen en positioneringen in de vaste opbouw, eigen tekst en foto's, download als PDF, PowerPoint of PNG.">
 <meta name="theme-color" content="#1ab9e2">
 <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
 <link rel="stylesheet" href="../css/global.css">
@@ -107,16 +107,311 @@
        RAIL: één knop per onderdeel (volgorde uit PM_HELP.presentation.sections)
        ============================================================ -->
   <nav class="rail" aria-label="Onderdelen van je slide">
+    <button class="rail__item" data-section="soort"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.9998 6V3C6.9998 2.44772 7.44752 2 7.9998 2H19.9998C20.5521 2 20.9998 2.44772 20.9998 3V17C20.9998 17.5523 20.5521 18 19.9998 18H16.9998V20.9991C16.9998 21.5519 16.5499 22 15.993 22H4.00666C3.45059 22 3 21.5554 3 20.9991L3.0026 7.00087C3.0027 6.44811 3.45264 6 4.00942 6H6.9998ZM5.00242 8L5.00019 20H14.9998V8H5.00242ZM8.9998 6H16.9998V16H18.9998V4H8.9998V6ZM7 11H13V13H7V11ZM7 15H13V17H7V15Z"/></svg><span>Soort</span></button>
+    <!-- Voorstel en Prijzen: alleen bij een voorstel; Gegevens alleen bij een positionering (app.js zet hidden) -->
+    <button class="rail__item" data-section="voorstel" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 22H5C3.34315 22 2 20.6569 2 19V3C2 2.44772 2.44772 2 3 2H17C17.5523 2 18 2.44772 18 3V15H22V19C22 20.6569 20.6569 22 19 22ZM18 17V19C18 19.5523 18.4477 20 19 20C19.5523 20 20 19.5523 20 19V17H18ZM16 20V4H4V19C4 19.5523 4.44772 20 5 20H16ZM6 7H14V9H6V7ZM6 11H14V13H6V11ZM6 15H11V17H6V15Z"/></svg><span>Voorstel</span></button>
+    <button class="rail__item" data-section="prijzen" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.0049 22.0027C6.48204 22.0027 2.00488 17.5256 2.00488 12.0027C2.00488 6.4799 6.48204 2.00275 12.0049 2.00275C17.5277 2.00275 22.0049 6.4799 22.0049 12.0027C22.0049 17.5256 17.5277 22.0027 12.0049 22.0027ZM12.0049 20.0027C16.4232 20.0027 20.0049 16.421 20.0049 12.0027C20.0049 7.58447 16.4232 4.00275 12.0049 4.00275C7.5866 4.00275 4.00488 7.58447 4.00488 12.0027C4.00488 16.421 7.5866 20.0027 12.0049 20.0027ZM10.0549 11.0027H15.0049V13.0027H10.0549C10.2865 14.1439 11.2954 15.0027 12.5049 15.0027C13.1201 15.0027 13.6833 14.7806 14.1188 14.412L15.8198 15.546C14.9973 16.4415 13.8166 17.0027 12.5049 17.0027C10.1886 17.0027 8.28107 15.2527 8.03235 13.0027H7.00488V11.0027H8.03235C8.28107 8.75277 10.1886 7.00275 12.5049 7.00275C13.8166 7.00275 14.9973 7.56402 15.8198 8.45951L14.1189 9.59351C13.6834 9.22496 13.1201 9.00275 12.5049 9.00275C11.2954 9.00275 10.2865 9.86163 10.0549 11.0027Z"/></svg><span>Prijzen</span></button>
+    <button class="rail__item" data-section="gegevens" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2H19.0049C20.1068 2 21 2.89821 21 3.9908V20.0092C21 21.1087 20.1074 22 19.0049 22H3V2ZM7 4H5V20H7V4ZM9 20H19V4H9V20ZM11 16C11 14.3431 12.3431 13 14 13C15.6569 13 17 14.3431 17 16H11ZM14 12C12.8954 12 12 11.1046 12 10C12 8.89543 12.8954 8 14 8C15.1046 8 16 8.89543 16 10C16 11.1046 15.1046 12 14 12ZM22 6H24V10H22V6ZM22 12H24V16H22V12Z"/></svg><span>Gegevens</span></button>
     <button class="rail__item" data-section="layout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H21C21.5523 3 22 3.44772 22 4V20ZM11 15H4V19H11V15ZM20 11H13V19H20V11ZM11 5H4V13H11V5ZM20 5H13V9H20V5Z"/></svg><span>Layout</span></button>
     <button class="rail__item" data-section="inhoud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5V19H19V5H5ZM4 3H20C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4C3 3.44772 3.44772 3 4 3ZM9.86885 15L9.04918 17H6.83333L11 7H13L17.1667 17H14.9508L14.1311 15H9.86885ZM10.6885 13H13.3115L12 9.8L10.6885 13Z"/></svg><span>Inhoud</span></button>
     <button class="rail__item" data-section="foto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.9918 21C2.44405 21 2 20.5551 2 20.0066V3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918ZM20 15V5H4V19L14 9L20 15ZM20 17.8284L14 11.8284L6.82843 19H20V17.8284ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z"/></svg><span>Foto</span></button>
-    <button class="rail__item" data-section="presentatie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 21V23H11V21H3C2.44772 21 2 20.5523 2 20V6H22V20C22 20.5523 21.5523 21 21 21H13ZM4 19H20V8H4V19ZM13 10H18V12H13V10ZM13 14H18V16H13V14ZM9 10V13H12C12 14.6569 10.6569 16 9 16C7.34315 16 6 14.6569 6 13C6 11.3431 7.34315 10 9 10ZM2 3H22V5H2V3Z"/></svg><span>Presentatie</span></button>
+    <button class="rail__item" data-section="presentatie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 21V23H11V21H3C2.44772 21 2 20.5523 2 20V6H22V20C22 20.5523 21.5523 21 21 21H13ZM4 19H20V8H4V19ZM13 10H18V12H13V10ZM13 14H18V16H13V14ZM9 10V13H12C12 14.6569 10.6569 16 9 16C7.34315 16 6 14.6569 6 13C6 11.3431 7.34315 10 9 10ZM2 3H22V5H2V3Z"/></svg><span>Presen&shy;tatie</span></button>
   </nav>
 
   <!-- ============================================================
        PANELEN: één tegelijk (koppen uit PM_HELP.presentation.sections)
        ============================================================ -->
   <form class="panels" id="editor" autocomplete="off" novalidate>
+
+    <!-- Soort: een gewone presentatie, een voorstel of een positionering. Wisselen bewaart de andere
+         (state.stash); de miniaturen tonen de titelslide van elk -->
+    <section class="panel" data-section="soort">
+      <header class="panel__head">
+        <h2 class="panel__title">Wat maak je<span class="dot">?</span> <button type="button" class="help" data-help="soort"></button></h2>
+      </header>
+      <div class="panel__body">
+        <div class="field">
+          <div class="layout-grid" id="deckTypeGrid" role="radiogroup" aria-label="Wat maak je?">
+            <label class="layout-tile">
+              <input type="radio" name="deckType" value="regulier">
+              <canvas data-deck="regulier" width="272" height="153" aria-hidden="true"></canvas>
+              <b>Presentatie</b><i>vrije slides in zeven layouts</i>
+            </label>
+            <label class="layout-tile">
+              <input type="radio" name="deckType" value="voorstel">
+              <canvas data-deck="voorstel" width="272" height="153" aria-hidden="true"></canvas>
+              <b>Voorstel</b><i>na het eerste gesprek</i>
+            </label>
+            <label class="layout-tile">
+              <input type="radio" name="deckType" value="positionering">
+              <canvas data-deck="positionering" width="272" height="153" aria-hidden="true"></canvas>
+              <b>Positionering</b><i>na het traject: canvassen en toelichting</i>
+            </label>
+          </div>
+          <p class="field-hint">Zo werkt Pure Minds: na het eerste gesprek het voorstel, na het traject de positionering. Wisselen mag altijd: niets gaat verloren.</p>
+        </div>
+
+        <div class="panel__foot">
+          <span>Alles wordt in deze browser onthouden.</span>
+          <button type="button" class="linkbtn" id="resetBtn">nieuwe presentatie</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Voorstel: alleen bij een voorstel. Het formulier maakt de slides (js/presentation/voorstel.js);
+         wat je zelf op een slide aanpast, blijft staan. data-form-deck: velden van dit formulier -->
+    <section class="panel" data-section="voorstel" data-form-deck="voorstel">
+      <div class="panel__body">
+        <div class="pos-intro">
+          <p class="panel__lead">Vul de gegevens in: de slides worden meteen bijgewerkt. <button type="button" class="help" data-help="voorstel"></button></p>
+          <p class="field-hint">Wat je op een slide zelf aanpast, blijft staan. <button type="button" class="help" data-help="uit-voorstel"></button></p>
+        </div>
+
+        <!-- Wat nog ontbreekt, live bijgewerkt (checklist van het recept); elk punt brengt je naar het veld -->
+        <section class="pos-check" id="pCheck" data-tour="checklist" aria-labelledby="pCheckTitle">
+          <h3 class="pos-check__title"><span id="pCheckTitle">Klaar om te versturen?</span> <button type="button" class="help" data-help="checklist"></button><span class="pos-check__count" id="pCheckCount"></span></h3>
+          <ul class="pos-check__list" id="pCheckList"></ul>
+        </section>
+
+        <!-- Slides die je uit het voorstel verwijderde: hier zet je ze terug (bovenaan, dus meteen te zien) -->
+        <p class="notice pos-note" id="pRestore" role="status" hidden><span id="pRestoreText"></span> <button type="button" class="linkbtn" id="pRestoreBtn">zet terug</button></p>
+
+        <h3 class="pos-h">Klant</h3>
+        <div class="field" data-tour="voorstel">
+          <label class="label" for="pKlant">Klantnaam</label>
+          <input class="input" id="pKlant" data-form="klant" maxlength="60" placeholder="bijv. Speedstar Logistics">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label class="label" for="pDatum">Datum <i>op de titelslide</i></label>
+            <input class="input" id="pDatum" data-form="datum" maxlength="30" placeholder="bijv. januari 2026">
+          </div>
+          <div class="field">
+            <label class="label" for="pGesprek">Gesprek in <i>optioneel</i></label>
+            <input class="input" id="pGesprek" data-form="gesprek" maxlength="30" placeholder="bijv. januari">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="pTraject">Ondertitel <i>optioneel</i></label>
+          <input class="input" id="pTraject" data-form="traject" maxlength="80" placeholder="bijv. Positionering en merkverhaal">
+        </div>
+        <div class="field">
+          <span class="label" id="pLogoLabel">Klantlogo <i>op de titelslide</i></span>
+          <div class="pos-logo" role="group" aria-labelledby="pLogoLabel">
+            <span id="pLogoState">nog geen logo</span>
+            <button type="button" class="btn btn-outline btn-xs" id="pLogoBtn" aria-describedby="pLogoState">logo kiezen</button>
+          </div>
+          <p class="field-hint">Het liefst een PNG of SVG met transparante achtergrond, in kleur (geen witte versie).</p>
+        </div>
+
+        <h3 class="pos-h">Situatie</h3>
+        <div class="field" data-tour="situatie">
+          <label class="label" for="pSituatie">Huidige situatie <i>een paar alinea's</i></label>
+          <textarea class="input" id="pSituatie" data-form="situatie" rows="6" data-rich="vet" data-toolbar="vet" data-toolbar-label="huidige situatie" placeholder="Waar staat de klant nu? Sterke punten, wat ontbreekt en de wens. Een lege regel begint een nieuwe alinea."></textarea>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="pOnGewenst" data-form-on="gewenst">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Slide <b>gewenste situatie</b></span>
+        </label>
+        <div class="field pos-sub" data-form-if="gewenst">
+          <label class="label" for="pGewenst">Gewenste situatie</label>
+          <textarea class="input" id="pGewenst" data-form="gewenst" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="gewenste situatie" placeholder="Waar wil de klant naartoe?"></textarea>
+        </div>
+
+        <h3 class="pos-h">Aanpak</h3>
+        <div class="field">
+          <label class="label" for="pDiensten">Wat wij gaan doen <i>één punt per regel &middot; leeg = uit de onderdelen</i></label>
+          <textarea class="input" id="pDiensten" data-form="diensten" rows="4"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="pNamen">Interview met <i>optioneel</i></label>
+          <input class="input" id="pNamen" data-form="namen" maxlength="80" placeholder="bijv. Joyce en Mitch">
+        </div>
+
+        <h3 class="pos-h" id="pPartsLabel">Onderdelen <button type="button" class="help" data-help="onderdelen"></button></h3>
+        <div class="pos-parts" role="group" aria-labelledby="pPartsLabel" data-tour="onderdelen">
+          <label class="switch">
+            <input type="checkbox" data-form-on="vpc">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Waardepropositie-canvas <span class="muted">invullen bij Inhoud</span></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="website">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Website</span>
+          </label>
+          <div class="field pos-sub" data-form-if="website">
+            <span class="label" id="pWebsiteLabel">Soort</span>
+            <div class="seg seg--2" role="radiogroup" aria-labelledby="pWebsiteLabel">
+              <input type="radio" name="websiteSoort" id="pw-nieuw" value="nieuw" data-form="websiteSoort"><label for="pw-nieuw"><b>nieuwe website</b></label>
+              <input type="radio" name="websiteSoort" id="pw-optimaliseren" value="optimaliseren" data-form="websiteSoort"><label for="pw-optimaliseren"><b>optimaliseren</b></label>
+            </div>
+          </div>
+          <div class="field pos-sub" data-form-if="website">
+            <label class="label" for="pWebsiteNu">Over de huidige website <i>optioneel</i></label>
+            <textarea class="input" id="pWebsiteNu" data-form="websiteNu" rows="3" placeholder="bijv. De huidige website is verouderd en technisch niet goed opgebouwd."></textarea>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-form-on="sea">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">SEA <span class="muted">Google Ads, een punt bij de aanpak</span></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="ga4">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">GA4-audit</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="gbp">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Google Bedrijfsprofiel</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="uitvoering">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Uitvoering</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="meetbaar">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Meetbaar maken</span>
+          </label>
+        </div>
+
+        <div class="panel__foot">
+          <span>Alles wordt in deze browser onthouden.</span>
+          <button type="button" class="linkbtn" data-action="nieuw-voorstel">nieuw voorstel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Prijzen: de investering als regels, zoals de offerteregels van de Document Maker
+         (.items in editor.css). app.js bouwt de regels; Enter = volgende regel, plakken uit Excel kan -->
+    <section class="panel" data-section="prijzen" data-form-deck="voorstel">
+      <div class="panel__body">
+        <p class="panel__lead">Elke regel wordt een rij in de tabel op de slide Investering.</p>
+
+        <div class="field" data-tour="prijzen">
+          <span class="label" id="pEenmaligLabel">Eenmalig <button type="button" class="help" data-help="prijsregels"></button></span>
+          <p class="field-hint">Bedragen mogen als 1500, 1.500 of &euro; 1.500,-.</p>
+          <div class="items items--2" role="table" aria-labelledby="pEenmaligLabel">
+            <div class="items__head" role="row">
+              <span class="items__h items__h--desc" role="columnheader">Omschrijving</span>
+              <span class="items__h items__h--price" role="columnheader">Bedrag</span>
+              <span class="items__h items__h--del" role="columnheader"><span class="sr-only">Verwijderen</span></span>
+            </div>
+            <div data-price-rows="eenmalig"></div>
+          </div>
+          <div class="items__foot">
+            <button type="button" class="btn btn-quiet btn-sm" data-price-add="eenmalig">+ regel toevoegen</button>
+            <span class="items__tip for-mouse">Enter = volgende regel</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label" id="pMaandelijksLabel">Maandelijks <i>optioneel</i></span>
+          <div class="items items--2" role="table" aria-labelledby="pMaandelijksLabel">
+            <div class="items__head" role="row">
+              <span class="items__h items__h--desc" role="columnheader">Omschrijving</span>
+              <span class="items__h items__h--price" role="columnheader">Bedrag</span>
+              <span class="items__h items__h--del" role="columnheader"><span class="sr-only">Verwijderen</span></span>
+            </div>
+            <div data-price-rows="maandelijks"></div>
+          </div>
+          <div class="items__foot">
+            <button type="button" class="btn btn-quiet btn-sm" data-price-add="maandelijks">+ regel toevoegen</button>
+            <span class="items__tip for-mouse">plakken uit Excel kan ook</span>
+          </div>
+        </div>
+        <p class="notice notice-warn pos-note" id="pPriceNote" role="status" hidden></p>
+
+        <label class="switch">
+          <input type="checkbox" id="pTotaal" data-form="totaal">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt"><b>Totaal</b> per groep optellen</span>
+        </label>
+        <div class="field">
+          <label class="label" for="pVoetnoot">Voetnoot <i>optioneel, onder de tabel</i></label>
+          <input class="input" id="pVoetnoot" data-form="voetnoot" maxlength="160" placeholder="bijv. Alle bedragen zijn exclusief btw.">
+        </div>
+      </div>
+    </section>
+
+    <!-- Gegevens: alleen bij een positionering. Het formulier heeft alleen de klant, de datum en het
+         aanbod (js/presentation/positionering.js); de canvassen en de toelichting schrijf je per slide,
+         bij Inhoud. Wat je zelf op een slide aanpast, blijft staan -->
+    <section class="panel" data-section="gegevens" data-form-deck="positionering">
+      <div class="panel__body">
+        <div class="pos-intro">
+          <p class="panel__lead">Vul de klant in: de vaste slides volgen meteen. De canvassen en de toelichting schrijf je per slide, bij Inhoud. <button type="button" class="help" data-help="gegevens"></button></p>
+          <p class="field-hint">Wat je op een slide zelf aanpast, blijft staan. <button type="button" class="help" data-help="uit-voorstel"></button></p>
+        </div>
+
+        <!-- Wat nog ontbreekt, live bijgewerkt (checklist van het recept); elk punt brengt je naar het veld -->
+        <section class="pos-check" id="psCheck" data-tour="gegevens-checklist" aria-labelledby="psCheckTitle">
+          <h3 class="pos-check__title"><span id="psCheckTitle">Klaar om te versturen?</span> <button type="button" class="help" data-help="checklist-positionering"></button><span class="pos-check__count" id="psCheckCount"></span></h3>
+          <ul class="pos-check__list" id="psCheckList"></ul>
+        </section>
+
+        <!-- Slides die je uit de positionering verwijderde: hier zet je ze terug (bovenaan, dus meteen te zien) -->
+        <p class="notice pos-note" id="psRestore" role="status" hidden><span id="psRestoreText"></span> <button type="button" class="linkbtn" id="psRestoreBtn">zet terug</button></p>
+
+        <h3 class="pos-h">Klant</h3>
+        <div class="field" data-tour="gegevens-klant">
+          <label class="label" for="psKlant">Klantnaam</label>
+          <input class="input" id="psKlant" data-form="klant" maxlength="40" placeholder="bijv. Eurosit">
+        </div>
+        <div class="field">
+          <label class="label" for="psDatum">Datum <i>op de titelslide</i></label>
+          <input class="input" id="psDatum" data-form="datum" maxlength="30" placeholder="bijv. oktober 2026">
+        </div>
+        <div class="field">
+          <span class="label" id="psAanbodLabel">Aanbod <i>in de afsluiter</i></span>
+          <div class="seg seg--2" role="radiogroup" aria-labelledby="psAanbodLabel">
+            <input type="radio" name="aanbod" id="ps-aanbod-diensten" value="diensten" data-form="aanbod"><label for="ps-aanbod-diensten"><b>diensten</b></label>
+            <input type="radio" name="aanbod" id="ps-aanbod-producten" value="producten" data-form="aanbod"><label for="ps-aanbod-producten"><b>producten &amp; diensten</b></label>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label" id="psFotoLabel">Foto <i>op de titelslide, optioneel</i></span>
+          <div class="pos-logo" role="group" aria-labelledby="psFotoLabel">
+            <span id="psFotoState">nog geen foto</span>
+            <button type="button" class="btn btn-outline btn-xs" id="psFotoBtn" aria-describedby="psFotoState">foto kiezen</button>
+          </div>
+        </div>
+
+        <h3 class="pos-h" id="psPartsLabel">Onderdelen <button type="button" class="help" data-help="onderdelen-positionering"></button></h3>
+        <div class="pos-parts" role="group" aria-labelledby="psPartsLabel" data-tour="gegevens-onderdelen">
+          <label class="switch">
+            <input type="checkbox" data-form-on="bmcOverzicht">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Business Model Canvas <span class="muted">overzicht, invullen bij Inhoud</span></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="vpcOverzicht">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Waarde Propositie Canvas <span class="muted">overzicht, invullen bij Inhoud</span></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="bmcUitleg">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Toelichting Business Model Canvas <span class="muted">zeven slides</span></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-form-on="vpcUitleg">
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Toelichting Waarde Propositie Canvas <span class="muted">zes slides</span></span>
+          </label>
+        </div>
+        <p class="field-hint">Tip: vul eerst beide canvassen in trefwoorden en schrijf daarna per blok de toelichting.</p>
+
+        <div class="panel__foot">
+          <span>Alles wordt in deze browser onthouden.</span>
+          <button type="button" class="linkbtn" data-action="nieuwe-positionering">nieuwe positionering</button>
+        </div>
+      </div>
+    </section>
 
     <!-- Layout: het raster staat altijd open, de huidige layout is gemarkeerd -->
     <section class="panel" data-section="layout">
@@ -133,6 +428,94 @@
     <section class="panel" data-section="inhoud">
       <div class="panel__body">
         <p class="slide-lead"><span class="slide-lead__no" id="inhoudSlide">slide 1</span><span class="slide-lead__name" id="inhoudLayout">Titelslide</span><span class="slide-lead__nav"><button type="button" class="iconbtn" data-browse="-1" aria-label="Vorige slide"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8284 12.0007L15.7782 16.9504L14.364 18.3646L8 12.0007L14.364 5.63672L15.7782 7.05093L10.8284 12.0007Z"/></svg></button><button type="button" class="iconbtn" data-browse="1" aria-label="Volgende slide"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.1717 12.0007L8.22192 7.05093L9.63614 5.63672L16.0001 12.0007L9.63614 18.3646L8.22192 16.9504L13.1717 12.0007Z"/></svg></button></span><button type="button" class="linkbtn" data-open="layout">andere layout</button></p>
+        <!-- Een slide uit het voorstel of de positionering: het formulier werkt hem bij, behalve wat je
+             hier zelf aanpast. data-open="voorstel": naar het formulier van de soort (app.js). Een
+             toelichting brengt je naar zijn blok op het canvas -->
+        <p class="notice pos-note" id="posNote" data-tour="posnote" tabindex="-1" hidden>
+          <span id="posNoteText"></span>
+          <button type="button" class="help" data-help="uit-voorstel"></button>
+          <button type="button" class="linkbtn" id="posNoteGo" data-open="voorstel">naar voorstel</button>
+          <button type="button" class="linkbtn" id="posNoteCanvas" hidden>naar het canvas</button>
+          <button type="button" class="linkbtn" id="posResetBtn" hidden>terugzetten</button>
+        </p>
+
+        <!-- Waardepropositie: de vakken horen bij deze slide, zoals de tekst van elke andere slide.
+             Eerst de klant (klantprofiel), dan wat jullie bieden (waardemap): zo werkt de methode.
+             In een positionering staat er meer in; de uitleg komt op de toelichtingsslides -->
+        <div class="vpc-fields" data-for="vpc">
+          <p class="field-hint" data-type="regulier voorstel">Eerst de klant, dan wat jullie bieden. Houd het bij trefwoorden: drie of vier per vak. <button type="button" class="help" data-help="waardepropositie"></button></p>
+          <p class="field-hint" data-type="positionering">Kort en krachtig: de uitleg per vak schrijf je op de toelichtingsslides. <button type="button" class="help" data-help="waardepropositie"></button></p>
+          <h3 class="pos-h">Klantprofiel</h3>
+          <div class="grid2">
+            <div class="field">
+              <label class="label" for="sv-segment">Klantsegment</label>
+              <input class="input" id="sv-segment" data-vpc="segment" maxlength="60" placeholder="bijv. logistiek managers">
+            </div>
+            <div class="field">
+              <label class="label" for="sv-klanttype">Klanttype <i>optioneel</i></label>
+              <input class="input" id="sv-klanttype" data-vpc="klanttype" maxlength="60" placeholder="bijv. zakelijk">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="sv-taken">Klanttaken <i>één per regel</i></label>
+            <textarea class="input" id="sv-taken" data-vpc="taken" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="klanttaken" placeholder="Wat is de klant aan het doen waarbij hij jullie product of dienst nodig heeft?"></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sv-pijnen">Pijnpunten <i>één per regel</i></label>
+            <textarea class="input" id="sv-pijnen" data-vpc="pijnen" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="pijnpunten" placeholder="Welke problemen, hindernissen en risico’s ervaart de klant?"></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sv-voordelen">Voordelen <i>één per regel</i></label>
+            <textarea class="input" id="sv-voordelen" data-vpc="voordelen" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="voordelen" placeholder="Welke voordelen zoekt de klant: vereist, verwacht, gewenst, onverwacht?"></textarea>
+          </div>
+          <h3 class="pos-h">Waardemap</h3>
+          <div class="field">
+            <label class="label" for="sv-producten"><span data-layout-text="vpc:Producten &amp; diensten|vpc.vol:Producten &amp; Diensten">Producten &amp; diensten</span> <i>één per regel</i></label>
+            <textarea class="input" id="sv-producten" data-vpc="producten" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="producten &amp; diensten" placeholder="Wat bieden jullie aan: fysiek, niet tastbaar, digitaal, financieel?"></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sv-verzachters">Pijnverzachters <i>één per regel</i></label>
+            <textarea class="input" id="sv-verzachters" data-vpc="verzachters" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="pijnverzachters" placeholder="Hoe verzachten jullie de pijn van de klant?"></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sv-verschaffers">Voordeelverschaffers <i>één per regel</i></label>
+            <textarea class="input" id="sv-verschaffers" data-vpc="verschaffers" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="voordeelverschaffers" placeholder="Hoe leveren jullie de resultaten die de klant wil?"></textarea>
+          </div>
+        </div>
+
+        <!-- Business model canvas (positionering): de zeven blokken horen bij deze slide, in de volgorde
+             van het canvas. Een **kopje** met punten eronder geeft structuur; de uitleg komt op de toelichting -->
+        <div class="vpc-fields bmc-fields" data-for="bmc">
+          <p class="field-hint">Per blok een paar vette kopjes met punten eronder, elk punt met - ervoor. Trefwoorden: de uitleg komt op de toelichtingsslides. <button type="button" class="help" data-help="business-model-canvas"></button></p>
+          <div class="field">
+            <label class="label" for="sb-partners">Key Partners</label>
+            <textarea class="input" id="sb-partners" data-bmc="partners" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="key partners" placeholder="Wie helpen jullie de waarde te leveren? Leveranciers, partners, specialisten."></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sb-activiteiten">Kernactiviteiten</label>
+            <textarea class="input" id="sb-activiteiten" data-bmc="activiteiten" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="kernactiviteiten" placeholder="Wat doen jullie om die waarde te leveren? De belangrijkste werkzaamheden."></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sb-resources">Key Resources</label>
+            <textarea class="input" id="sb-resources" data-bmc="resources" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="key resources" placeholder="Wat is daarvoor nodig? Team, kennis, middelen, data."></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sb-proposities">Waardeproposities</label>
+            <textarea class="input" id="sb-proposities" data-bmc="proposities" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="waardeproposities" placeholder="Welke waarde leveren jullie? Aanbod, opgeloste problemen, onderscheid, resultaat."></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sb-relaties">Klantrelaties</label>
+            <textarea class="input" id="sb-relaties" data-bmc="relaties" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="klantrelaties" placeholder="Hoe onderhouden jullie de band met elke klantgroep?"></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sb-kanalen">Kanalen</label>
+            <textarea class="input" id="sb-kanalen" data-bmc="kanalen" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="kanalen" placeholder="Hoe bereiken en bedienen jullie de klant? Online, showroom, beurzen."></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="sb-segmenten">Klantsegmenten</label>
+            <textarea class="input" id="sb-segmenten" data-bmc="segmenten" rows="4" data-rich="vet" data-toolbar="vet" data-toolbar-label="klantsegmenten" placeholder="Voor wie creëren jullie waarde? B2B of B2C, beslissers, regio."></textarea>
+          </div>
+        </div>
 
         <div class="field" data-for="quote">
           <span class="label" id="styleLabel">Soort <button type="button" class="help" data-help="citaat-of-cijfer"></button></span>
@@ -142,7 +525,7 @@
           </div>
         </div>
 
-        <div class="field" data-for="title section bullets split table closing" data-tour="titel">
+        <div class="field" data-for="title section bullets split table closing tekst kolommen vragen toelichting" data-tour="titel">
           <label class="label" for="sTitle">Titel <button type="button" class="help" data-help="nadruk"></button></label>
           <textarea class="input" id="sTitle" data-bind="title" rows="2" data-rich="nadruk" data-toolbar="nadruk grootte" data-toolbar-label="titel"></textarea>
         </div>
@@ -182,8 +565,8 @@
           </label>
         </div>
 
-        <div class="field" data-for="title section closing quote.stat table">
-          <label class="label" for="sSubtitle"><span data-layout-text="title:Ondertitel|section:Ondertitel|closing:Ondertitel|quote:Toelichting bij het cijfer|table:Toelichting onder de tabel">Ondertitel</span> <i>optioneel</i></label>
+        <div class="field" data-for="title section closing quote.stat table kolommen vragen">
+          <label class="label" for="sSubtitle"><span data-layout-text="title:Ondertitel|section:Ondertitel|closing:Ondertitel|quote:Toelichting bij het cijfer|table:Toelichting onder de tabel|kolommen:Inleiding|vragen:Inleiding">Ondertitel</span> <i>optioneel</i></label>
           <textarea class="input" id="sSubtitle" data-bind="subtitle" rows="2" data-rich="vet" data-toolbar="vet"></textarea>
         </div>
 
@@ -197,10 +580,11 @@
           <input class="input" id="sMeta" data-bind="meta" maxlength="90" data-rich="vet" data-toolbar="vet" data-toolbar-label="regel onderaan">
         </div>
 
-        <div class="field" data-for="bullets split closing">
-          <label class="label" for="sBody"><span data-layout-text="bullets:Punten|split:Tekst|closing:Contactgegevens">Tekst</span> <i data-layout-text="bullets:één punt per regel|split:een regel met - ervoor wordt een opsomming|closing:één regel per gegeven">één punt per regel</i> <button type="button" class="help" data-help="opsomming"></button></label>
+        <div class="field" data-for="bullets split closing tekst kolommen vragen toelichting">
+          <label class="label" for="sBody"><span data-layout-text="bullets:Punten|split:Tekst|closing:Contactgegevens|tekst:Tekst|kolommen:Kolommen|vragen:Vragen|vragen@agenda:Onderdelen|toelichting:Toelichting">Tekst</span> <i data-layout-text="bullets:één punt per regel|split:een regel met - ervoor wordt een opsomming|closing:één regel per gegeven|tekst:een regel met - ervoor wordt een opsomming|kolommen:per kolom een kop en tekst, een lege regel ertussen|vragen:één per regel als kop - vraag; na een lege regel een slotzin|vragen@agenda:één per regel|toelichting:alinea's, een kopje vet, een punt met - ervoor">één punt per regel</i> <button type="button" class="help" data-help="opsomming"></button></label>
           <textarea class="input" id="sBody" data-bind="body" rows="5" data-rich="vet" data-toolbar="vet"></textarea>
         </div>
+        <p class="field-hint" data-for="toelichting">Lange tekst loopt vanzelf over twee kolommen. <button type="button" class="help" data-help="toelichting"></button></p>
 
         <div class="field">
           <label class="label" for="sLabel">Label <i>klein, linksboven &middot; optioneel</i> <button type="button" class="help" data-help="label"></button></label>
@@ -215,7 +599,7 @@
         <h2 class="panel__title">Foto op deze slide<span class="dot">.</span> <button type="button" class="help" data-help="foto-in-zeshoek" data-for="title closing"></button></h2>
       </header>
       <div class="panel__body">
-        <p class="panel__lead" data-layout-text="title:Optioneel: hij komt rechts in een grote zeshoek.|split:Hij vult de helft van de slide, van boven tot onder.|closing:Optioneel: hij komt rechts in een grote zeshoek."></p>
+        <p class="panel__lead" id="photoLead" data-layout-text="title:Optioneel: hij komt rechts in een grote zeshoek.|split:Hij vult de helft van de slide, van boven tot onder.|closing:Optioneel: hij komt rechts in een grote zeshoek."></p>
 
         <div class="field">
           <div class="drop" id="photoDrop" tabindex="0" role="button" aria-labelledby="photoDropTitle" data-tour="foto">
@@ -232,6 +616,15 @@
           </div>
         </div>
         <div class="notice notice-warn photo-note" id="photoNote" role="status" hidden></div>
+
+        <!-- Alleen in een voorstel of positionering: een klantlogo in zijn geheel op een witte zeshoek -->
+        <div class="field" data-for="title closing" data-type="voorstel positionering">
+          <span class="label" id="fitLabel">Foto of logo <button type="button" class="help" data-help="foto-of-logo"></button></span>
+          <div class="seg seg--2" role="radiogroup" aria-labelledby="fitLabel">
+            <input type="radio" name="photoFit" id="fit-cover" value="cover" data-bind="photoFit"><label for="fit-cover"><b>foto</b></label>
+            <input type="radio" name="photoFit" id="fit-logo" value="logo" data-bind="photoFit"><label for="fit-logo"><b>logo</b></label>
+          </div>
+        </div>
 
         <div class="field" data-for="split">
           <span class="label" id="sideLabel">Foto staat <button type="button" class="help" data-help="foto-kant"></button></span>
@@ -266,10 +659,6 @@
           <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
           <span class="switch__txt">Cyaan punt achter de titels <span class="muted">zoals in &ldquo;Pure Minds.&rdquo;</span> <button type="button" class="help" data-help="cyaan-punt"></button></span>
         </label>
-        <div class="panel__foot">
-          <span>Tekst en foto's worden in deze browser onthouden.</span>
-          <button type="button" class="linkbtn" id="resetBtn">nieuwe presentatie</button>
-        </div>
       </div>
     </section>
   </form>
@@ -284,7 +673,17 @@
         <span class="pill" id="dimPill">1920 &times; 1080 px</span>
       </div>
       <div class="stage__group">
-        <button type="button" class="btn btn-outline btn-sm" id="previewPhotoBtn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>foto toevoegen</button>
+        <button type="button" class="btn btn-outline btn-sm" id="previewPhotoBtn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span><span id="previewPhotoTxt">foto</span><span class="stage-add__tail"> toevoegen</span></span></button>
+        <!-- Keurmerk aan/uit, naast wat het verandert; geldt voor elke slide -->
+        <span class="badge-wrap" data-tour="badge">
+          <label class="badge-toggle">
+            <input type="checkbox" id="badgeToggle">
+            <img class="badge-toggle__mark" src="../assets/brand/emerce/e100-2026-liggend-zwart.svg" alt="" width="38" height="14">
+            <span class="badge-toggle__txt">Emerce 100<span class="sr-only">-badge op de slides</span></span>
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          </label>
+          <button type="button" class="help" data-help="emerce-badge"></button>
+        </span>
       </div>
     </div>
     <div class="stage__tools"><div id="tbar"></div></div>
@@ -363,6 +762,9 @@
 <script src="../js/shared/brand.js"></script>
 <script src="../js/shared/pdf-canvas.js"></script>
 <script src="../js/shared/pptx-writer.js"></script>
+<script src="../js/presentation/generator.js"></script>
+<script src="../js/presentation/voorstel.js"></script>
+<script src="../js/presentation/positionering.js"></script>
 <script src="../js/presentation/templates.js"></script>
 <script src="../js/presentation/pptx.js"></script>
 <script src="../js/presentation/deck.js"></script>

@@ -113,19 +113,43 @@ window.PM_TOOLS = [
     name: 'Presentation Maker',
     short: 'presentaties',
     href: 'tools/presentation.html',
-    description: 'Slides in zeven layouts, van titel en tabel tot kerncijfer en afsluiter.',
+    description: 'Slides in zeven layouts, en voorstellen en positioneringen in de vaste opbouw van Pure Minds.',
     exports: ['PDF', 'PowerPoint', 'Google Slides', 'PNG'],
     tour: 'je eerste presentatie',
     status: 'nieuw',
     newUntil: '2026-11-01',
     starts: [
-      { label: 'Presentatie', sub: '16:9 · slides', ratio: '16 / 9', stack: true },
+      // Altijd de gewone presentatie (je voorstel en positionering blijven bij Soort); app.js telt
+      // type=regulier niet als snelle start, dus bij een eerste bezoek start de rondleiding zoals altijd.
+      { label: 'Presentatie', sub: '16:9 · slides', ratio: '16 / 9', stack: true, params: { type: 'regulier' } },
+      // Wisselen naar je voorstel of positionering (of er een beginnen); wat open stond, blijft bewaard.
+      // In de volgorde van het klanttraject: eerst het voorstel, na het traject de positionering
+      { label: 'Voorstel', sub: '16:9 · voorstel', ratio: '16 / 9', stack: true, params: { type: 'voorstel' } },
+      { label: 'Positionering', sub: '16:9 · positionering', ratio: '16 / 9', stack: true, params: { type: 'positionering' } },
     ],
     draft: {
       key: 'pm-presentation-v1',
+      // Alleen het soort dat open staat; de andere (state.stash) wachten bij Soort
       summary: (s) => {
-        const n = Array.isArray(s.slides) ? s.slides.length : 0;
-        return { title: n ? s.slides[0].title || s.slides[0].label : '', sub: n === 1 ? '1 slide' : `${n} slides`, ratio: '16 / 9', noun: 'presentatie' };
+        const slides = Array.isArray(s.slides) ? s.slides : [];
+        const n = slides.length;
+        const count = n === 1 ? '1 slide' : `${n} slides`;
+        // Het formulier heette vóór versie 2 pos
+        const raw = s.form || s.pos;
+        const form = raw && typeof raw === 'object' ? raw : {};
+        // Zoals normalize in app.js: een 'positionering' van vóór versie 2 was altijd een
+        // voorstel (de positionering bestond nog niet); de vorm van het formulier is het vangnet
+        const looksVoorstel = ['traject', 'situatie', 'diensten', 'eenmalig', 'maandelijks', 'websiteSoort'].some((k) => k in form);
+        const type = s.type === 'positionering' && (!(s.v >= 2) || looksVoorstel) ? 'voorstel' : s.type;
+        const names = type === 'voorstel' ? ['Voorstel', 'Nieuw voorstel'] : type === 'positionering' ? ['Positionering', 'Nieuwe positionering'] : null;
+        if (names) {
+          // Naar de titelslide; staat die uit of staat er nog [klantnaam], dan naar de klant
+          const cover = slides.find((x) => x && x.role === 'cover');
+          const coverTitle = cover && cover.title && !/\[klantnaam\]/i.test(cover.title) ? cover.title : '';
+          const klant = typeof form.klant === 'string' ? form.klant.trim() : '';
+          return { title: coverTitle || (klant ? `${names[0]} ${klant}` : names[1]), sub: `${type} · ${count}`, ratio: '16 / 9', noun: type };
+        }
+        return { title: n ? slides[0].title || slides[0].label : '', sub: count, ratio: '16 / 9', noun: 'presentatie' };
       },
     },
   },
@@ -173,6 +197,17 @@ window.PM_TOOLS = [
     href: 'https://seo-content-gap-analyzer-1yxm.vercel.app/',
     description: 'Zet je pagina naast de Google-top 10 en laat zien welke koppen, termen en vragen jij nog mist.',
     exports: ['contentbriefing', 'markdown'],
+    status: 'nieuw',
+    newUntil: '2026-12-01',
+  },
+  {
+    id: 'keyword-focus',
+    name: 'Keyword Focus & Intent Check',
+    group: 'techniek',
+    kind: 'web',
+    href: 'https://keyword-focus-intent-check.vercel.app/',
+    description: 'Past je pagina bij het focuszoekwoord en de zoekintentie? En wat mist er dan nog?',
+    exports: ['intentcheck', 'contentbriefing', 'PDF', 'markdown'],
     status: 'nieuw',
     newUntil: '2026-12-01',
   },

@@ -13,7 +13,7 @@ Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 |---|---|---|
 | [Insta Post Maker](tools/insta.html) | Instagram- en LinkedIn-posts in vijf templates | PNG, JPG, PDF om verder te bewerken in Canva (elke post; een carousel als één PDF met een pagina per slide) |
 | [Document Maker](tools/document.html) | Brief, offerte, memo of notitie op A4-briefpapier | bewerkbare PDF, Word (.docx, ook voor Google Docs), afdrukken |
-| [Presentation Maker](tools/presentation.html) | 16:9-slides in zeven layouts, waaronder een tabel | bewerkbare PDF, PowerPoint (.pptx, ook voor Google Slides), PNG (Full HD of 4K) |
+| [Presentation Maker](tools/presentation.html) | 16:9-slides in zeven layouts, waaronder een tabel, plus voorstellen en positioneringen in de vaste opbouw van Pure Minds | bewerkbare PDF, PowerPoint (.pptx, ook voor Google Slides), PNG (Full HD of 4K) |
 | [Icon Finder](tools/icons.html) | Ruim 3.200 iconen zoeken in het Nederlands of Engels, los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
 
 Alle PDF's hebben **echte tekst** in ingesloten Open Sans, met per gewicht een
@@ -86,9 +86,17 @@ js/
   document/help.js            [?]-uitleg, rondleiding en sneltoetsen (PM_HELP.document)
   document/pdf.js             A4-pagina's uit de preview als vector-PDF
   document/docx.js            het document als Word-bestand
-  presentation/templates.js   zeven layouts: plan (maten, regelval), tekenen, regio's
+  presentation/templates.js   zeven layouts, plus vier voor het voorstel en de positionering en twee alleen
+                              voor de positionering: plan (maten, regelval), tekenen, regio's
   presentation/deck.js        voorbeeldslides, velden per layout en de controle op voorbeeldtekst (zonder DOM)
-  presentation/help.js        [?]-uitleg, rondleiding en sneltoetsen (PM_HELP.presentation)
+  presentation/generator.js   wat het voorstel en de positionering delen: slides uit het formulier bijwerken
+                              zonder je eigen aanpassingen te raken, parkeren, checklist (zonder DOM)
+  presentation/voorstel.js    het voorstel (na het eerste gesprek): vaste opbouw en teksten, prijzen
+  presentation/positionering.js de positionering (na het traject): vaste opbouw en teksten, canvassen,
+                              toelichting per blok
+  presentation/help.js        [?]-uitleg, rondleiding en sneltoetsen (PM_HELP.presentation), plus de
+                              rondleidingen van het voorstel en de positionering (PM_HELP.voorstel,
+                              PM_HELP.positionering)
   presentation/pptx.js        de slides als PowerPoint-bestand
   presentation/app.js         editor, strook met slides, foto's en export
   icons/icon-data.js          alle iconen als pad (gegenereerd: npm run icons)
@@ -97,7 +105,7 @@ js/
   icons/search.js             zoeken met rangschikking, meervouden en typfouten
   icons/app.js                Icon Finder
 assets/brand/                 Open Sans, logo's, favicon, brandbook
-  emerce/                     Emerce 100-badge 2026, strak uitgesneden (posts, documenten)
+  emerce/                     Emerce 100-badge 2026, strak uitgesneden (posts, documenten, slides)
 assets/icons/                 Remix-iconen per categorie (bron voor de Icon Finder), met LICENSE
   maak-zeshoeken.py           maakt Zeshoek/<Blauw|Donker|Wit>/ en overzicht.html
 scripts/build-brand-data.js   maakt brand-data.js en pdf-fonts.js
@@ -106,7 +114,8 @@ scripts/build-icon-tags.js    maakt js/icons/icon-tags.js uit scripts/icon-words
 scripts/icon-words/           nl.json (Nederlands woordenboek), remix-tags.json
 server/server.js              kleine statische server (npm start, Render)
 tests/                        unittests van de editor-bouwstenen, de Insta Post Maker, de Document Maker,
-                              de Presentation Maker en de PDF-export (npm test)
+                              de Presentation Maker, het voorstel, de positionering, de PowerPoint-schrijver
+                              en de PDF-export (npm test)
 ```
 
 ## Een tool toevoegen
@@ -148,8 +157,8 @@ zeshoek (puntig, zoals het logo), zeshoekpatroon, label met zeshoek-bullet,
 `pureminds.nl` linksonder staat alleen op slides, niet op posts.
 
 **Emerce 100-badge.** Pure Minds staat in de Emerce 100 van 2026 (beste
-e-business bedrijven, gepubliceerd 21 april 2026). Op posts en documenten
-kan de badge erbij, als klein keurmerk:
+e-businessbedrijven, gepubliceerd 21 april 2026). Op posts, documenten en
+slides kan de badge erbij, als klein keurmerk:
 
 - **Aanzetten:** met het knopje *Emerce 100* (met het merkje erin) in de kop
   van de preview, direct naast wat het verandert. Het staat standaard uit en
@@ -161,7 +170,7 @@ kan de badge erbij, als klein keurmerk:
 
   | Bestand | Vorm | Kleur |
   |---|---|---|
-  | `e100-2026-liggend-wit.svg` | liggend | wit, voor donkere posts |
+  | `e100-2026-liggend-wit.svg` | liggend | wit, voor donkere posts en slides |
   | `e100-2026-liggend-zwart.svg` | liggend | zwart, voor het briefpapier |
   | `e100-2026-staand-*.svg` | staand | voor gebruik buiten de tools |
 
@@ -376,6 +385,9 @@ roept de tool `PM.tour.signal('<naam>')` aan. Bij het eerste bezoek start hij
 na een seconde; via een snelle start van het dashboard (`quickStart: true`)
 alleen een melding met een knop. Esc of × stopt; het hulpmenu biedt daarna
 "rondleiding verder (stap 3 van 6)". De stand staat in `pm-tour-<tool>-v1`.
+Een tool met meer soorten kan per soort een eigen rondleiding onder een eigen
+naam hebben, met een eigen stand (de optie `tourTool` van `PM.shell` kiest
+welke): de Presentation Maker heeft `voorstel` en `positionering`.
 
 **PM.brand** (`js/shared/brand.js`): kleuren, typeschaal, raster, formaten en
 exportmaten als gegevens, gelijk aan `global.css`, `canvas-kit.js` en de
@@ -557,22 +569,197 @@ passend in de breedte (nooit groter dan echt), en meer pagina's scrollen.
 
 ## Presentation Maker
 
-16:9-slides in zeven layouts. De editor gebruikt de
+16:9-slides in zeven layouts, plus de twee soorten van het klanttraject in
+de vaste opbouw van Pure Minds: het voorstel (na het eerste gesprek) en de
+positionering (na het traject), met zes layouts erbij. De editor gebruikt de
 [editor-bouwstenen](#editor-bouwstenen): de slide groot op het podium, de
 strook met alle slides eronder.
 
-- **Rail:** *Layout* (het raster met de zeven layouts staat altijd open, met
-  je eigen slide in elke miniatuur en de huidige gemarkeerd), *Inhoud* (de
-  velden van deze layout, het label als laatste), *Foto* (alleen bij
-  titelslide, beeld + tekst en afsluiter; anders uit met de reden) en
-  *Presentatie* (slidenummers, cyaan punt, *nieuwe presentatie*).
+- **Rail:** *Soort* (wat maak je: *Presentatie*, *Voorstel* of
+  *Positionering*, drie kaarten met de titelslide van elk soort, en *nieuwe
+  presentatie*, *nieuw voorstel* of *nieuwe positionering*), dan alleen bij
+  een voorstel *Voorstel* en *Prijzen* en alleen bij een positionering
+  *Gegevens*, *Layout* (het raster met de layouts staat altijd open, met je
+  eigen slide in elke miniatuur en de huidige gemarkeerd), *Inhoud* (de
+  velden van deze layout, het label als laatste; bij een canvas de blokken of
+  vakken), *Foto* (alleen bij titelslide, beeld + tekst en afsluiter; anders
+  uit met de reden; bij een voorstel of positionering kies je daar ook *foto*
+  of *logo*) en *Presentatie* (slidenummers, standaard uit; cyaan punt).
+- **Kop van de preview:** welke slide, de exportmaat, *foto toevoegen* en de
+  Emerce 100-schakelaar.
 - **Layouts:** titelslide, sectie (automatisch genummerd), opsomming,
   beeld + tekst (foto links of rechts), citaat of kerncijfer, tabel,
-  afsluiter. Wisselen houdt tekst en foto vast.
+  afsluiter. Bij een voorstel of positionering komen er vier bij: tekst
+  (titel met alinea's), kolommen (twee of drie blokken), genummerd (vragen of
+  stappen in cyaan zeshoeken) en waardepropositie (het canvas; de vakken vul
+  je bij *Inhoud*). Bij een positionering nog twee: business model canvas
+  (zeven blokken) en toelichting (titel met tekst die over twee kolommen
+  loopt). Wisselen houdt tekst en foto vast.
+- **Het klanttraject:** na het eerste gesprek het voorstel, na het traject de
+  positionering. Beide staan in de vaste opbouw en met de vaste teksten van
+  Pure Minds: een formulier vult de slides, en alles blijft aanpasbaar.
+  - **Kiezen:** bij *Soort*, of met de tegels *Voorstel* en *Positionering*
+    op het dashboard (`?type=voorstel`, `?type=positionering`). Wisselen mag
+    altijd: wat open stond, blijft bewaard en staat weer klaar als je
+    terugwisselt. *Nieuwe presentatie*, *nieuw voorstel* of *nieuwe
+    positionering* onderaan *Soort* begint opnieuw met het soort dat open
+    staat, met *ongedaan maken* in de melding. De tegel *Presentatie* opent
+    altijd de gewone presentatie (`?type=regulier`); je voorstel en je
+    positionering blijven bewaard bij *Soort*. Bij een eerste bezoek start de
+    rondleiding zoals altijd.
+  - **Van voorstel naar positionering:** een nieuwe positionering neemt de
+    klantnaam over uit je voorstel (open of bewaard bij *Soort*), en de
+    melding zegt dat. Alleen de naam: de canvassen schrijf je na het
+    interview.
+  - **Eigen aanpassingen blijven:** wat je zelf op een slide verandert, laat
+    het formulier staan; het werkt alleen de andere velden bij. Een melding
+    bij *Inhoud* zegt dat, met *terugzetten* om de slide weer helemaal het
+    formulier te laten volgen. Eigen slides tussendoor en je volgorde blijven
+    ook staan.
+  - **Uitzetten gooit niets weg:** een slide die je uitzet of verwijdert,
+    wordt geparkeerd, met zijn foto, eigen vakken en aanpassingen. Zet je hem
+    weer aan bij *Onderdelen*, dan komt precies die slide terug; een vaste
+    slide haal je terug met *zet terug* bovenaan bij *Voorstel* of
+    *Gegevens*.
+  - **Klaar om te versturen?** Bovenaan *Voorstel* en *Gegevens* een lijst
+    die meeloopt terwijl je invult, met wat vaak vergeten wordt (per soort
+    hieronder), invulplekken ("3 invulplekken over, zoals [klantnaam]") en
+    tekst die niet past. Elk punt is een ✓ of een open rondje, en klikken
+    brengt je naar het veld of de slide. De controle vóór de download kijkt
+    nog één keer naar hetzelfde. De punten komen uit `checklist` van het
+    soort (zonder DOM, getest).
+  - **Hoe het werkt:** `js/presentation/generator.js` (`PMGenerator`) doet
+    wat beide soorten delen: het formulier gezond maken, de slides bouwen en
+    bijwerken, parkeren, *zet terug* en de checklist. Een recept per soort
+    zegt welke slides er zijn, in welke volgorde en met welke vaste teksten:
+    `js/presentation/voorstel.js` en `js/presentation/positionering.js`
+    (`PMDecks.voorstel` en `PMDecks.positionering`). Het concept krijgt
+    `v: 2`, `type` (`'regulier'`, `'voorstel'` of `'positionering'`), de
+    invoer van het formulier in `form`, de geparkeerde slides in `parked` en
+    de soorten die niet open staan in `stash`.
+  - **Oude concepten:** vóór de positionering was er één gegenereerd soort,
+    het voorstel, onder de naam `positionering`. Een concept van vóór
+    versie 2 (zonder `v`) met `type: 'positionering'` opent daarom als
+    voorstel, net als het voorstel dat bij *Soort* bewaard was (het formulier
+    in `pos` wordt `form`); foto's en eigen aanpassingen blijven. Een
+    vangnet: een positionering met het formulier van een voorstel (situatie,
+    diensten, prijzen) is ook een voorstel. De kaart op het dashboard telt
+    op dezelfde manier (`summary` in `js/shared/tools.js`). De stand van de
+    rondleiding gaat één keer mee, van `pm-tour-positionering-v1` naar
+    `pm-tour-voorstel-v1` (`pm-presentation-migrated-v2`). Bij het laden
+    krijgt een bewaard voorstel of een bewaarde positionering (ook die bij
+    *Soort*) de vaste teksten van nu, zoals de verbeterde spelling; wat je
+    zelf aanpaste, blijft staan.
+  - **Oud tabblad:** stond de tool bij de update nog open in een ander
+    tabblad, herlaad dat tabblad dan eerst. De oude versie kent de
+    positionering niet en schrijft bij de volgende wijziging zijn eigen,
+    oudere stand terug: wat je intussen in de nieuwe versie maakte, zoals een
+    positionering, is dan weg.
+- **Voorstel:** een "Voorstel ‹klant›" voor een traject positionering en
+  merkverhaal, in de vaste opbouw van Pure Minds: titelslide, Onze belofte,
+  huidige situatie, marketingaanpak, de fases interview en
+  positioneringsdocument, investering en slogan. Aan of uit: gewenste
+  situatie, waardepropositie, website (nieuw of optimaliseren), SEA,
+  GA4-audit, Google Bedrijfsprofiel, uitvoering en meetbaar maken. SEA krijgt
+  geen eigen slide, maar een regel bij *Wat wij gaan doen* op de
+  marketingaanpak.
+  - **Voorstel** (het paneel): klant (naam, datum, logo), situatie, aanpak en
+    onderdelen. Een nieuw voorstel opent hier, met de cursor in de klantnaam.
+    De slides volgen meteen, en de preview springt naar de slide die je
+    invult: de klantnaam staat op de titelslide, de situatie, de aanpak en
+    in de fases, de fases nummeren zichzelf, en het klantlogo staat op een
+    witte zeshoek op de titelslide (het mooist een PNG of SVG met
+    transparante achtergrond). Een leeg veld wordt een invulplek zoals
+    `[klantnaam]`; *nog even checken* noemt hem en brengt je naar het veld
+    in het formulier.
+  - **Klaar om te versturen?** klantnaam, huidige situatie, prijzen,
+    klantlogo (optioneel) en de waardepropositie (als hij aan staat).
+  - **Prijzen:** regels zoals de offerteregels van de Document Maker, per
+    groep (*Eenmalig*, *Maandelijks*): omschrijving en bedrag, *+ regel
+    toevoegen*, Enter naar de volgende regel, en plakken uit Excel of Google
+    Sheets (twee kolommen). "1500" en "1.500,-" worden € 1.500,-; tekst als
+    N.T.B. blijft staan. Een omschrijving tussen `**` of een die met "Totaal"
+    begint, wordt een vette regel. *Totaal per groep* staat standaard uit; een
+    voetnoot kan onder de tabel. In de tabel passen 14 regels; valt er iets
+    weg, dan zegt een melding hoeveel.
+  - **Waardepropositie:** het canvas als eigen tekening in de huisstijl
+    (klantprofiel en waardemap), zonder bronregel: het is een interne tool.
+    De vakken vul je bij *Inhoud*, net als de velden van elke andere slide:
+    eerst de klant (klantsegment, klanttype, taken, pijnen, voordelen), dan
+    wat het aanbod doet (producten en diensten, pijnverzachters,
+    voordeelverschaffers). Trefwoorden, één per regel, drie of vier per vak;
+    een regel die helemaal vet is, wordt een kopje zonder punt, en een leeg
+    vak toont op de slide een korte uitleg. Klik je op een vak in de
+    preview, dan sta je in dat veld. De inhoud hoort bij de slide, niet bij
+    het formulier: een kopie (*dupliceer*) heeft zijn eigen vakken, voor een
+    tweede doelgroep. Of de slide erin zit, zet je bij *Onderdelen*.
+- **Positionering:** een "Positionering ‹klant›" na het traject, in de vaste
+  opbouw van de positioneringen van Pure Minds; 22 slides met alles aan. De
+  titelslide met de vaste inleiding over het positioneringsinterview en een
+  foto in de zeshoek, Onderdelen (genummerd, alleen wat aan staat), het
+  Business Model Canvas en het Waarde Propositie Canvas als overzicht, per
+  blok of vak een toelichting (zeven en zes slides), elke groep na een eigen
+  sectieslide, en de afsluiter *Van gesprek naar positionering* met de
+  contactgegevens.
+  - **Gegevens:** alleen wat voor de hele positionering geldt: de klantnaam
+    (op de titelslide, de sectieslides en in de afsluiter), de datum (op de
+    titelslide), het aanbod (*diensten* of *producten & diensten*, in de
+    afsluiter), een foto op de titelslide (optioneel) en de onderdelen. Een
+    nieuwe positionering opent hier, met de cursor in de klantnaam. De
+    canvassen en de toelichting schrijf je per slide, bij *Inhoud*; de
+    lange inleiding en de afsluiter pas je daar ook aan.
+  - **Onderdelen:** vier schakelaars, standaard allemaal aan: Business Model
+    Canvas, Waarde Propositie Canvas, Toelichting Business Model Canvas
+    (zeven slides) en Toelichting Waarde Propositie Canvas (zes slides). Een
+    schakelaar zet zijn hele groep aan of uit, de sectieslide inbegrepen, en
+    de slide Onderdelen telt mee. Verwijder je een losse slide in de strook,
+    dan zet je hem terug met *zet terug* bovenaan *Gegevens*.
+  - **Business Model Canvas:** de zeven blokken in vijf kolommen, zoals op
+    het canvas: Key Partners met Key Resources eronder, Kernactiviteiten,
+    Waardeproposities, Klantrelaties boven Kanalen (verdeeld naar hoeveel
+    tekst er in elk staat), en Klantsegmenten. Elk blok is een donker vlak
+    met een cyaan balk bovenaan. Bij *Inhoud* staat
+    een veld per blok, in trefwoorden: een vet kopje met punten eronder
+    (`**Kopje**`, dan `- punt`), of een gewone regel. Inspringen kent de
+    slide niet: een punt onder een punt wordt een gewoon punt. Alle blokken
+    krijgen dezelfde lettergrootte, op zijn kleinst 14 px; een leeg blok toont
+    een korte uitleg. Klik op een blok in de preview en je staat in dat veld.
+    Past het canvas ook zo niet, dan brengen de melding, de checklist en de
+    controle vóór het downloaden je naar het blok dat te lang is.
+  - **Waarde Propositie Canvas:** dezelfde tekening als in het voorstel,
+    maar voor veel meer tekst (`style: 'vol'`): een kleinere letter (punten
+    op zijn kleinst 13 px), punten dichter op elkaar, en past een vak niet,
+    dan loopt de tekst door over de hele driehoek of wig. Bij *Inhoud*
+    dezelfde vakken, met de tip: kort en krachtig, de uitleg per vak komt op
+    de toelichtingsslides. Past het niet, dan brengt de melding je naar het
+    vak dat te lang is.
+  - **Toelichting:** per blok of vak een slide, met de naam als titel. Hij
+    begint met een vraag tussen blokhaken (een invulplek); vervang die door
+    je uitleg: alinea's, of vette kopjes met punten. Lange tekst loopt vanzelf
+    over twee kolommen (eerst links; een kopje gaat mee met de tekst eronder)
+    en wordt kleiner tot hij past. Die tekst is altijd van jou: het formulier
+    en *terugzetten* laten hem staan, en maak je hem leeg, dan komt de vraag
+    terug. De melding bij *Inhoud* heeft *naar het canvas*: naar het blok of
+    vak op de canvas-slide.
+  - **Klaar om te versturen?** klantnaam, foto op de titelslide (optioneel),
+    "Business Model Canvas: 5 van 7 blokken ingevuld", hetzelfde voor de zes
+    vakken van het Waarde Propositie Canvas, en "Toelichting: 3 van 13
+    slides geschreven". De vragen van de toelichting tellen niet mee bij de
+    invulplekken: die staan al bij de toelichting.
+- **Slidenummers:** "03 / 07" naast het logo, aan of uit bij *Presentatie*.
+  Een nieuwe presentatie, een nieuw voorstel of een nieuwe positionering
+  begint zonder slidenummers; een bewaard concept houdt zijn eigen keuze
+  (`showNumbers`, zonder die sleutel: uit).
+- **Emerce 100-badge:** met de schakelaar *Emerce 100* in de kop van de
+  preview; standaard uit. Wit en klein rechts in de voetregel, links van het
+  logo; staan de slidenummers aan, dan links van het nummer. Op elke slide
+  van een presentatie, voorstel of positionering. De keuze wordt in het
+  concept bewaard (`badge`). In de PDF als vector (één vorm), in PowerPoint
+  als scherpe afbeelding op elke slide, in PNG op de exportmaat.
 - **Klik op de slide:** een cyaan kader toont wat je aanwijst (titel,
-  ondertitel, punten, citaat, kerncijfer, label, foto, een cel van de tabel);
-  klikken opent het paneel en zet je in dat veld of die cel. Slepen verschuift
-  de foto, de pijltjestoetsen ook.
+  ondertitel, punten, citaat, kerncijfer, label, foto, een cel van de tabel,
+  een blok of vak van een canvas); klikken opent het paneel en zet je in dat
+  veld of die cel. Slepen verschuift de foto, de pijltjestoetsen ook.
 - **Tekst:** nadruk staat in het veld als markering. De werkbalk boven de
   slide: *cyaan* in titel, citaat, de toelichting bij een kerncijfer en de
   contactgegevens; *vet* in de andere velden (wit en vet op de slide). Bij
@@ -598,7 +785,9 @@ strook met alle slides eronder.
   melding bij de foto, onder de slide en in de download-opties hoe groot hij
   moet zijn.
 - **Te lange tekst:** past tekst ook op de kleinste letter niet, dan noemt de
-  melding onder de slide het veld, met een knop erheen.
+  melding onder de slide het veld, met een knop erheen. Bij een canvas van de
+  positionering zegt hij de langste blokken of vakken korter te maken (een
+  canvas verdeel je niet over twee slides).
 - **Download** rechtsboven maakt meteen de PDF; het pijltje ernaast toont
   PDF, PowerPoint (.pptx, ook voor Google Slides) en *als afbeelding* (Full HD
   of 4K; deze slide of een zip met alle slides), elk met wat je krijgt ("zip
@@ -608,15 +797,47 @@ strook met alle slides eronder.
   tekst die niet past, dan toont de tool per slide wat er is, met *naar slide
   3* en *toch downloaden*. Dezelfde inhoud vraagt hij maar één keer; labels,
   de regel onderaan en "Bedankt" tellen niet als voorbeeld. De controle staat
-  in `js/presentation/deck.js`.
+  in `js/presentation/deck.js`. Bij een invulplek uit het voorstel of de
+  positionering brengt *naar slide* je naar het veld in het formulier dat hem
+  vult (bij een canvas naar het blok of vak bij *Inhoud*, bij een
+  toelichting naar de tekst van die slide). Heeft een canvas lege blokken of
+  vakken, dan staat dat er ook: "Business Model Canvas: 2 van 7 blokken
+  leeg; op de slide staat dan de uitleg."
 - **Ongedaan maken** (appbalk, `Ctrl` + `Z`): de hele presentatie, van tekst,
   grootte en layout tot volgorde, verwijderen, tabel, uitsnede en foto's; je
   springt naar de slide die veranderde. Elke foto staat onder een eigen
   sleutel in IndexedDB (`photoKey` per slide; een ouder concept met
   `slide:<id>` werkt nog). Wat niet meer gebruikt wordt, ruimt de tool bij
-  het volgende laden op.
+  het volgende laden op; de foto's van de soorten die bij *Soort* bewaard
+  staan en van geparkeerde slides (zoals de titelslide met het klantlogo)
+  blijven.
 - **Rondleiding:** negen stappen, van je titel tot de download. Stappen die
   bij slide 1 niet bestaan (een foto bij een citaat) worden overgeslagen.
+- **Rondleidingen "je eerste voorstel" en "je eerste positionering":** elk
+  soort heeft een eigen rondleiding (`PM_HELP.voorstel` en
+  `PM_HELP.positionering`, stand in `pm-tour-voorstel-v1` en
+  `pm-tour-positionering-v1`), dus ook wie al een presentatie maakte krijgt
+  hem bij zijn eerste voorstel of positionering. Hij start vanzelf bij je
+  eerste van dat soort (via een tegel op het dashboard alleen een melding
+  met een knop); *hulp* → *rondleiding* start de rondleiding van het soort
+  dat open staat; de knop op het dashboard (`#rondleiding`) die van de
+  presentatie.
+  - **Voorstel:** twaalf stappen, leren door te doen: de klantnaam typen (de
+    slides veranderen mee), de situatie, onderdelen aan- en uitzetten, een
+    prijs, een slide zelf aanpassen, de melding bij *Inhoud* die zegt of een
+    slide het formulier volgt (met *terugzetten*), de waardepropositie bij
+    *Inhoud* (de tool toont die slide), de lijst *Klaar om te versturen?*, de
+    Emerce 100-badge en de download. De laatste stap noemt waar je overheen
+    kijkt: alles staat alleen in deze browser, wisselen bij *Soort* bewaart
+    je andere presentatie, check de lijst vóór het versturen, en de
+    PowerPoint blijft bewerkbaar.
+  - **Positionering:** negen stappen: de klantnaam (overgenomen uit het
+    voorstel, of zelf typen), de vier onderdelen, de canvassen bij *Inhoud*
+    (de tool toont het Business Model Canvas), de toelichting, de lijst
+    *Klaar om te versturen?*, de Emerce 100-badge en de download. De laatste
+    stap: alles staat alleen in deze browser, wisselen bij *Soort* bewaart je
+    voorstel en je presentatie, en eerst de canvassen in trefwoorden, dan per
+    blok de toelichting in zinnen.
 - **Mobiel en tablet:** de slide boven, het blad eronder. De strook is één
   rij (*+ slide*, miniaturen, menu) en verdwijnt zolang het blad open is;
   bladeren kan dan met ‹ › bovenin *Inhoud*.
@@ -626,7 +847,11 @@ strook met alle slides eronder.
   vormen en foto's op precies de plek van de preview, met dezelfde
   korpsgrootte en regelval (het "plan" uit `templates.js`). Tekstvakken
   krimpen bij te veel tekst, net als in de tool. Foto's zijn de vulling van
-  een zeshoek of een bijgesneden afbeelding met dezelfde uitsnede. De
+  een zeshoek of een bijgesneden afbeelding met dezelfde uitsnede. Het
+  Business Model Canvas wordt losse vlakken met een cyaan balk en een
+  tekstvak per blok; een toelichting een tekstvak per kolom, met de tekst
+  verdeeld zoals in de preview. Loopt de tekst van een vak in het volle
+  Waarde Propositie Canvas door, dan krijgt dat vak meer tekstvakken. De
   achtergrond, cyaan balk, logo en voetregel staan op een Pure Minds-master:
   een nieuwe slide in PowerPoint krijgt ze vanzelf. Het slidenummer is een
   veld en telt mee bij verschuiven of toevoegen.
@@ -723,6 +948,7 @@ bladwijzer).
 | [Consent Check](https://github.com/Jelger1/consent-check) | Meet per website welke cookies en trackers er vóór en ná het cookie-akkoord laden | lokaal: downloaden (zip) en starten op je eigen Mac of Windows-pc |
 | [Landingpage & Ads Optimizer](https://landingpage-ads-optimizer-qr13.vercel.app/) | Checkt of Google Ads-advertentie en landingspagina op elkaar aansluiten, met een CRO-briefing | web-app, opent in een nieuw tabblad |
 | [SEO Content Gap Analyzer](https://seo-content-gap-analyzer-1yxm.vercel.app/) | Zet een pagina naast de Google-top 10: ontbrekende koppen, termen en vragen | web-app, opent in een nieuw tabblad |
+| [Keyword Focus & Intent Check](https://keyword-focus-intent-check.vercel.app/) | Past een pagina bij het focuszoekwoord en de zoekintentie, en wat mist er nog: intentcheck, keyword mapping en contentbriefing (PDF of markdown) | web-app, opent in een nieuw tabblad |
 
 - **Kaarten:** een lichte "blauwdruk"-omslag met een lijntekening (de makers
   hebben een donkere omslag), en rechtsboven waar de tool draait: *web-app*
@@ -796,7 +1022,9 @@ tekenopdracht zonder browser.
   een vergelijkbaar lettertype.
 - De .pptx wordt zonder bibliotheek geschreven (`js/shared/pptx-writer.js`):
   master met achtergrond, tekstvakken met alinea-opmaak, zeshoeken als eigen
-  vorm (ook met foto-vulling), verlopen, en het slidenummer als veld.
+  vorm (ook met foto-vulling), cirkels en lijnen met pijlpunten (de
+  waardepropositie), effen vlakken (de blokken van het Business Model
+  Canvas), verlopen, en het slidenummer als veld.
 
 ## Export-bibliotheken
 
@@ -809,6 +1037,7 @@ bewerken werkt ook zonder internet.
 
 Teksten en instellingen staan in `localStorage`, afbeeldingen (handtekening,
 slidefoto's) in IndexedDB, allebei alleen in de eigen browser. Foto's en het
-klantlogo van de Insta Post Maker worden ook bewaard.
+klantlogo van de Insta Post Maker en van een voorstel of positionering worden
+ook bewaard.
 
 Vervang je een logo in `assets/brand/`, draai dan `npm run brand`.

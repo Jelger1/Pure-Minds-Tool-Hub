@@ -33,6 +33,10 @@
      shell.onAction(naam, cb)         menu-items met data-action="<naam>"
      shell.setRegions(canvas, regio's, onPick)   klikbare delen van het ontwerp
      shell.showKeys()                 het overzicht met sneltoetsen
+     shell.syncTour()                 de tool wisselde van rondleiding: stipje op hulp bijwerken
+
+   Optie tourTool: () => naam van de rondleiding (PM_HELP.<naam>.tour) als een tool
+   er meer heeft, zoals de Presentation Maker bij een voorstel; anders die van de tool.
 
    Ook voor de andere bouwstenen: PM.place (zwevend element naast een ander
    plaatsen), PM.announce (tekst voor schermlezers), PM.rovingIndex.
@@ -174,6 +178,8 @@
     const data = (global.PM_HELP && global.PM_HELP[tool]) || {};
     const sections = Array.isArray(data.sections) ? data.sections : [];
     const $$ = (sel, el = root) => Array.from(el.querySelectorAll(sel));
+    // Welke rondleiding: die van de tool, tenzij de tool zelf kiest (options.tourTool)
+    const tourTool = () => (typeof options.tourTool === 'function' && options.tourTool()) || tool;
 
     const rail = root.querySelector('.rail');
     const panelsBox = root.querySelector('.panels');
@@ -614,7 +620,7 @@
       const name = item.dataset.action;
       const from = openPop ? openPop.trigger : item;
       if (item.getAttribute('role') === 'menuitem') closePop({ focusTrigger: name !== 'tour' });
-      if (name === 'tour' && PM.tour) PM.tour.start(tool, { from });
+      if (name === 'tour' && PM.tour) PM.tour.start(tourTool(), { from });
       else if (name === 'sneltoetsen') showKeys();
       if (actions[name]) actions[name].forEach((cb) => cb(item));
     });
@@ -623,7 +629,7 @@
       const item = menu.querySelector('[data-action="tour"]');
       if (!item || !PM.tour || !PM.tour.describe) return;
       const label = item.querySelector('[data-label]') || item;
-      label.textContent = PM.tour.describe(tool);
+      label.textContent = PM.tour.describe(tourTool());
     }
 
     /* --- Sneltoetsen: overzicht uit PM_HELP.<tool>.keys --- */
@@ -664,7 +670,7 @@
     // Stipje op de hulpknop zolang de rondleiding nog niet gedaan is
     const helpTrigger = root.querySelector('[data-help-menu]');
     function syncHelpDot() {
-      if (helpTrigger && PM.tour && PM.tour.pending) helpTrigger.classList.toggle('has-dot', PM.tour.pending(tool));
+      if (helpTrigger && PM.tour && PM.tour.pending) helpTrigger.classList.toggle('has-dot', PM.tour.pending(tourTool()));
     }
     doc.addEventListener('pm:tour', syncHelpDot);
 
@@ -677,8 +683,8 @@
     // Vanuit de hub (tools/<tool>.html#rondleiding): de rondleiding direct, vanaf het begin
     const viaHub = global.location && global.location.hash === '#rondleiding';
     if (viaHub) global.history.replaceState(null, '', global.location.pathname + global.location.search);
-    if (PM.tour && viaHub && options.tour !== false) global.setTimeout(() => PM.tour.start(tool, { at: 0 }), 500);
-    else if (PM.tour && PM.tour.auto && options.tour !== false) PM.tour.auto(tool, { quickStart: !!options.quickStart });
+    if (PM.tour && viaHub && options.tour !== false) global.setTimeout(() => PM.tour.start(tourTool(), { at: 0 }), 500);
+    else if (PM.tour && PM.tour.auto && options.tour !== false) PM.tour.auto(tourTool(), { quickStart: !!options.quickStart });
 
     const api = {
       root,
@@ -689,6 +695,7 @@
       reveal,
       setRegions,
       showKeys,
+      syncTour: syncHelpDot,
       closePopover: closePop,
       disable,
       enable,

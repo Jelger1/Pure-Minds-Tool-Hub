@@ -76,34 +76,6 @@
 /* Rondleiding, stap "werkbalk": de tekst blijft te gebruiken (boven de dimlaag, onder het kaartje) */
 .is-touring .app:has(#tbar.is-tour-target) #rte { position: relative; z-index: 81; }
 
-/* --- Offerteregels: per regel de omschrijving, daaronder aantal, prijs en totaal --- */
-
-.items { display: flex; flex-direction: column; }
-.items__head, .item {
-  display: grid; gap: .375rem .375rem; align-items: center;
-  grid-template-columns: 4.25rem minmax(0, 1fr) minmax(0, 1fr) 2.25rem;
-  grid-template-areas: "desc desc desc desc" "qty price sum del";
-}
-.items__head { padding-bottom: .375rem; row-gap: .125rem; }
-.items__h { font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pm-muted); line-height: 1.3; }
-.items__h--desc { grid-area: desc; display: flex; align-items: center; gap: .25rem; }
-.items__h--qty { grid-area: qty; }
-.items__h--price { grid-area: price; }
-.items__h--sum { grid-area: sum; text-align: right; }
-.items__h--del { grid-area: del; }
-.item { padding: .5rem 0; border-top: 1px solid var(--pm-line); }
-.item:last-child { border-bottom: 1px solid var(--pm-line); }
-.item__desc { grid-area: desc; }
-.item__qty { grid-area: qty; }
-.item__price { grid-area: price; }
-.item__sum { grid-area: sum; text-align: right; font-size: .8125rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item__del { grid-area: del; justify-self: end; }
-.item .input { min-width: 0; padding: .5rem .6rem; }
-.item .input--amount { text-align: right; font-variant-numeric: tabular-nums; }
-.items__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem; margin-top: .625rem; }
-.items__tip { font-size: .75rem; color: var(--pm-muted); }
-.items__vat { width: 100%; max-width: 14rem; font-size: .875rem; padding-top: .55rem; padding-bottom: .55rem; }
-
 /* Totalen, net als onder de tabel op de pagina */
 .sum { margin: 0; font-size: .8125rem; }
 .sum > div { display: flex; justify-content: space-between; gap: 1rem; padding: .2rem 0; }
