@@ -5,12 +5,9 @@ npm-debug.log*
 *.env
 .history/
 
-# Python-cache en de uitvoer van assets/icons/maak-zeshoeken.py (npm run icons leest die niet)
+# Python-cache
 __pycache__/
 *.pyc
-/assets/icons/Zeshoek/
 
-# Lokaal houden: de repo is openbaar
-/assets/PureMinds-Brandbook-*.pdf
-/assets/Badge-E100-*.svg
+# Lokaal houden
 /brag-output/
