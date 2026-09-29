@@ -1,22 +1,45 @@
 /* =============================================================================
    presentation/app.js — Presentation Maker
    -----------------------------------------------------------------------------
-   Houdt de presentatie bij (slides met layout, tekst en uitsnede), koppelt die
-   aan de velden en laat js/presentation/templates.js de preview, de
-   miniaturen en de export tekenen. Tekst staat in localStorage, foto's per
-   slide in IndexedDB, zodat alles een herlaadbeurt overleeft.
+   Houdt de presentatie bij (slides met layout, tekst, uitsnede en foto),
+   koppelt die aan de velden en laat js/presentation/templates.js de slide,
+   de miniaturen en de export tekenen. Tekst staat in localStorage, foto's in
+   IndexedDB, zodat alles een herlaadbeurt overleeft.
+
+   De editor is de gedeelde indeling (js/shared/shell.js): rail met vier
+   onderdelen (layout, inhoud, foto, presentatie), één paneel, de slide op het
+   podium en daaronder de strook met slides. Tekstvelden tonen nadruk zoals
+   hij is (richfield.js), met de werkbalk (toolbar.js) boven de slide. Klik op
+   de slide op een tekst, een cel of de foto en je staat in het goede veld.
+
+   Ongedaan maken: PM.history over de hele presentatie (slides, volgorde,
+   layouts, tekst, tabel, uitsnede, foto's). Elke foto staat in IndexedDB onder
+   een eigen sleutel (slide.photoKey); een oude foto blijft bewaard zolang hij
+   in de geschiedenis kan terugkomen en wordt pas bij de volgende keer laden
+   opgeruimd. Vóór elke download controleert de tool op voorbeeldtekst,
+   [invulplekken] en tekst die niet past (js/presentation/deck.js).
    ============================================================================= */
 (function () {
   'use strict';
 
   const PM = window.PM;
   const S = window.PMSlides;
+  const D = window.PMDeck;
   const KEY = 'pm-presentation-v1';
+  const FILES_KEY = 'pm-presentation-files-v1';   // alle fotosleutels in IndexedDB (om op te ruimen)
+  const TOUR_KEY = 'pm-tour-presentation-v1';
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const toast = PM.toast;
+  const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 
   const PHOTO_LAYOUTS = new Set(['title', 'split', 'closing']);
   const MAX_SLIDES = 40;
+  const SIZES = ['klein', 'normaal', 'groot'];
+  const legacyKey = (id) => `slide:${id}`;   // foto's van vóór de sleutels per foto
+
+  // Hoe je een layout noemt in een zin ("Een opsomming heeft geen foto")
+  const NOUN = { section: 'Een sectieslide', bullets: 'Een opsomming', quote: 'Een citaat of kerncijfer', table: 'Een tabel' };
 
   /* ---------------------------------------------------------------------------
      Toestand
@@ -38,6 +61,8 @@
       imageSide: 'left',
       crop: { zoom: 1, fx: 0.5, fy: 0.5 },
       table: S.defaultTable(),
+      titleSize: 'normaal',   // klein, normaal of groot (typeschaal van het merk)
+      photoKey: '',           // sleutel van de foto in IndexedDB
       ...fields,
     };
   }
@@ -49,40 +74,33 @@
       showNumbers: true,
       exportWidth: 1920,
       active: 0,
-      slides: [
-        newSlide('title', { label: 'pure minds', title: 'Groeien met **online marketing**', subtitle: 'Strategie en plan voor het komende jaar', meta: `Pure Minds · ${date}` }),
-        newSlide('section', { label: 'hoofdstuk', title: 'Waar staan we nu', subtitle: 'Een eerlijke blik op de huidige resultaten' }),
-        newSlide('bullets', { label: 'analyse', title: 'Wat we zien in de data', body: 'Het meeste verkeer komt via betaalde zoekcampagnes\nDe landingspagina\'s converteren onder het gemiddelde\nMobiel groeit het hardst, maar converteert het slechtst\nRemarketing wordt nog niet ingezet' }),
-        newSlide('split', { label: 'aanpak', title: 'Van klik naar klant', body: 'We brengen advertentie en landingspagina samen in één verhaal.\n- heldere belofte boven de vouw\n- één duidelijke actie per pagina\n- testen, meten en bijsturen' }),
-        newSlide('table', { label: 'cijfers', title: 'Resultaten per kanaal', subtitle: 'Periode: [maand of kwartaal invullen]' }),
-        newSlide('quote', { label: 'resultaat', style: 'stat', value: '+184%', subtitle: 'meer aanvragen binnen drie maanden', author: 'Bron: [bron invullen]', quote: 'Eindelijk zien we precies waar ons **budget** naartoe gaat.' }),
-        newSlide('closing', { label: 'contact', title: 'Bedankt', subtitle: 'Vragen? We denken graag met je mee.', body: '[naam] · [functie]\n[e-mailadres]\npureminds.nl' }),
-      ],
+      slides: D.example(date).map(({ layout, ...fields }) => newSlide(layout, fields)),
     };
   }
 
-  function load() {
-    const state = defaults();
-    const saved = PM.store.get(KEY, null);
-    if (saved && typeof saved === 'object') {
+  const LAYOUT_IDS = new Set(S.LAYOUTS.map((l) => l.id));
+
+  function normalizeSlide(s) {
+    const base = newSlide(LAYOUT_IDS.has(s.layout) ? s.layout : 'bullets');
+    for (const k of Object.keys(base)) {
+      if (k === 'crop') base.crop = { ...base.crop, ...(isObj(s.crop) ? s.crop : {}) };
+      else if (k === 'table') base.table = S.normalizeTable(s.table);
+      else if (typeof s[k] === typeof base[k]) base[k] = s[k];
+    }
+    // Opgeslagen vóór de sleutels per foto: de foto staat onder slide:<id>
+    if (!('photoKey' in s)) base.photoKey = legacyKey(base.id);
+    if (!SIZES.includes(base.titleSize)) base.titleSize = 'normaal';
+    return base;
+  }
+
+  // Een toestand gezond maken (na laden of ongedaan maken)
+  function normalize(saved) {
+    const state = { dot: true, showNumbers: true, exportWidth: 1920, active: 0, slides: [] };
+    if (isObj(saved)) {
       for (const k of ['dot', 'showNumbers', 'exportWidth', 'active']) {
         if (typeof saved[k] === typeof state[k]) state[k] = saved[k];
       }
-      if (Array.isArray(saved.slides) && saved.slides.length) {
-        const ids = new Set(S.LAYOUTS.map((l) => l.id));
-        state.slides = saved.slides
-          .filter((s) => s && typeof s === 'object')
-          .map((s) => {
-            const base = newSlide(ids.has(s.layout) ? s.layout : 'bullets');
-            for (const k of Object.keys(base)) {
-              if (k === 'crop') base.crop = { ...base.crop, ...(s.crop && typeof s.crop === 'object' ? s.crop : {}) };
-              else if (k === 'table') base.table = S.normalizeTable(s.table);
-              else if (typeof s[k] === typeof base[k]) base[k] = s[k];
-            }
-            return base;
-          })
-          .slice(0, MAX_SLIDES);
-      }
+      if (Array.isArray(saved.slides)) state.slides = saved.slides.filter(isObj).map(normalizeSlide).slice(0, MAX_SLIDES);
     }
     if (!state.slides.length) state.slides = defaults().slides;
     state.active = Math.min(Math.max(0, state.active | 0), state.slides.length - 1);
@@ -90,48 +108,77 @@
     return state;
   }
 
-  let state = load();
+  let state = normalize(PM.store.get(KEY, null));
+  // Gestart vanaf het dashboard: dan bij de rondleiding alleen een melding
+  const quickStart = Object.keys(PM.startParams()).length > 0;
+  // De rondleiding begint bij de titel van slide 1
+  const tourStatus = (PM.store.get(TOUR_KEY, null) || {}).status;
+  if (!tourStatus || tourStatus === 'nieuw' || tourStatus === 'bezig') state.active = 0;
+
   const save = PM.debounce(() => PM.store.set(KEY, state), 300);
   const current = () => state.slides[state.active];
+  const layoutOf = (slide) => S.LAYOUTS.find((l) => l.id === slide.layout) || S.LAYOUTS[0];
 
   /* ---------------------------------------------------------------------------
      Elementen
      ------------------------------------------------------------------------- */
 
   const el = {
+    app: $('.app'),
     editor: $('#editor'),
-    canvas: $('#slideCanvas'),
     stage: $('#stage'),
+    canvas: $('#slideCanvas'),
     strip: $('#slideStrip'),
     layoutGrid: $('#layoutGrid'),
-    slideNo: $('#slideNo'),
+    layoutFor: $('#layoutFor'),
+    inhoudSlide: $('#inhoudSlide'),
+    inhoudLayout: $('#inhoudLayout'),
     slidePill: $('#slidePill'),
     dimPill: $('#dimPill'),
+    docTitle: $('#docTitle'),
+    docSub: $('#docSub'),
     warning: $('#warning'),
+    warningText: $('#warningText'),
+    warningBtn: $('#warningBtn'),
+    photoStageNote: $('#photoStageNote'),
+    photoStageText: $('#photoStageText'),
     photoDrop: $('#photoDrop'),
     photoInput: $('#photoInput'),
     photoCard: $('#photoCard'),
     photoThumb: $('#photoThumb'),
     photoName: $('#photoName'),
     photoSize: $('#photoSize'),
+    photoNote: $('#photoNote'),
+    previewPhotoBtn: $('#previewPhotoBtn'),
+    cropControls: $('#cropControls'),
+    cropHint: $('#cropHint'),
     showNumbers: $('#showNumbers'),
     dot: $('#dotToggle'),
+    tableGrid: $('#tableGrid'),
+    tableHeader: $('#tableHeader'),
+    tableFirstCol: $('#tableFirstCol'),
+    slideAdd: $('#slideAdd'),
+    slideCount: $('#slideCount'),
+    slideMenuBtn: $('#slideMenuBtn'),
+    slideMenuNo: $('#slideMenuNo'),
+    downloadBtn: $('#downloadBtn'),
     pdfBtn: $('#pdfBtn'),
     pptxBtn: $('#pptxBtn'),
     pngBtn: $('#pngBtn'),
     pngAllBtn: $('#pngAllBtn'),
-    previewPhotoBtn: $('#previewPhotoBtn'),
-    cropControls: $('#cropControls'),
-    cropHint: $('#cropHint'),
-    layoutToggle: $('#layoutToggle'),
-    slideAdd: $('#slideAdd'),
-    tableGrid: $('#tableGrid'),
-    tableHeader: $('#tableHeader'),
-    tableFirstCol: $('#tableFirstCol'),
+    pdfSum: $('#pdfSum'),
+    pngSum: $('#pngSum'),
+    zipSum: $('#zipSum'),
+    dlPhotoNote: $('#dlPhotoNote'),
+    dropHint: $('#dropHint b'),
+    check: $('#checkDialog'),
   };
 
-  // Logo en foto's per slide-id: { img, url, name, size }
-  const env = { logo: null, images: {} };
+  // Logo, en de foto's per sleutel: { file, img, url }
+  const env = { logo: null };
+  const files = new Map();
+
+  const photoOf = (slide) => (slide && slide.photoKey && files.get(slide.photoKey)) || null;
 
   function sectionNumber(index) {
     let n = 0;
@@ -140,8 +187,50 @@
   }
 
   function slideEnv(index, slide = state.slides[index]) {
-    const image = env.images[slide.id];
-    return { logo: env.logo, photo: image ? image.img : null, crop: slide.crop, sectionNumber: sectionNumber(index) };
+    const photo = photoOf(slide);
+    return { logo: env.logo, photo: photo ? photo.img : null, crop: slide.crop, sectionNumber: sectionNumber(index) };
+  }
+
+  /* ---------------------------------------------------------------------------
+     Editor: indeling, tekstvelden, werkbalk, ongedaan maken
+     ------------------------------------------------------------------------- */
+
+  PM.richfield.init(el.editor);
+  const shell = PM.shell(el.app, { tool: 'presentation', open: 'inhoud', quickStart });
+
+  // De werkbalk: nadruk of vet, en de grootte van de titel (typeschaal van het merk, per slide)
+  const toolbar = PM.toolbar($('#tbar'), {
+    value: (field, cmd) => (cmd === 'grootte' ? current().titleSize || 'normaal' : null),
+    apply(field, cmd, value) {
+      if (cmd !== 'grootte' || !SIZES.includes(value)) return;
+      current().titleSize = value;
+      changed('grootte');
+    },
+  });
+
+  // Alles behalve de gekozen slide en de resolutie: dat zijn geen wijzigingen aan de presentatie
+  const history = PM.history({
+    snapshot: () => ({ ...state, exportWidth: undefined, active: undefined }),
+    restore(saved) {
+      const prev = state;
+      state = normalize({ ...saved, exportWidth: prev.exportWidth, active: prev.active });
+      // Laat zien wat er terugkwam: de slide die veranderde
+      state.active = D.changedSlide(prev.slides, state.slides, prev.active);
+      const inStrip = !!document.activeElement.closest('.strip__item');
+      syncAll();
+      if (inStrip) focusActiveThumb();
+      applyPhotos();
+      save();
+      render();
+    },
+  });
+  history.bind({ undo: $('#undoBtn'), redo: $('#redoBtn') });
+
+  // Elke wijziging: een stap in de geschiedenis, opslaan en opnieuw tekenen
+  function changed(key) {
+    history.commit(key);
+    save();
+    render();
   }
 
   /* ---------------------------------------------------------------------------
@@ -149,72 +238,27 @@
      ------------------------------------------------------------------------- */
 
   let lastInfo = {};
-  let frame = 0;
+  let frameRequest = 0;
 
   function render() {
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(() => {
+    cancelAnimationFrame(frameRequest);
+    frameRequest = requestAnimationFrame(() => {
       lastInfo = S.renderSlide(el.canvas, state, state.active, slideEnv(state.active));
       el.canvas.classList.toggle('can-pan', !!lastInfo.photo);
-      el.slidePill.textContent = `slide ${state.active + 1} van ${state.slides.length}`;
-      el.dimPill.textContent = state.exportWidth === 3840 ? '3840 × 2160 px' : '1920 × 1080 px';
-      updateWarning();
       syncPhotoPrompt();
-      mini.update();
+      syncRegions();
+      syncWarning();
+      syncPhotoCheck();
+      syncDocName();
+      syncExport();
     });
     renderThumbsSoon();
   }
 
   const renderThumbsSoon = PM.debounce(() => {
-    renderStrip();
-    if (!el.layoutGrid.hidden) renderLayoutTiles();
+    drawStrip();
+    if (shell.current === 'layout') renderLayoutTiles();
   }, 160);
-
-  function renderStrip() {
-    const items = $$('.strip__item', el.strip);
-    state.slides.forEach((slide, i) => {
-      let btn = items[i];
-      if (!btn) {
-        btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'strip__item';
-        btn.draggable = true;
-        btn.innerHTML = '<canvas></canvas><span class="strip__no"></span>';
-        btn.addEventListener('click', () => selectSlide(Number(btn.dataset.index)));
-        btn.addEventListener('dragstart', (e) => {
-          e.dataTransfer.setData('text/x-pm-slide', btn.dataset.index);
-          e.dataTransfer.effectAllowed = 'move';
-          btn.classList.add('is-dragging');
-        });
-        btn.addEventListener('dragend', () => {
-          btn.classList.remove('is-dragging');
-          $$('.is-drop', el.strip).forEach((n) => n.classList.remove('is-drop'));
-        });
-        btn.addEventListener('dragover', (e) => {
-          if (!e.dataTransfer.types.includes('text/x-pm-slide')) return;
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          $$('.is-drop', el.strip).forEach((n) => n !== btn && n.classList.remove('is-drop'));
-          btn.classList.add('is-drop');
-        });
-        btn.addEventListener('drop', (e) => {
-          const from = e.dataTransfer.getData('text/x-pm-slide');
-          if (from === '') return;
-          e.preventDefault();
-          moveSlideTo(Number(from), Number(btn.dataset.index));
-        });
-        el.strip.appendChild(btn);
-      }
-      btn.dataset.index = String(i);
-      btn.setAttribute('aria-label', `Slide ${i + 1}: ${layoutOf(slide).name}`);
-      btn.setAttribute('aria-current', String(i === state.active));
-      btn.lastChild.textContent = String(i + 1);
-      S.renderSlide(btn.firstChild, state, i, slideEnv(i), { scale: 240 / S.W });
-    });
-    items.slice(state.slides.length).forEach((b) => b.remove());
-  }
-
-  const layoutOf = (slide) => S.LAYOUTS.find((l) => l.id === slide.layout) || S.LAYOUTS[0];
 
   // Miniaturen van de layouts tonen de huidige slide in elke layout
   function renderLayoutTiles() {
@@ -226,30 +270,358 @@
       S.renderSlide(canvas, { ...state, slides }, state.active, slideEnv(state.active, variant), { scale: 272 / S.W });
     }
   }
+  shell.onChange(({ id }) => { if (id === 'layout') renderLayoutTiles(); });
 
-  function updateWarning() {
-    const msgs = [];
-    const s = current();
-    if (lastInfo.overflow && s.layout === 'table') msgs.push('De tabel past niet op de slide, ook niet op de kleinste letter. Haal rijen weg, maak teksten korter of verdeel de tabel over twee slides.');
-    else if (lastInfo.overflow) msgs.push('De tekst is te lang voor deze slide en is maximaal verkleind. Kort hem in of verdeel hem over twee slides.');
-    el.warning.hidden = !msgs.length;
-    el.warning.textContent = msgs.join(' ');
-  }
-
-  // Een foto hoort bij titelslide, beeld + tekst en afsluiter; bij beeld + tekst
-  // is de lege fotoplek zelf klikbaar, zoals een placeholder in Canva
-  function syncPhotoPrompt() {
-    const s = current();
-    const canHave = PHOTO_LAYOUTS.has(s.layout) && !env.images[s.id];
-    const placeholder = s.layout === 'split' && !env.images[s.id];
-    el.previewPhotoBtn.hidden = !canHave;
-    el.canvas.classList.toggle('needs-photo', placeholder);
-    el.canvas.title = placeholder ? 'Klik om een foto te kiezen, of sleep er een hierheen' : '';
-    el.canvas.tabIndex = placeholder || lastInfo.photo ? 0 : -1;
+  // Naam van de presentatie in de appbalk: dezelfde samenvatting als "Verder werken" op het dashboard
+  const draft = (window.PM_TOOLS || []).find((t) => t.id === 'presentation');
+  function syncDocName() {
+    const sum = draft && draft.draft ? draft.draft.summary(state) : {};
+    const title = String(sum.title || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+    el.docTitle.textContent = title || 'Nieuwe presentatie';
+    el.docTitle.title = title;
+    el.docSub.textContent = [sum.sub, '16:9'].filter(Boolean).join(' · ');
   }
 
   /* ---------------------------------------------------------------------------
-     Velden
+     Slides: de strook onder de slide en de acties voor de gekozen slide
+     ------------------------------------------------------------------------- */
+
+  function slideName(i) {
+    const slide = state.slides[i];
+    const title = String(slide.title || slide.quote || slide.value || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+    return `Slide ${i + 1} van ${state.slides.length}: ${layoutOf(slide).name}${title ? `, ${title.slice(0, 60)}` : ''}`;
+  }
+
+  // Aantal miniaturen, nummers en de gekozen slide: meteen (tekenen volgt even later)
+  function syncStrip() {
+    const items = $$('.strip__item', el.strip);
+    state.slides.forEach((slide, i) => {
+      let item = items[i];
+      if (!item) {
+        item = document.createElement('div');
+        item.className = 'strip__item';
+        item.setAttribute('role', 'option');
+        item.draggable = true;
+        item.innerHTML = '<canvas width="240" height="135" aria-hidden="true"></canvas><span class="strip__no" aria-hidden="true"></span>';
+        el.strip.appendChild(item);
+      }
+      const on = i === state.active;
+      item.dataset.index = String(i);
+      item.tabIndex = on ? 0 : -1;
+      item.setAttribute('aria-selected', String(on));
+      item.setAttribute('aria-label', slideName(i));
+      item.querySelector('.strip__no').textContent = String(i + 1);
+    });
+    items.slice(state.slides.length).forEach((b) => b.remove());
+    syncSlideBar();
+    keepActiveInView();
+    syncCues();
+  }
+
+  function drawStrip() {
+    $$('.strip__item', el.strip).forEach((item, i) => {
+      if (state.slides[i]) S.renderSlide(item.querySelector('canvas'), state, i, slideEnv(i), { scale: 240 / S.W });
+    });
+  }
+
+  function syncSlideBar() {
+    const n = state.slides.length;
+    const i = state.active;
+    el.slideCount.textContent = `slide ${i + 1} van ${n}`;
+    el.slideMenuNo.textContent = `${i + 1} / ${n}`;
+    el.slideMenuBtn.setAttribute('aria-label', `Acties voor slide ${i + 1} van ${n}`);
+    el.slidePill.textContent = `slide ${i + 1} van ${n} · ${layoutOf(current()).name}`;
+    el.inhoudSlide.textContent = `slide ${i + 1}`;
+    el.inhoudLayout.textContent = layoutOf(current()).name;
+    el.layoutFor.textContent = `Kies een layout voor slide ${i + 1}`;
+    const full = n >= MAX_SLIDES;
+    el.slideAdd.disabled = full;
+    el.slideAdd.title = full ? `Hoogstens ${MAX_SLIDES} slides` : 'Nieuwe slide na deze';
+    const set = (sel, off) => $$(sel).forEach((b) => { b.disabled = off; });
+    set('#slideDup, [data-action="slide-dupliceer"]', full);
+    set('#slideLeft, [data-action="slide-voren"]', i === 0);
+    set('#slideRight, [data-action="slide-achteren"]', i === n - 1);
+    set('#slideDel, [data-action="slide-verwijder"]', n === 1);
+    set('[data-browse="-1"]', i === 0);
+    set('[data-browse="1"]', i === n - 1);
+  }
+
+  // De gekozen miniatuur in beeld houden (alleen de strook scrolt, nooit de pagina)
+  function keepActiveInView() {
+    const item = el.strip.children[state.active];
+    if (!item) return;
+    const pad = 48;
+    const left = item.offsetLeft;   // de strook is position: relative
+    if (left - pad < el.strip.scrollLeft) el.strip.scrollLeft = Math.max(0, left - pad);
+    else if (left + item.offsetWidth + pad > el.strip.scrollLeft + el.strip.clientWidth) el.strip.scrollLeft = left + item.offsetWidth + pad - el.strip.clientWidth;
+  }
+
+  // Past de strook niet, dan een verloop met een pijl aan de kant waar nog slides staan
+  const cues = { prev: $('.slidebar__cue--prev'), next: $('.slidebar__cue--next') };
+  function syncCues() {
+    const s = el.strip;
+    const more = s.scrollWidth > s.clientWidth + 2;
+    cues.prev.hidden = !more || s.scrollLeft <= 2;
+    cues.next.hidden = !more || s.scrollLeft + s.clientWidth >= s.scrollWidth - 2;
+  }
+  el.strip.addEventListener('scroll', syncCues, { passive: true });
+  window.addEventListener('resize', PM.debounce(syncCues, 100));
+  cues.prev.addEventListener('click', () => el.strip.scrollBy({ left: -el.strip.clientWidth * 0.8 }));
+  cues.next.addEventListener('click', () => el.strip.scrollBy({ left: el.strip.clientWidth * 0.8 }));
+
+  function focusActiveThumb() {
+    const item = el.strip.children[state.active];
+    if (item) item.focus({ preventScroll: true });
+  }
+
+  function selectSlide(i, { focus = false } = {}) {
+    const next = Math.min(Math.max(0, i), state.slides.length - 1);
+    if (next !== state.active) {
+      state.active = next;
+      syncAll();
+      save();
+      render();
+    }
+    if (focus) focusActiveThumb();
+  }
+
+  // Klikken kiest, slepen verandert de volgorde
+  el.strip.addEventListener('click', (e) => {
+    const item = e.target.closest('.strip__item');
+    if (item) selectSlide(Number(item.dataset.index));
+  });
+  el.strip.addEventListener('dragstart', (e) => {
+    const item = e.target.closest('.strip__item');
+    if (!item) return;
+    e.dataTransfer.setData('text/x-pm-slide', item.dataset.index);
+    e.dataTransfer.effectAllowed = 'move';
+    item.classList.add('is-dragging');
+  });
+  el.strip.addEventListener('dragend', () => {
+    $$('.is-dragging, .is-drop', el.strip).forEach((n) => n.classList.remove('is-dragging', 'is-drop'));
+  });
+  el.strip.addEventListener('dragover', (e) => {
+    const item = e.target.closest('.strip__item');
+    if (!item || !e.dataTransfer.types.includes('text/x-pm-slide')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    $$('.is-drop', el.strip).forEach((n) => n !== item && n.classList.remove('is-drop'));
+    item.classList.add('is-drop');
+  });
+  el.strip.addEventListener('drop', (e) => {
+    const item = e.target.closest('.strip__item');
+    const from = e.dataTransfer.getData('text/x-pm-slide');
+    if (!item || from === '') return;
+    e.preventDefault();
+    moveSlideTo(Number(from), Number(item.dataset.index));
+  });
+
+  // Toetsenbord in de strook: pijltjes, Home en End kiezen, Delete verwijdert, Enter bewerkt
+  el.strip.addEventListener('keydown', (e) => {
+    if (!e.target.closest('.strip__item') || e.altKey || e.ctrlKey || e.metaKey) return;
+    const n = state.slides.length;
+    const to = { ArrowRight: state.active + 1, ArrowDown: state.active + 1, ArrowLeft: state.active - 1, ArrowUp: state.active - 1, Home: 0, End: n - 1 }[e.key];
+    if (to != null) {
+      e.preventDefault();
+      selectSlide(to, { focus: true });
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      deleteSlide();
+      focusActiveThumb();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      shell.open('inhoud', { focus: true });
+    }
+  });
+
+  function moveSlideTo(from, to) {
+    if (from === to || from < 0 || to < 0 || from >= state.slides.length || to >= state.slides.length) return;
+    state.slides = D.move(state.slides, from, to);
+    state.active = to;
+    syncAll();
+    changed(null);
+    PM.announce(`Slide staat nu op plek ${to + 1}.`);
+  }
+
+  function moveSlide(delta, button) {
+    moveSlideTo(state.active, state.active + delta);
+    // Aan het begin of eind gaat de knop uit: de focus naar de andere richting
+    if (button && button.disabled) {
+      const other = button.id === 'slideLeft' ? $('#slideRight') : $('#slideLeft');
+      if (!other.disabled) other.focus();
+    }
+  }
+
+  // Een nieuwe slide na deze; meteen de layout kiezen
+  function addSlide({ byKeyboard = false } = {}) {
+    if (state.slides.length >= MAX_SLIDES) {
+      toast(`Hoogstens ${MAX_SLIDES} slides: verdeel je verhaal over twee presentaties.`);
+      return;
+    }
+    const layout = ['title', 'closing'].includes(current().layout) ? 'bullets' : current().layout;
+    state.slides.splice(state.active + 1, 0, newSlide(layout, { label: current().label }));
+    state.active += 1;
+    syncAll();
+    changed(null);
+    shell.open('layout', { focus: byKeyboard ? '#layoutGrid input:checked' : false });
+    PM.announce(`Slide ${state.active + 1} toegevoegd. Kies een layout.`);
+  }
+
+  function duplicateSlide() {
+    if (state.slides.length >= MAX_SLIDES) return;
+    const src = current();
+    // De foto hoeft niet mee te verhuizen: beide slides wijzen naar hetzelfde bestand
+    const copy = { ...JSON.parse(JSON.stringify(src)), id: PM.uid() };
+    state.slides.splice(state.active + 1, 0, copy);
+    state.active += 1;
+    syncAll();
+    changed(null);
+    toast(`Slide ${state.active} gedupliceerd: je staat nu op de kopie, slide ${state.active + 1}.`);
+  }
+
+  // Verwijderen gaat meteen, met "ongedaan maken" in de melding (en Ctrl + Z)
+  function deleteSlide() {
+    if (state.slides.length === 1) {
+      toast('Een presentatie heeft minstens één slide.');
+      return;
+    }
+    const index = state.active;
+    state.slides.splice(index, 1);
+    state.active = Math.min(index, state.slides.length - 1);
+    syncAll();
+    changed(null);
+    toast(`Slide ${index + 1} verwijderd.`, false, { label: 'ongedaan maken', run: () => history.undo() });
+  }
+
+  el.slideAdd.addEventListener('click', (e) => addSlide({ byKeyboard: e.detail === 0 }));
+  $('#slideDup').addEventListener('click', duplicateSlide);
+  $('#slideLeft').addEventListener('click', (e) => moveSlide(-1, e.currentTarget));
+  $('#slideRight').addEventListener('click', (e) => moveSlide(1, e.currentTarget));
+  $('#slideDel').addEventListener('click', deleteSlide);
+  shell.onAction('slide-dupliceer', duplicateSlide);
+  shell.onAction('slide-voren', () => moveSlide(-1));
+  shell.onAction('slide-achteren', () => moveSlide(1));
+  shell.onAction('slide-verwijder', deleteSlide);
+
+  /* ---------------------------------------------------------------------------
+     Klikken op de slide: elk deel hoort bij een veld
+     ------------------------------------------------------------------------- */
+
+  const FIELD = { title: '#sTitle', subtitle: '#sSubtitle', meta: '#sMeta', body: '#sBody', quote: '#sQuote', author: '#sAuthor', value: '#sValue', label: '#sLabel' };
+
+  function regionTarget(key) {
+    if (key.startsWith('cell:')) return { label: 'tabel', section: 'inhoud', field: `[data-cell="${key.slice(5)}"]` };
+    if (key === 'photo') return { label: photoOf(current()) ? 'foto · sleep om te verschuiven' : 'foto toevoegen', section: 'foto', photo: true };
+    if (!FIELD[key]) return null;
+    return { label: D.nameOf(current(), key).label, section: 'inhoud', field: FIELD[key] };
+  }
+
+  function syncRegions() {
+    const regions = (lastInfo.regions || []).map((r) => {
+      const target = regionTarget(r.key);
+      return target && { ...r, ...target };
+    }).filter(Boolean);
+    shell.setRegions(el.canvas, regions, pickRegion);
+  }
+
+  function pickRegion(r) {
+    if (r.photo) {
+      if (!photoOf(current())) {
+        pickPhoto();
+        return;
+      }
+      // Foto aanklikken: het paneel met de uitsnede open, de focus blijft op de slide (pijltjes)
+      shell.open('foto');
+      flash(el.cropControls);
+      return;
+    }
+    shell.reveal(r.section, r.field);
+  }
+
+  function flash(node) {
+    if (!node) return;
+    node.classList.remove('is-flash');
+    void node.offsetWidth;
+    node.classList.add('is-flash');
+  }
+
+  /* ---------------------------------------------------------------------------
+     Meldingen onder de slide: tekst te lang (welk veld), foto te klein
+     ------------------------------------------------------------------------- */
+
+  const PLURAL = new Set(['de punten', 'de contactgegevens']);
+  let warningKey = null;
+
+  function overflowText(slide, key) {
+    if (key === 'table') return 'De tabel past niet op de slide, ook niet op de kleinste letter. Haal rijen weg, maak teksten korter of verdeel de tabel over twee slides.';
+    const { name } = D.nameOf(slide, key);
+    const Name = name.charAt(0).toUpperCase() + name.slice(1);
+    return PLURAL.has(name)
+      ? `${Name} zijn te lang voor deze slide en zo klein mogelijk gemaakt. Maak ze korter of verdeel ze over twee slides.`
+      : `${Name} is te lang voor deze slide en is zo klein mogelijk gemaakt. Maak de tekst korter of verdeel hem over twee slides.`;
+  }
+
+  function syncWarning() {
+    const keys = lastInfo.overflowKeys || [];
+    warningKey = keys[0] || (lastInfo.overflow ? 'title' : null);
+    el.warning.hidden = !warningKey;
+    if (!warningKey) return;
+    el.warningText.textContent = overflowText(current(), warningKey);
+    el.warningBtn.textContent = `naar ${D.nameOf(current(), warningKey).name}`;
+  }
+  el.warningBtn.addEventListener('click', () => {
+    if (warningKey === 'table') shell.reveal('inhoud', '[data-cell="0,0"]');
+    else if (FIELD[warningKey]) shell.reveal('inhoud', FIELD[warningKey]);
+  });
+
+  // Het vak van de foto op de slide (ontwerp-px): zeshoek of halve slide
+  function photoBox(slide) {
+    if (slide.layout === 'split') return { w: S.W / 2, h: S.H };
+    const { r } = S.GEOM.hero;
+    return { w: r * Math.sqrt(3), h: r * 2 };
+  }
+
+  // Is de foto groot genoeg voor de gekozen resolutie?
+  function photoCheck(index, width = state.exportWidth) {
+    const slide = state.slides[index];
+    const photo = photoOf(slide);
+    if (!photo || !PHOTO_LAYOUTS.has(slide.layout)) return { level: 'ok', message: '' };
+    const box = photoBox(slide);
+    return PM.brand.photoCheck(photo.img.naturalWidth, photo.img.naturalHeight, box.w, box.h, width / S.W, { zoom: slide.crop.zoom });
+  }
+
+  function syncPhotoCheck() {
+    const res = photoCheck(state.active);
+    const warn = res.level !== 'ok';
+    const text = warn && state.exportWidth === 3840 ? `In 4K: ${res.message.charAt(0).toLowerCase()}${res.message.slice(1)}` : res.message;
+    for (const node of [el.photoNote, el.photoStageNote]) {
+      node.hidden = !warn;
+      node.classList.toggle('notice-error', res.level === 'te-klein');
+      node.classList.toggle('notice-warn', res.level !== 'te-klein');
+    }
+    el.photoNote.textContent = text;
+    el.photoStageText.textContent = text;
+  }
+  $('#photoStageBtn').addEventListener('click', () => {
+    shell.open('foto');
+    if (el.photoCard.hidden) el.photoDrop.focus();
+    else $('#photoReplace').focus();
+  });
+
+  // Lege fotoplek: de slide zelf is de uploadknop, zoals een placeholder in Canva
+  function syncPhotoPrompt() {
+    const s = current();
+    const empty = PHOTO_LAYOUTS.has(s.layout) && !photoOf(s);
+    el.previewPhotoBtn.hidden = !empty;
+    el.canvas.classList.toggle('needs-photo', empty);
+    el.canvas.tabIndex = empty || lastInfo.photo ? 0 : -1;
+    el.canvas.setAttribute('aria-label', empty
+      ? `Slide ${state.active + 1}. Druk op Enter om een foto te kiezen.`
+      : lastInfo.photo ? `Slide ${state.active + 1}. Verschuif de foto met de pijltjestoetsen.` : `Slide ${state.active + 1}`);
+  }
+
+  /* ---------------------------------------------------------------------------
+     Velden <-> toestand
      ------------------------------------------------------------------------- */
 
   function buildLayoutTiles() {
@@ -261,25 +633,49 @@
       </label>`).join('');
   }
 
+  // Een veld dat per layout anders heet of anders nadruk geeft (cyaan of vet)
+  function setField(sel, mode, label) {
+    const source = $(sel);
+    const rf = PM.richfield.of(source);
+    const target = rf ? rf.editor : source;
+    const before = `${target.dataset.toolbar}|${target.dataset.toolbarLabel}`;
+    target.dataset.toolbar = mode;
+    target.dataset.toolbarLabel = label;
+    if (rf) {
+      rf.editor.classList.toggle('rf--vet', mode === 'vet');
+      rf.editor.classList.toggle('rf--nadruk', mode === 'nadruk');
+    }
+    if (toolbar.field === target && before !== `${mode}|${label}`) {
+      toolbar.detach();
+      toolbar.attach(target);
+    }
+  }
+
   function syncVisibility() {
     const s = current();
     const keys = [s.layout, `${s.layout}.${s.style}`];
-    for (const n of $$('[data-for]', el.editor)) {
+    for (const n of $$('[data-for]', el.app)) {
       n.hidden = !n.dataset.for.split(/\s+/).some((k) => keys.includes(k));
     }
-    for (const n of $$('[data-layout-text]', el.editor)) {
-      const map = Object.fromEntries(n.dataset.layoutText.split('|').map((p) => p.split(':')));
-      if (map[s.layout] != null) n.textContent = map[s.layout];
+    for (const n of $$('[data-layout-text]', el.app)) {
+      const map = Object.fromEntries(n.dataset.layoutText.split('|').map((p) => [p.slice(0, p.indexOf(':')), p.slice(p.indexOf(':') + 1)]));
+      const text = map[keys[1]] != null ? map[keys[1]] : map[s.layout];
+      if (text != null) n.textContent = text;
     }
-    // Nadruk in de tekst: vet bij opsomming en beeld + tekst, cyaan bij de afsluiter
-    const bodyEmph = $('#bodyEmph');
-    const cyanBody = s.layout === 'closing';
-    bodyEmph.textContent = cyanBody ? 'cyaan' : 'vet';
-    bodyEmph.classList.toggle('emph-btn--bold', !cyanBody);
-    // Stappen doornummeren: alleen de zichtbare
-    $$('fieldset.block:not([hidden]) [data-step]', el.editor).forEach((badge, i) => {
-      badge.textContent = String(i + 1);
-    });
+    // Nadruk: in titel en citaat altijd cyaan; in de tekst van een afsluiter en bij een kerncijfer ook,
+    // verder betekent ** vet (wit en vet op de slide)
+    setField('#sSubtitle', s.layout === 'quote' ? 'nadruk' : 'vet', D.nameOf(s, 'subtitle').label);
+    setField('#sBody', s.layout === 'closing' ? 'nadruk' : 'vet', D.nameOf(s, 'body').label);
+    setField('#sAuthor', 'vet', D.nameOf(s, 'author').label);
+    // De rondleiding wijst de hoofdtekst van deze slide aan: de titel, of het citaat
+    $$('[data-tour="titel"]').forEach((n) => n.removeAttribute('data-tour'));
+    $(keys[1] === 'quote.quote' ? '#sQuote' : '#sTitle').closest('.field').dataset.tour = 'titel';
+    // Een onderdeel dat bij deze layout niet bestaat: uit, met de reden erbij
+    if (PHOTO_LAYOUTS.has(s.layout)) shell.enable('foto');
+    else shell.disable('foto', `${NOUN[s.layout] || 'Deze layout'} heeft geen foto. Kies onder Layout een titelslide, beeld + tekst of afsluiter.`);
+    el.dropHint.textContent = PHOTO_LAYOUTS.has(s.layout)
+      ? 'laat los om de foto op deze slide te zetten'
+      : `${NOUN[s.layout] || 'Deze layout'} heeft geen foto. Laat los, dan kun je beeld + tekst kiezen.`;
   }
 
   function syncInputs() {
@@ -287,30 +683,101 @@
     for (const input of $$('[data-bind]', el.editor)) {
       const value = s[input.dataset.bind];
       if (input.type === 'radio') input.checked = input.value === value;
-      else input.value = value == null ? '' : String(value);
+      else {
+        const text = value == null ? '' : String(value);
+        if (input.value !== text) input.value = text;
+      }
     }
     $$('input[name="layout"]', el.layoutGrid).forEach((r) => { r.checked = r.value === s.layout; });
     el.showNumbers.checked = state.showNumbers !== false;
     el.dot.checked = state.dot !== false;
     $$('input[name="res"]').forEach((r) => { r.checked = Number(r.value) === state.exportWidth; });
-    el.slideNo.textContent = `slide ${state.active + 1}`;
-    $('#layoutNowName').textContent = layoutOf(current()).name;
-    $('#layoutNowSub').textContent = layoutOf(current()).sub;
-    syncPhoto();
     syncCrop();
-    syncSlideBar();
+    syncPhotoUI();
     renderTableEditor();
-    syncVisibility();
+    toolbar.refresh();
   }
+
+  function syncAll() {
+    syncVisibility();
+    syncInputs();
+    syncStrip();
+  }
+
+  function syncCrop() {
+    const c = current().crop;
+    $('#cropZoom').value = String(Math.round(c.zoom * 100));
+    $('#cropZoomVal').textContent = `${Math.round(c.zoom * 100)}%`;
+  }
+
+  function setLayout(id) {
+    const s = current();
+    if (!LAYOUT_IDS.has(id) || s.layout === id) return;
+    s.layout = id;
+    syncAll();
+    changed(null);
+    if (shell.current === 'layout') renderLayoutTiles();
+  }
+
+  el.editor.addEventListener('submit', (e) => e.preventDefault());
+
+  el.editor.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.dataset.bind) {
+      if (t.type === 'radio') return;   // via 'change'
+      current()[t.dataset.bind] = t.value;
+      changed(`${current().id}.${t.dataset.bind}`);
+    } else if (t.dataset.crop) {
+      current().crop[t.dataset.crop] = Number(t.value) / 100;
+      syncCrop();
+      changed('zoom');
+    } else if (t.dataset.cell) {
+      const [r, c] = t.dataset.cell.split(',').map(Number);
+      const row = tbl().cells[r];
+      if (row) row[c] = t.value;
+      changed(`${current().id}.cel.${r},${c}`);
+    }
+  });
+
+  el.editor.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.name === 'layout' && t.checked) {
+      setLayout(t.value);
+    } else if (t.dataset.bind && t.type === 'radio' && t.checked) {
+      current()[t.dataset.bind] = t.value;
+      syncVisibility();
+      changed(null);
+    } else if (t === el.showNumbers) {
+      state.showNumbers = t.checked;
+      changed(null);
+    } else if (t === el.dot) {
+      state.dot = t.checked;
+      changed(null);
+    } else if (t === el.tableHeader || t === el.tableFirstCol) {
+      tbl()[t === el.tableHeader ? 'header' : 'firstCol'] = t.checked;
+      tableChanged();
+    }
+  });
+
+  // "andere layout" en bladeren (smal scherm, blad open) in het paneel Inhoud
+  el.editor.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-open]');
+    const browse = e.target.closest('[data-browse]');
+    if (btn) shell.open(btn.dataset.open, { focus: e.detail === 0 ? '#layoutGrid input:checked' : false });
+    else if (browse) selectSlide(state.active + Number(browse.dataset.browse));
+  });
 
   /* ---------------------------------------------------------------------------
      Tabel bewerken: een raster van invoervelden. Het raster wordt alleen
      opnieuw opgebouwd bij rijen/kolommen toevoegen of weghalen, niet bij
-     typen, zodat de cursor blijft staan.
+     typen, zodat de cursor blijft staan. De ×-knoppen zijn voor de muis; met
+     het toetsenbord gaat Tab van cel naar cel en werken "− rij" en "− kolom"
+     op de cel waar je stond.
      ------------------------------------------------------------------------- */
 
   const LIM = S.TABLE_LIMITS;
   const tbl = () => current().table;
+  let lastCell = [0, 0];
 
   function renderTableEditor(focus) {
     const t = tbl();
@@ -319,15 +786,17 @@
     el.tableHeader.checked = t.header;
     el.tableFirstCol.checked = t.firstCol;
     el.tableGrid.style.setProperty('--cols', nC);
-    const colBtns = Array.from({ length: nC }, (_, c) => `<button type="button" class="tbl__del" data-del-col="${c}" aria-label="Kolom ${c + 1} verwijderen" title="Kolom verwijderen"${nC === 1 ? ' disabled' : ''}>&times;</button>`).join('');
+    const colBtns = Array.from({ length: nC }, (_, c) => `<button type="button" class="tbl__del" data-del-col="${c}" tabindex="-1" aria-label="Kolom ${c + 1} verwijderen" title="Kolom ${c + 1} verwijderen"${nC === 1 ? ' disabled' : ''}>&times;</button>`).join('');
     const rows = t.cells.map((row, r) => {
       const head = t.header && r === 0;
       const inputs = row.map((v, c) => `<input class="input tbl__cell${head ? ' is-head' : ''}" data-cell="${r},${c}" value="${PM.esc(v)}" maxlength="160" aria-label="${head ? 'Kop' : `Rij ${t.header ? r : r + 1}`}, kolom ${c + 1}" spellcheck="true">`).join('');
-      return `${inputs}<button type="button" class="tbl__del" data-del-row="${r}" aria-label="Rij ${r + 1} verwijderen" title="Rij verwijderen"${nR === 1 ? ' disabled' : ''}>&times;</button>`;
+      return `${inputs}<button type="button" class="tbl__del" data-del-row="${r}" tabindex="-1" aria-label="Rij ${r + 1} verwijderen" title="Rij ${r + 1} verwijderen"${nR === 1 ? ' disabled' : ''}>&times;</button>`;
     }).join('');
     el.tableGrid.innerHTML = `${colBtns}<span></span>${rows}`;
+    lastCell = [Math.min(lastCell[0], nR - 1), Math.min(lastCell[1], nC - 1)];
     $('#addRow').disabled = nR >= LIM.rows;
     $('#addCol').disabled = nC >= LIM.cols;
+    syncDelButtons();
     if (focus) {
       const input = $(`[data-cell="${focus[0]},${focus[1]}"]`, el.tableGrid);
       if (input) {
@@ -337,15 +806,35 @@
     }
   }
 
+  function syncDelButtons() {
+    const t = tbl();
+    const [r, c] = lastCell;
+    const delRow = $('#delRow');
+    const delCol = $('#delCol');
+    delRow.disabled = t.cells.length === 1;
+    delCol.disabled = t.cells[0].length === 1;
+    delRow.setAttribute('aria-label', `Rij ${r + 1} verwijderen`);
+    delRow.title = `Rij ${r + 1} verwijderen (de rij van de cel waar je stond)`;
+    delCol.setAttribute('aria-label', `Kolom ${c + 1} verwijderen`);
+    delCol.title = `Kolom ${c + 1} verwijderen (de kolom van de cel waar je stond)`;
+  }
+
+  el.tableGrid.addEventListener('focusin', (e) => {
+    const cell = e.target.dataset && e.target.dataset.cell;
+    if (!cell) return;
+    lastCell = cell.split(',').map(Number);
+    syncDelButtons();
+  });
+
   function tableChanged(focus) {
     renderTableEditor(focus);
-    changed();
+    changed(null);
   }
 
   function addRow(at = tbl().cells.length) {
     const t = tbl();
     if (t.cells.length >= LIM.rows) {
-      PM.toast(`Maximaal ${LIM.rows} rijen: meer is op een slide niet te lezen. Verdeel de tabel over twee slides.`, true);
+      toast(`Maximaal ${LIM.rows} rijen: meer is op een slide niet te lezen. Verdeel de tabel over twee slides.`, true);
       return false;
     }
     t.cells.splice(at, 0, Array(t.cells[0].length).fill(''));
@@ -355,11 +844,28 @@
   function addCol() {
     const t = tbl();
     if (t.cells[0].length >= LIM.cols) {
-      PM.toast(`Maximaal ${LIM.cols} kolommen: meer is op een slide niet te lezen.`, true);
+      toast(`Maximaal ${LIM.cols} kolommen: meer is op een slide niet te lezen.`, true);
       return false;
     }
     t.cells.forEach((row) => row.push(''));
     return true;
+  }
+
+  // Weghalen gaat meteen, met "ongedaan maken" in de melding
+  function delRow(r) {
+    const t = tbl();
+    if (t.cells.length === 1) return;
+    t.cells.splice(r, 1);
+    tableChanged();
+    toast(`Rij ${r + 1} verwijderd.`, false, { label: 'ongedaan maken', run: () => history.undo() });
+  }
+
+  function delCol(c) {
+    const t = tbl();
+    if (t.cells[0].length === 1) return;
+    t.cells.forEach((row) => row.splice(c, 1));
+    tableChanged();
+    toast(`Kolom ${c + 1} verwijderd.`, false, { label: 'ongedaan maken', run: () => history.undo() });
   }
 
   $('#addRow').addEventListener('click', () => {
@@ -368,19 +874,14 @@
   $('#addCol').addEventListener('click', () => {
     if (addCol()) tableChanged([0, tbl().cells[0].length - 1]);
   });
+  $('#delRow').addEventListener('click', () => delRow(lastCell[0]));
+  $('#delCol').addEventListener('click', () => delCol(lastCell[1]));
 
   el.tableGrid.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
-    const t = tbl();
-    if (btn.dataset.delRow != null && t.cells.length > 1) {
-      t.cells.splice(Number(btn.dataset.delRow), 1);
-      tableChanged();
-    } else if (btn.dataset.delCol != null && t.cells[0].length > 1) {
-      const c = Number(btn.dataset.delCol);
-      t.cells.forEach((row) => row.splice(c, 1));
-      tableChanged();
-    }
+    if (btn.dataset.delRow != null) delRow(Number(btn.dataset.delRow));
+    else if (btn.dataset.delCol != null) delCol(Number(btn.dataset.delCol));
   });
 
   // Enter: naar de cel eronder (en aan het eind een nieuwe rij), zoals in een spreadsheet
@@ -424,263 +925,131 @@
       });
     });
     tableChanged([r0, c0]);
-    PM.toast(cut ? `Geplakt, maar alleen de eerste ${LIM.rows} rijen en ${LIM.cols} kolommen passen.` : `${data.length} ${data.length === 1 ? 'rij' : 'rijen'} geplakt.`, cut);
+    toast(cut ? `Geplakt, maar alleen de eerste ${LIM.rows} rijen en ${LIM.cols} kolommen passen.` : `${data.length} ${data.length === 1 ? 'rij' : 'rijen'} geplakt.`, cut);
   });
 
-  function syncCrop() {
-    const c = current().crop;
-    $('#cropZoom').value = String(Math.round(c.zoom * 100));
-    $('#cropZoomVal').textContent = `${Math.round(c.zoom * 100)}%`;
+  /* ---------------------------------------------------------------------------
+     Foto's: per slide een sleutel in IndexedDB
+     ------------------------------------------------------------------------- */
+
+  function trackFile(key) {
+    const list = PM.store.get(FILES_KEY, []);
+    if (!list.includes(key)) PM.store.set(FILES_KEY, [...list, key]);
   }
 
-  function syncPhoto() {
-    const image = env.images[current().id];
-    el.photoCard.hidden = !image;
-    el.photoDrop.hidden = !!image;
-    el.cropControls.hidden = !image;
-    el.cropHint.hidden = !image;
-    if (image) {
-      el.photoThumb.style.backgroundImage = `url("${image.url}")`;
-      el.photoName.textContent = image.name;
-      el.photoSize.textContent = `${image.img.naturalWidth} × ${image.img.naturalHeight} px${image.size ? ` · ${PM.formatSize(image.size)}` : ''}`;
+  // Bij het laden: alleen bewaren wat de presentatie nu gebruikt (de geschiedenis is dan leeg)
+  function cleanupFiles() {
+    const keep = Array.from(new Set(state.slides.map((s) => s.photoKey).filter(Boolean)));
+    PM.store.get(FILES_KEY, []).filter((k) => !keep.includes(k)).forEach((k) => PM.idb.del(k));
+    PM.store.set(FILES_KEY, keep);
+  }
+
+  async function loadFile(key) {
+    if (!key) return null;
+    if (files.has(key)) return files.get(key);
+    const blob = await PM.idb.get(key);
+    if (!(blob instanceof Blob)) return null;
+    try {
+      const { img, url } = await PM.readImage(blob);
+      const entry = { file: blob, img, url };
+      files.set(key, entry);
+      return entry;
+    } catch (err) {
+      return null;
     }
   }
 
-  function syncSlideBar() {
-    el.slideAdd.disabled = state.slides.length >= MAX_SLIDES;
-    $('#slideLeft').disabled = state.active === 0;
-    $('#slideRight').disabled = state.active === state.slides.length - 1;
-    $('#slideDel').disabled = state.slides.length === 1;
-    $('#slideDup').disabled = state.slides.length >= MAX_SLIDES;
-  }
-
-  // Layoutkeuze in- en uitklappen
-  function setLayoutOpen(open) {
-    el.layoutGrid.hidden = !open;
-    el.layoutToggle.setAttribute('aria-expanded', String(open));
-    el.layoutToggle.textContent = open ? 'klaar' : 'andere layout';
-    if (open) renderLayoutTiles();
-  }
-  el.layoutToggle.addEventListener('click', () => setLayoutOpen(el.layoutGrid.hidden));
-
-  function changed() {
-    save();
+  // Foto's uit de toestand laden (na laden, ongedaan maken of een nieuwe foto)
+  async function applyPhotos() {
+    await Promise.all(Array.from(new Set(state.slides.map((s) => s.photoKey))).map(loadFile));
+    syncPhotoUI();
     render();
   }
 
-  el.editor.addEventListener('submit', (e) => e.preventDefault());
+  function syncPhotoUI() {
+    const entry = photoOf(current());
+    el.photoCard.hidden = !entry;
+    el.photoDrop.hidden = !!entry;
+    el.cropControls.hidden = !entry;
+    el.cropHint.hidden = !entry;
+    if (!entry) return;
+    el.photoThumb.style.backgroundImage = `url("${entry.url}")`;
+    el.photoName.textContent = entry.file.name || 'foto';
+    el.photoSize.textContent = `${entry.img.naturalWidth} × ${entry.img.naturalHeight} px${entry.file.size ? ` · ${PM.formatSize(entry.file.size)}` : ''}`;
+  }
 
-  el.editor.addEventListener('input', (e) => {
-    const t = e.target;
-    if (t.dataset.bind) {
-      if (t.type === 'radio' && !t.checked) return;
-      current()[t.dataset.bind] = t.value;
-      if (t.type === 'radio') syncVisibility();
-      changed();
-    } else if (t.dataset.crop) {
-      current().crop[t.dataset.crop] = Number(t.value) / 100;
-      syncCrop();
-      changed();
-    } else if (t.dataset.cell) {
-      const [r, c] = t.dataset.cell.split(',').map(Number);
-      const row = tbl().cells[r];
-      if (row) row[c] = t.value;
-      changed();
+  async function addFile(file) {
+    try {
+      const { img, url } = await PM.readImage(file);
+      const key = `slide:${PM.uid()}${PM.uid()}`;
+      files.set(key, { file, img, url });
+      PM.idb.set(key, file);
+      trackFile(key);
+      return key;
+    } catch (err) {
+      toast(err.message, true);
+      return null;
     }
-  });
-
-  el.editor.addEventListener('change', (e) => {
-    const t = e.target;
-    if (t.name === 'layout' && t.checked) {
-      current().layout = t.value;
-      syncInputs();
-      changed();
-    } else if (t.dataset.bind && t.type === 'radio' && t.checked) {
-      current()[t.dataset.bind] = t.value;
-      syncVisibility();
-      changed();
-    } else if (t === el.showNumbers) {
-      state.showNumbers = t.checked;
-      changed();
-    } else if (t === el.dot) {
-      state.dot = t.checked;
-      changed();
-    } else if (t === el.tableHeader || t === el.tableFirstCol) {
-      tbl()[t === el.tableHeader ? 'header' : 'firstCol'] = t.checked;
-      tableChanged();
-    }
-  });
-
-  $$('input[name="res"]').forEach((r) => r.addEventListener('change', () => {
-    if (!r.checked) return;
-    state.exportWidth = Number(r.value) === 3840 ? 3840 : 1920;
-    changed();
-  }));
-
-  // Knoppen "cyaan" en "vet" (gedeeld, zie PM.textTools)
-  PM.textTools(el.editor);
-
-  /* ---------------------------------------------------------------------------
-     Slides beheren
-     ------------------------------------------------------------------------- */
-
-  function selectSlide(i) {
-    state.active = Math.min(Math.max(0, i), state.slides.length - 1);
-    syncInputs();
-    changed();
-  }
-
-  // Een nieuwe slide: kies meteen de layout (de keuze staat open)
-  function addSlide() {
-    if (state.slides.length >= MAX_SLIDES) return;
-    const layout = ['title', 'closing'].includes(current().layout) ? 'bullets' : current().layout;
-    state.slides.splice(state.active + 1, 0, newSlide(layout, { label: current().label }));
-    selectSlide(state.active + 1);
-    setLayoutOpen(true);
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.layoutGrid.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'nearest' });
-  }
-
-  el.slideAdd.addEventListener('click', addSlide);
-
-  function moveSlideTo(from, to) {
-    if (from === to || from < 0 || to < 0 || from >= state.slides.length || to >= state.slides.length) return;
-    const [slide] = state.slides.splice(from, 1);
-    state.slides.splice(to, 0, slide);
-    selectSlide(to);
-  }
-
-  function moveSlide(delta) {
-    const to = state.active + delta;
-    if (to < 0 || to >= state.slides.length) return;
-    const [slide] = state.slides.splice(state.active, 1);
-    state.slides.splice(to, 0, slide);
-    selectSlide(to);
-  }
-
-  $('#slideLeft').addEventListener('click', () => moveSlide(-1));
-  $('#slideRight').addEventListener('click', () => moveSlide(1));
-
-  $('#slideDup').addEventListener('click', async () => {
-    if (state.slides.length >= MAX_SLIDES) return;
-    const src = current();
-    const copy = { ...JSON.parse(JSON.stringify(src)), id: PM.uid() };
-    state.slides.splice(state.active + 1, 0, copy);
-    const blob = await PM.idb.get(`slide:${src.id}`);
-    if (blob instanceof Blob) await setImage(copy.id, blob, { name: env.images[src.id] && env.images[src.id].name });
-    selectSlide(state.active + 1);
-  });
-
-  // Verwijderen gaat meteen, met "ongedaan maken" in de melding: de slide en
-  // zijn foto blijven nog even bewaard
-  $('#slideDel').addEventListener('click', () => {
-    if (state.slides.length === 1) return;
-    const index = state.active;
-    const [removed] = state.slides.splice(index, 1);
-    const image = env.images[removed.id];
-    delete env.images[removed.id];
-    PM.idb.del(`slide:${removed.id}`);
-    selectSlide(Math.min(index, state.slides.length - 1));
-    let undone = false;
-    PM.toast(`Slide ${index + 1} verwijderd.`, false, {
-      label: 'ongedaan maken',
-      run: async () => {
-        undone = true;
-        state.slides.splice(index, 0, removed);
-        if (image) {
-          env.images[removed.id] = image;
-          const blob = await fetch(image.url).then((r) => r.blob()).catch(() => null);
-          if (blob) PM.idb.set(`slide:${removed.id}`, blob);
-        }
-        selectSlide(index);
-      },
-    });
-    setTimeout(() => { if (!undone && image) URL.revokeObjectURL(image.url); }, 10000);
-  });
-
-  /* ---------------------------------------------------------------------------
-     Foto's
-     ------------------------------------------------------------------------- */
-
-  async function setImage(id, file, { persist = true, name } = {}) {
-    const { img, url } = await PM.readImage(file);
-    if (env.images[id]) URL.revokeObjectURL(env.images[id].url);
-    env.images[id] = { img, url, name: name || file.name || 'afbeelding', size: file.size };
-    if (persist) await PM.idb.set(`slide:${id}`, file);
-  }
-
-  function dropImage(id) {
-    if (env.images[id]) URL.revokeObjectURL(env.images[id].url);
-    delete env.images[id];
-    PM.idb.del(`slide:${id}`);
   }
 
   async function setPhoto(file) {
     const s = current();
+    // Geen fotoplek in deze layout: uitleggen, en de layout die het wel kan in één klik
     if (!PHOTO_LAYOUTS.has(s.layout)) {
-      PM.toast('Deze layout heeft geen foto. Kies titelslide, beeld + tekst of afsluiter.', true);
+      toast(`${NOUN[s.layout] || 'Deze layout'} heeft geen plek voor een foto. Met beeld + tekst staat hij naast je tekst.`, false, {
+        label: 'gebruik beeld + tekst',
+        run: () => {
+          setLayout('split');
+          setPhoto(file);
+        },
+      });
       return;
     }
-    try {
-      await setImage(s.id, file);
-      s.crop = { zoom: 1, fx: 0.5, fy: 0.5 };
-      if (Math.min(env.images[s.id].img.naturalWidth, env.images[s.id].img.naturalHeight) < 900) {
-        PM.toast('Let op: deze foto is klein en kan onscherp worden op een groot scherm.');
-      }
-      syncInputs();
-      changed();
-    } catch (err) {
-      PM.toast(err.message, true);
-    }
+    const key = await addFile(file);
+    if (!key) return;
+    s.photoKey = key;
+    s.crop = { zoom: 1, fx: 0.5, fy: 0.5 };
+    syncCrop();
+    syncPhotoUI();
+    changed('foto');
+    if (PM.tour) PM.tour.signal('foto');
   }
 
-  el.photoDrop.addEventListener('click', () => el.photoInput.click());
+  function clearPhoto() {
+    current().photoKey = '';
+    syncPhotoUI();
+    changed('foto');
+    toast('Foto verwijderd.', false, { label: 'ongedaan maken', run: () => history.undo() });
+  }
+
+  const pickPhoto = () => el.photoInput.click();
+  el.photoDrop.addEventListener('click', pickPhoto);
   el.photoDrop.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      el.photoInput.click();
+      pickPhoto();
     }
   });
-  $('#photoReplace').addEventListener('click', () => el.photoInput.click());
-  el.previewPhotoBtn.addEventListener('click', () => el.photoInput.click());
-  el.canvas.addEventListener('click', () => {
-    if (current().layout === 'split' && !env.images[current().id]) el.photoInput.click();
-  });
-  $('#cropReset').addEventListener('click', () => {
-    current().crop = { zoom: 1, fx: 0.5, fy: 0.5 };
-    syncCrop();
-    changed();
-  });
-  // Met het toetsenbord: Enter kiest een foto, pijltjes verschuiven hem
-  el.canvas.addEventListener('keydown', (e) => {
-    if ((e.key === 'Enter' || e.key === ' ') && current().layout === 'split' && !env.images[current().id]) {
-      e.preventDefault();
-      el.photoInput.click();
-      return;
-    }
-    const dir = { ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
-    if (!dir || !lastInfo.photo) return;
-    e.preventDefault();
-    const c = current().crop;
-    const step = e.shiftKey ? 0.1 : 0.02;
-    c.fx = Math.min(1, Math.max(0, c.fx + dir[0] * step));
-    c.fy = Math.min(1, Math.max(0, c.fy + dir[1] * step));
-    changed();
-  });
-  $('#photoClear').addEventListener('click', () => {
-    dropImage(current().id);
-    syncInputs();
-    render();
-  });
+  $('#photoReplace').addEventListener('click', pickPhoto);
+  $('#photoClear').addEventListener('click', clearPhoto);
+  el.previewPhotoBtn.addEventListener('click', pickPhoto);
   el.photoInput.addEventListener('change', () => {
     const file = el.photoInput.files[0];
     el.photoInput.value = '';
     if (file) setPhoto(file);
   });
+  $('#cropReset').addEventListener('click', () => {
+    current().crop = { zoom: 1, fx: 0.5, fy: 0.5 };
+    syncCrop();
+    changed(null);
+  });
+
+  // Slepen: foto overal op het podium of op de uploadzone
   PM.bindDrop(el.photoDrop, setPhoto);
-  PM.bindDrop(el.stage, setPhoto);
+  PM.bindDrop(el.stage, setPhoto, el.stage);
   PM.preventStrayDrops();
 
+  // Plakken vanaf het klembord (alleen een afbeelding; tekst plakt gewoon in het veld)
   document.addEventListener('paste', (e) => {
     if (e.target.closest && e.target.closest('input, textarea')) return;
     const item = Array.from(e.clipboardData ? e.clipboardData.items : []).find((i) => i.type.startsWith('image/'));
@@ -689,12 +1058,12 @@
     setPhoto(item.getAsFile());
   });
 
-  // Uitsnede verschuiven door in de preview te slepen
+  // Uitsnede verschuiven door op de slide te slepen (een klik zonder slepen opent het veld)
   let pan = null;
   el.canvas.addEventListener('pointerdown', (e) => {
     if (!lastInfo.photo) return;
     const c = current().crop;
-    pan = { x: e.clientX, y: e.clientY, fx: c.fx, fy: c.fy };
+    pan = { x: e.clientX, y: e.clientY, fx: c.fx, fy: c.fy, moved: false };
     el.canvas.setPointerCapture(e.pointerId);
     el.canvas.classList.add('is-panning');
   });
@@ -705,24 +1074,72 @@
     const c = current().crop;
     if (overflowX > 0.5) c.fx = Math.min(1, Math.max(0, pan.fx - ((e.clientX - pan.x) * k) / overflowX));
     if (overflowY > 0.5) c.fy = Math.min(1, Math.max(0, pan.fy - ((e.clientY - pan.y) * k) / overflowY));
-    syncCrop();
+    pan.moved = pan.moved || c.fx !== pan.fx || c.fy !== pan.fy;
     render();
   });
   const endPan = () => {
     if (!pan) return;
+    const moved = pan.moved;
     pan = null;
     el.canvas.classList.remove('is-panning');
-    save();
+    if (moved) {
+      history.seal();
+      changed(null);
+    }
   };
   el.canvas.addEventListener('pointerup', endPan);
   el.canvas.addEventListener('pointercancel', endPan);
 
+  // Met het toetsenbord: Enter kiest een foto, pijltjes verschuiven hem
+  el.canvas.addEventListener('keydown', (e) => {
+    const s = current();
+    if ((e.key === 'Enter' || e.key === ' ') && PHOTO_LAYOUTS.has(s.layout) && !photoOf(s)) {
+      e.preventDefault();
+      pickPhoto();
+      return;
+    }
+    const dir = { ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
+    if (!dir || !lastInfo.photo) return;
+    e.preventDefault();
+    const c = s.crop;
+    const step = e.shiftKey ? 0.1 : 0.02;
+    c.fx = Math.min(1, Math.max(0, c.fx + dir[0] * step));
+    c.fy = Math.min(1, Math.max(0, c.fy + dir[1] * step));
+    changed('verschuiven');
+  });
+
   /* ---------------------------------------------------------------------------
-     Export
+     Export: "download pdf" rechtsboven; het pijltje toont PowerPoint en afbeeldingen
      ------------------------------------------------------------------------- */
 
   const deckName = () => PM.slug(state.slides[0].title || state.slides[0].label) || 'presentatie';
   const slideFile = (i) => `pureminds-presentatie-${deckName()}-slide-${String(i + 1).padStart(2, '0')}.png`;
+  const sizeText = () => `${state.exportWidth} × ${state.exportWidth * 9 / 16} px`;
+
+  // Precies wat je krijgt, per knop in één regel
+  function syncExport() {
+    const n = state.slides.length;
+    el.dimPill.textContent = sizeText();
+    el.pdfSum.textContent = `${n} ${n === 1 ? 'pagina' : "pagina's"}, om te presenteren of te versturen`;
+    el.pngSum.textContent = `1 PNG · ${sizeText()}`;
+    el.zipSum.textContent = `zip met ${n} PNG's · ${sizeText()}`;
+    el.downloadBtn.title = `Download ${n === 1 ? 'de slide' : `alle ${n} slides`} als pdf (Ctrl + S)`;
+    // Foto's die voor deze resolutie te klein zijn, rustig gemeld bij de afbeeldingen
+    const small = state.slides.map((_, i) => i).filter((i) => photoCheck(i).level !== 'ok');
+    el.dlPhotoNote.hidden = !small.length;
+    if (small.length) {
+      const list = small.map((i) => i + 1);
+      const which = list.length === 1 ? `slide ${list[0]}` : `slide ${list.slice(0, -1).join(', ')} en ${list[list.length - 1]}`;
+      el.dlPhotoNote.textContent = `De foto op ${which} is kleiner dan ${state.exportWidth === 3840 ? '4K' : 'Full HD'} nodig heeft en kan zacht worden.${state.exportWidth === 3840 ? ' Full HD is scherp genoeg voor de meeste schermen.' : ''}`;
+    }
+  }
+
+  $$('input[name="res"]').forEach((r) => r.addEventListener('change', () => {
+    if (!r.checked) return;
+    state.exportWidth = Number(r.value) === 3840 ? 3840 : 1920;
+    save();
+    render();
+  }));
 
   async function slideBlob(i) {
     await PM.fontsReady;
@@ -731,15 +1148,15 @@
     return PM.canvasToBlob(canvas, 'image/png');
   }
 
-  el.pngBtn.addEventListener('click', () => PM.run(el.pngBtn, 'bezig…', async () => {
+  async function exportPng() {
     const name = slideFile(state.active);
     PM.saveBlob(await slideBlob(state.active), name);
-    PM.toast(`Gedownload: ${name}`);
+    toast(`Gedownload: ${name}`);
     return 'gedownload';
-  }));
+  }
 
   // Alle slides in één zip: geen reeks losse downloads die de browser blokkeert
-  el.pngAllBtn.addEventListener('click', () => PM.run(el.pngAllBtn, 'bezig…', async (progress) => {
+  async function exportZip(progress) {
     const JSZip = await PM.libs.jszip();
     const zip = new JSZip();
     for (let i = 0; i < state.slides.length; i++) {
@@ -749,111 +1166,248 @@
     progress('inpakken…');
     const name = `pureminds-presentatie-${deckName()}-slides.zip`;
     PM.saveBlob(await zip.generateAsync({ type: 'blob' }), name);
-    PM.toast(`${state.slides.length} slides gedownload in ${name}`);
+    toast(`${state.slides.length} slides gedownload in ${name}`);
     return `${state.slides.length} slides`;
-  }));
+  }
 
   // PDF: één 16:9-pagina per slide (960 × 540 pt, zoals PowerPoint), als vector
   // met echte tekst. Dezelfde renderfunctie als de preview tekent via
   // PMPdfCanvas rechtstreeks in de PDF; alleen foto's zijn afbeeldingen.
   async function exportPdf(progress) {
-    const JsPDF = await PM.libs.svg2pdf();
-    await PM.fontsReady;
-    const pdf = new JsPDF({ unit: 'pt', format: [960, 540], orientation: 'landscape', compress: true, putOnlyUsedFonts: true });
-    await PM.pdfFonts(pdf);
-    const vectors = new Map([[env.logo, PM.brandSvg('logoWhiteSvg')]]);
-    for (let i = 0; i < state.slides.length; i++) {
-      progress(`slide ${i + 1} van ${state.slides.length}…`);
-      await PM.wait(0);  // knoptekst laten verversen
-      if (i > 0) pdf.addPage([960, 540], 'landscape');
-      const ctx = new window.PMPdfCanvas(pdf, { width: S.W, height: S.H, pageWidth: 960, vectors });
-      S.renderSlide(ctx.canvas, state, i, slideEnv(i));
-      await ctx.flush();
-    }
-    const title = String(state.slides[0].title || 'Presentatie').replace(/\*\*/g, '');
-    pdf.setProperties({ title, author: 'Pure Minds', creator: 'Pure Minds Generator Hub' });
+    const { blob } = await window.PMPdfCanvas.build({
+      width: S.W,
+      height: S.H,
+      pageWidth: 960,
+      count: state.slides.length,
+      draw: (canvas, i) => S.renderSlide(canvas, state, i, slideEnv(i)),
+      vectors: new Map([[env.logo, PM.brandSvg('logoWhiteSvg')]]),
+      title: String(state.slides[0].title || 'Presentatie').replace(/\*\*/g, ''),
+      subject: 'Pure Minds presentatie',
+      progress,
+    });
     const name = `pureminds-presentatie-${deckName()}.pdf`;
-    PM.saveBlob(pdf.output('blob'), name);
-    PM.toast(`PDF met ${state.slides.length} slides gedownload: ${name}`);
+    PM.saveBlob(blob, name);
+    toast(`PDF met ${state.slides.length} slides gedownload: ${name}`);
     return 'pdf gedownload';
   }
-  const downloadPdf = () => PM.run(el.pdfBtn, 'pdf maken…', exportPdf);
-  el.pdfBtn.addEventListener('click', downloadPdf);
 
   // PowerPoint: dezelfde slides als bewerkbare tekstvakken, vormen en foto's
   // (js/presentation/pptx.js). Opent ook in Google Presentaties en Keynote.
   async function exportPptx(progress) {
-    const blob = await window.PMSlidesPptx.exportDeck(state, slideEnv, env.images, (i, total) => progress(`slide ${i + 1} van ${total}…`));
+    const images = {};
+    for (const s of state.slides) {
+      const photo = photoOf(s);
+      if (photo) images[s.id] = { img: photo.img, url: photo.url, name: photo.file.name || 'afbeelding' };
+    }
+    const blob = await window.PMSlidesPptx.exportDeck(state, slideEnv, images, (i, total) => progress(`slide ${i + 1} van ${total}…`));
     const name = `pureminds-presentatie-${deckName()}.pptx`;
     PM.saveBlob(blob, name);
-    PM.toast(`PowerPoint met ${state.slides.length} slides gedownload: ${name}`);
+    toast(`PowerPoint met ${state.slides.length} slides gedownload: ${name}`);
     return 'powerpoint gedownload';
   }
-  el.pptxBtn.addEventListener('click', () => PM.run(el.pptxBtn, 'powerpoint maken…', exportPptx));
+
+  const EXPORTS = {
+    pdf: { busy: 'pdf maken…', task: exportPdf },
+    pptx: { busy: 'powerpoint maken…', task: exportPptx },
+    png: { busy: 'bezig…', task: exportPng },
+    zip: { busy: 'slides maken…', task: exportZip },
+  };
+
+  // De voortgang staat op de knop waar je klikte; is die weg (popover dicht), dan op "download pdf"
+  function runExport(kind, button) {
+    const btn = button && button.getClientRects().length ? button : el.downloadBtn;
+    const { busy, task } = EXPORTS[kind];
+    return PM.run(btn, busy, async (progress) => {
+      const done = await task(progress);
+      if (PM.tour) PM.tour.signal('download');
+      return done;
+    });
+  }
+
+  function download(kind, button) {
+    if (button && button.disabled) return;
+    beforeDownload(() => runExport(kind, button));
+  }
+
+  el.downloadBtn.addEventListener('click', () => download('pdf', el.downloadBtn));
+  // Opties geopend met het toetsenbord: begin bij de eerste keuze, pdf
+  $('.split__more').addEventListener('click', (e) => {
+    if (e.detail === 0 && !$('#dlPop').hidden) el.pdfBtn.focus();
+  });
+  el.pdfBtn.addEventListener('click', () => download('pdf', el.pdfBtn));
+  el.pptxBtn.addEventListener('click', () => download('pptx', el.pptxBtn));
+  el.pngBtn.addEventListener('click', () => download('png', el.pngBtn));
+  el.pngAllBtn.addEventListener('click', () => download('zip', el.pngAllBtn));
+
+  /* ---------------------------------------------------------------------------
+     Nog even checken: voorbeeldtekst, [invulplekken] en tekst die niet past
+     ------------------------------------------------------------------------- */
+
+  let checkedSig = null;   // "toch downloaden" voor precies deze inhoud: dan niet opnieuw vragen
+  let checkGo = null;
+  const measure = document.createElement('canvas');
+
+  function checkIssues() {
+    const list = D.exampleIssues(state, {
+      exampleTable: S.defaultTable().cells,
+      hasPhoto: (i) => PHOTO_LAYOUTS.has(state.slides[i].layout) && !!photoOf(state.slides[i]),
+    });
+    // Tekst die ook op de kleinste letter niet past (op een klein canvas, alleen om te meten)
+    state.slides.forEach((slide, i) => {
+      const info = S.renderSlide(measure, state, i, slideEnv(i), { scale: 0.05 });
+      const key = (info.overflowKeys || [])[0] || (info.overflow ? 'title' : null);
+      if (key) out(i, key);
+      function out(index, k) {
+        const f = D.nameOf(slide, k);
+        list.push({ index, key: k, label: f.label, name: f.name, kind: 'te-lang', found: '' });
+      }
+    });
+    return list.sort((a, b) => a.index - b.index);
+  }
+
+  // Eén regel per veld: "Titel: nog de voorbeeldtekst “…”"
+  function checkRow(x) {
+    const Label = x.label.charAt(0).toUpperCase() + x.label.slice(1);
+    if (x.kind === 'leeg' && x.key !== 'value') return 'Deze slide is nog leeg.';
+    const what = {
+      voorbeeld: () => (x.key === 'table' ? 'nog de voorbeeldcijfers' : `nog de voorbeeldtekst “${x.found}”`),
+      invulplek: () => `nog invullen: ${x.found}`,
+      leeg: () => 'nog leeg, op de slide staat nu 0%',
+      'te-lang': () => 'te lang, past ook op de kleinste letter niet',
+    }[x.kind]();
+    return `<b>${PM.esc(Label)}</b>: ${PM.esc(what)}`;
+  }
+
+  function beforeDownload(run) {
+    const list = checkIssues();
+    const sig = JSON.stringify(list);
+    if (!list.length || sig === checkedSig) {
+      run();
+      return;
+    }
+    const slides = Array.from(new Set(list.map((x) => x.index)));
+    const n = slides.length;
+    const kinds = { voorbeeld: 'voorbeeldtekst', invulplek: 'iets om in te vullen', leeg: 'een lege plek', 'te-lang': 'tekst die niet past' };
+    const found = Object.keys(kinds).filter((k) => list.some((x) => x.kind === k)).map((k) => kinds[k]);
+    $('#checkLead').textContent = `Op ${n} ${n === 1 ? 'slide' : 'slides'} staat nog ${listNames(found)}. Zo komt het ook in je download.`;
+    $('#checkList').innerHTML = slides.map((index) => {
+      const rows = list.filter((x) => x.index === index);
+      const slide = state.slides[index];
+      return `<li class="check__item">
+        <span class="check__slide"><b>Slide ${index + 1}</b> ${PM.esc(layoutOf(slide).name)}</span>
+        <ul class="check__rows">${rows.map((x) => `<li>${checkRow(x)}</li>`).join('')}</ul>
+        <button type="button" class="btn btn-quiet btn-xs check__goto" data-goto="${index}" data-key="${PM.esc(rows[0].key)}">naar slide ${index + 1}</button>
+      </li>`;
+    }).join('');
+    checkGo = () => {
+      checkedSig = sig;
+      run();
+    };
+    shell.closePopover();
+    if (typeof el.check.showModal === 'function') el.check.showModal();
+    else el.check.setAttribute('open', '');
+    $('#checkTitle').focus();
+  }
+
+  // "a, b en c"
+  function listNames(names) {
+    return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} en ${names[names.length - 1]}`;
+  }
+
+  function closeCheck() {
+    if (el.check.open) el.check.close();
+  }
+
+  // Naar het veld dat nog aandacht nodig heeft
+  function gotoField(index, key) {
+    closeCheck();
+    selectSlide(index);
+    let sel = FIELD[key];
+    if (key === 'table') {
+      const cells = tbl().cells;
+      let at = '0,0';
+      cells.some((row, r) => row.some((v, c) => {
+        if (D.placeholders(v).length) at = `${r},${c}`;
+        return D.placeholders(v).length > 0;
+      }));
+      sel = `[data-cell="${at}"]`;
+    }
+    requestAnimationFrame(() => shell.reveal('inhoud', sel || '#sTitle'));
+  }
+
+  el.check.addEventListener('click', (e) => {
+    const go = e.target.closest('[data-check-go]');
+    const to = e.target.closest('[data-goto]');
+    // Klik op de achtergrond (buiten het vak) sluit ook
+    const r = el.check.getBoundingClientRect();
+    const outside = e.target === el.check && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom);
+    if (e.target.closest('[data-check-close]') || outside) closeCheck();
+    else if (to) gotoField(Number(to.dataset.goto), to.dataset.key);
+    else if (go) {
+      closeCheck();
+      const fn = checkGo;
+      checkGo = null;
+      if (fn) fn();
+    }
+  });
+  // Esc sluit alleen de controle (niet ook de rondleiding)
+  el.check.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    closeCheck();
+  });
+
+  /* ---------------------------------------------------------------------------
+     Toetsen en overig
+     ------------------------------------------------------------------------- */
 
   document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
       e.preventDefault();
-      downloadPdf();
+      if (!el.check.open) download('pdf', el.downloadBtn);
       return;
     }
     const typing = e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]');
-    if (typing || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (typing || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (document.querySelector('dialog[open]')) return;
     if (e.key === 'ArrowRight' || e.key === 'PageDown') selectSlide(state.active + 1);
     if (e.key === 'ArrowLeft' || e.key === 'PageUp') selectSlide(state.active - 1);
   });
 
   // Nieuwe presentatie: meteen, met "ongedaan maken" in de melding in plaats van
-  // een vraag vooraf; de slides en hun foto's blijven nog even bewaard
+  // een vraag vooraf. De foto's blijven tot de volgende keer laden bewaard
   $('#resetBtn').addEventListener('click', () => {
-    const before = state;
-    const images = { ...env.images };
-    for (const s of before.slides) {
-      delete env.images[s.id];
-      PM.idb.del(`slide:${s.id}`);
-    }
+    const keep = state.exportWidth;
     state = defaults();
-    syncInputs();
-    changed();
-    let undone = false;
-    PM.toast('Nieuwe presentatie gestart met de voorbeeldslides.', false, {
-      label: 'ongedaan maken',
-      run: async () => {
-        undone = true;
-        for (const s of state.slides) dropImage(s.id);
-        state = before;
-        Object.assign(env.images, images);
-        syncInputs();
-        changed();
-        for (const [id, image] of Object.entries(images)) {
-          const blob = await fetch(image.url).then((r) => r.blob()).catch(() => null);
-          if (blob) PM.idb.set(`slide:${id}`, blob);
-        }
-      },
-    });
-    setTimeout(() => {
-      if (!undone) Object.values(images).forEach((image) => URL.revokeObjectURL(image.url));
-    }, 10000);
+    state.exportWidth = keep;
+    syncAll();
+    changed(null);
+    toast('Nieuwe presentatie gestart met de voorbeeldslides.', false, { label: 'ongedaan maken', run: () => history.undo() });
+  });
+
+  // Rondleiding: de stap "titel" gaat over slide 1
+  document.addEventListener('pm:tour', (e) => {
+    const d = e.detail || {};
+    if (d.tool === 'presentation' && d.step === 'welkom' && state.active !== 0) selectSlide(0);
   });
 
   /* ---------------------------------------------------------------------------
      Start
      ------------------------------------------------------------------------- */
 
-  // Mobiel: kleine live preview zolang de grote uit beeld is (gedeeld, zie PM.miniPreview)
-  const mini = PM.miniPreview(el.stage, el.canvas);
-
+  // Logo: het bestand via een server; bij file:// de ingebedde kopie,
+  // anders blokkeert de browser de export (zie scripts/build-brand-data.js)
   env.logo = PM.brandImage('logoWhite', render);
   buildLayoutTiles();
-  syncInputs();
+  syncAll();
+  history.clear();
   render();
-  PM.fontsReady.then(render);
-
-  // Foto's uit een vorige sessie terugzetten
-  Promise.all(state.slides.map((s) => PM.idb.get(`slide:${s.id}`).then((blob) => (
-    blob instanceof Blob ? setImage(s.id, blob, { persist: false, name: blob.name }).catch(() => null) : null
-  )))).then(() => {
-    syncPhoto();
+  PM.fontsReady.then(() => {
     render();
+    drawStrip();
   });
+
+  // Foto's uit een vorige sessie terugzetten, dan oude bestanden opruimen
+  state.slides.forEach((s) => { if (s.photoKey) trackFile(s.photoKey); });
+  applyPhotos().then(cleanupFiles);
 })();

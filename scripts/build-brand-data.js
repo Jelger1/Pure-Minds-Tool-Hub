@@ -30,6 +30,10 @@ const logos = {
   logoWhiteSvg: ['assets/brand/logo/PureMinds-zeshoek-logo-wit.svg', 'image/svg+xml'],
   // Zwart zeshoek-logo (vector): briefpapier van de Document Maker
   logoBlack: ['assets/brand/logo/PureMinds-zeshoek-logo-zwart.svg', 'image/svg+xml'],
+  // Emerce 100-badge 2026, liggend (vector): wit op de posts, zwart op het briefpapier.
+  // Strak uitgesneden kopieën van de originele Badge-E100-2026-*-variant3.svg van Emerce.
+  badgeWhite: ['assets/brand/emerce/e100-2026-liggend-wit.svg', 'image/svg+xml'],
+  badgeBlack: ['assets/brand/emerce/e100-2026-liggend-zwart.svg', 'image/svg+xml'],
 };
 
 const brand = `/* Gegenereerd door scripts/build-brand-data.js. Niet met de hand wijzigen:

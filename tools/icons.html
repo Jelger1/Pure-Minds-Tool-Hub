@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="nl" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icon Finder &middot; Pure Minds</title>
+<meta name="description" content="Zoek in 1.690 iconen (de meeste in lijn en vol), in het Nederlands of Engels, en download ze als SVG of PNG: los of in de zeshoek van Pure Minds, in de merkkleuren.">
+<meta name="theme-color" content="#1ab9e2">
+<link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/icons.css">
+</head>
+<body>
+<div class="bg-deco" aria-hidden="true"></div>
+
+<!-- Cyaan balk, zoals bovenaan pureminds.nl en de andere interne tools -->
+<div class="topstrip">
+  <a href="https://www.pureminds.nl/" target="_blank" rel="noopener">pure minds</a>
+  <span class="topstrip__sep">|</span>interne tool: icon finder<span class="hide-sm"> voor slides, posts en documenten</span>
+</div>
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <div class="site-header__brand">
+      <a href="../index.html" aria-label="Naar de Generator Hub"><img src="../assets/brand/pureminds-logo.svg" alt="Pure Minds" width="106" height="38" class="site-header__logo"></a>
+      <span class="site-header__divider hide-sm" aria-hidden="true"></span>
+      <div class="site-header__title hide-sm">
+        <h1>Icon Finder</h1>
+        <p>Alle iconen in de huisstijl, als SVG of PNG.</p>
+      </div>
+    </div>
+    <nav class="toolnav" data-toolnav="icons" aria-label="Tools"></nav>
+  </div>
+</header>
+
+<main class="container layout layout--icons" id="app">
+
+  <!-- Gedeelde zeshoek voor de tegels (<use>), gekleurd via CSS. Niet display:none:
+       dan tekent niet elke browser wat ernaar verwijst. -->
+  <svg class="icon-defs" aria-hidden="true" focusable="false" width="0" height="0">
+    <defs><path id="pmi-hex"/></defs>
+  </svg>
+
+  <!-- ============================================================
+       ZOEKEN EN BLADEREN
+       ============================================================ -->
+  <section class="layout__browse" aria-labelledby="browseTitle">
+    <div class="card card--accent browse" id="browse">
+      <div class="browse__head">
+        <h2 class="editor__title" id="browseTitle">Zoek je icoon<span class="dot">.</span></h2>
+        <p class="browse__lead">Kies stijl, vorm en kleur: wat je hier ziet, download je.</p>
+      </div>
+
+      <!-- Blijft in beeld tijdens het scrollen -->
+      <div class="bar" id="bar">
+        <div class="bar__row">
+          <div class="search" id="search">
+            <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+            <label class="sr-only" for="q">Zoek een icoon</label>
+            <input class="input search__input" id="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-describedby="searchHelp" placeholder="zoek in het Nederlands of Engels, bijv. prullenbak, pijl of grafiek">
+            <span class="search__hint for-mouse" aria-hidden="true"><kbd>/</kbd></span>
+            <button type="button" class="search__clear" id="qClear" aria-label="Zoekterm wissen" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            </button>
+          </div>
+          <button type="button" class="stylebtn" id="styleToggle" aria-expanded="false" aria-controls="styles">
+            <span class="stylebtn__art" id="styleArt" aria-hidden="true"></span>
+            <span class="stylebtn__txt"><b>stijl</b><i id="styleSummary">lijn · los</i></span>
+            <svg class="stylebtn__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+        <p class="sr-only" id="searchHelp">De resultaten verschijnen terwijl je typt. Pijltje omlaag gaat naar de iconen.</p>
+
+        <!-- Stijl, vorm en kleur gelden voor alle iconen -->
+        <div class="styles" id="styles">
+          <div class="styles__group">
+            <span class="styles__label" id="lblStyle">Stijl</span>
+            <div class="seg seg--2 seg--sm styles__seg" role="radiogroup" aria-labelledby="lblStyle">
+              <input type="radio" name="style" id="st-line" value="line"><label for="st-line"><b>lijn</b></label>
+              <input type="radio" name="style" id="st-fill" value="fill"><label for="st-fill"><b>vol</b></label>
+            </div>
+          </div>
+          <div class="styles__group">
+            <span class="styles__label" id="lblShape">Vorm</span>
+            <div class="seg seg--2 seg--sm styles__seg" role="radiogroup" aria-labelledby="lblShape">
+              <input type="radio" name="shape" id="sh-none" value="none"><label for="sh-none"><b>los</b></label>
+              <input type="radio" name="shape" id="sh-hex" value="hex"><label for="sh-hex"><span class="hexmark" aria-hidden="true"></span><b>zeshoek</b></label>
+            </div>
+          </div>
+          <div class="styles__group styles__group--color">
+            <span class="styles__label" id="lblColor">Kleur</span>
+            <div class="swatches" id="swatches" role="radiogroup" aria-labelledby="lblColor"></div>
+            <span class="colorname" id="colorName">inkt</span>
+            <label class="colorname colorname--own" id="colorPick" title="Klik om je eigen kleur te wijzigen" hidden>
+              <input type="color" id="customColor" value="#009670" aria-label="Eigen kleur wijzigen">
+              <span id="colorPickTxt">eigen · #009670</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="chips-wrap" id="chipsWrap">
+          <button type="button" class="chips__scroll chips__scroll--prev" id="chipsPrev" tabindex="-1" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
+          </button>
+          <div class="chips" id="chips" role="radiogroup" aria-label="Categorie"></div>
+          <button type="button" class="chips__scroll chips__scroll--next" id="chipsNext" tabindex="-1" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="results-wrap" id="resultsWrap">
+      <div class="results-head">
+        <p class="results-head__count" id="count" aria-hidden="true">&nbsp;</p>
+        <p class="results-head__tip for-mouse" id="gridTip">klik voor details &middot; dubbelklik downloadt direct</p>
+      </div>
+      <p class="sr-only" id="countLive" role="status" aria-live="polite"></p>
+
+      <div class="results" id="results" role="group" aria-label="Iconen" aria-describedby="gridHelp"></div>
+      <p class="sr-only" id="gridHelp">Blader met de pijltjestoetsen, Enter kiest een icoon.</p>
+      </div>
+
+      <div class="browse__foot">
+        <span>Iconen van <a href="https://remixicon.com/" target="_blank" rel="noopener">Remix Icon</a>. Je keuzes worden in deze browser onthouden.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       DETAIL + EXPORT (op mobiel in een paneel van onderen)
+       ============================================================ -->
+  <aside class="layout__detail" id="aside" aria-label="Gekozen icoon">
+    <div class="card detail" id="detail">
+
+      <!-- Nog niets gekozen -->
+      <div class="detail__empty" id="detailEmpty">
+        <div class="detail__empty-art" id="emptyArt" aria-hidden="true"></div>
+        <h2 class="detail__empty-title">Kies een icoon<span class="dot">.</span></h2>
+        <ul class="tips">
+          <li>Zoek in het Nederlands of Engels: <b>prullenbak</b> vindt ook <i>delete-bin</i>.</li>
+          <li class="for-mouse">Druk op <kbd>/</kbd> om te zoeken, en blader met de pijltjestoetsen.</li>
+          <li class="for-mouse"><b>Dubbelklik</b> op een icoon om hem meteen te downloaden.</li>
+          <li>Stijl, vorm en kleur gelden voor alle iconen tegelijk.</li>
+        </ul>
+      </div>
+
+      <!-- Het gekozen icoon -->
+      <div class="detail__main" id="detailMain" hidden>
+        <div class="card-head detail__head">
+          <div class="card-head__left">
+            <h2 class="card-title">Preview</h2>
+            <button type="button" class="pill pill-info detail__cat" id="dCat" title="Toon alle iconen in deze categorie">categorie</button>
+          </div>
+          <div class="card-head__right">
+            <div class="seg seg--3 seg--sm bgseg" role="radiogroup" aria-label="Achtergrond van de preview">
+              <input type="radio" name="stage" id="bg-licht" value="licht"><label for="bg-licht" title="Lichte achtergrond"><span class="bgdot bgdot--licht" aria-hidden="true"></span><span class="sr-only">licht</span></label>
+              <input type="radio" name="stage" id="bg-donker" value="donker"><label for="bg-donker" title="Donkere achtergrond"><span class="bgdot bgdot--donker" aria-hidden="true"></span><span class="sr-only">donker</span></label>
+              <input type="radio" name="stage" id="bg-geblokt" value="geblokt"><label for="bg-geblokt" title="Transparant (geblokt)"><span class="bgdot bgdot--geblokt" aria-hidden="true"></span><span class="sr-only">transparant</span></label>
+            </div>
+            <button type="button" class="iconbtn detail__close" id="sheetClose" aria-label="Sluiten">&times;</button>
+          </div>
+        </div>
+
+        <div class="preview__stage detail__stage" id="dStage">
+          <div class="detail__art" id="dArt"></div>
+          <div class="detail__small" aria-hidden="true">
+            <span class="detail__small-item" id="dArtM"></span>
+            <span class="detail__small-item" id="dArtS"></span>
+          </div>
+        </div>
+
+        <div class="detail__info">
+          <h3 class="detail__name" id="dName">icoon</h3>
+          <div class="detail__file">
+            <code id="dFile">icoon</code>
+            <button type="button" class="copyname" id="dCopyName" aria-label="Bestandsnaam kopiëren" title="Bestandsnaam kopiëren">
+              <svg class="i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12"/><path d="M16 8V4H4v12h4"/></svg>
+              <svg class="i-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>
+            </button>
+          </div>
+          <p class="detail__words" id="dWords" hidden></p>
+          <div class="detail__style" id="dStyleWrap">
+            <span class="export__label" id="lblDStyle">Stijl</span>
+            <div class="seg seg--2 seg--sm" role="radiogroup" aria-labelledby="lblDStyle">
+              <input type="radio" name="dstyle" id="ds-line" value="line"><label for="ds-line"><b>lijn</b></label>
+              <input type="radio" name="dstyle" id="ds-fill" value="fill"><label for="ds-fill"><b>vol</b></label>
+            </div>
+          </div>
+          <p class="detail__single" id="dSingle" hidden>Dit icoon is er in één stijl.</p>
+        </div>
+
+        <div class="export detail__export">
+          <div class="export__opts">
+            <span class="export__label" id="lblFormat">Bestand</span>
+            <div class="seg seg--2 seg--sm detail__format" role="radiogroup" aria-labelledby="lblFormat">
+              <input type="radio" name="format" id="fm-svg" value="svg"><label for="fm-svg"><b>SVG</b></label>
+              <input type="radio" name="format" id="fm-png" value="png"><label for="fm-png"><b>PNG</b></label>
+            </div>
+            <span class="pill detail__dims" id="dDims">vector</span>
+          </div>
+          <div class="export__opts" id="sizeRow" hidden>
+            <span class="export__label" id="lblSize">Formaat</span>
+            <div class="seg seg--5 seg--sm detail__sizes" id="sizes" role="radiogroup" aria-labelledby="lblSize">
+              <input type="radio" name="size" id="sz-128" value="128"><label for="sz-128"><b>128</b></label>
+              <input type="radio" name="size" id="sz-256" value="256"><label for="sz-256"><b>256</b></label>
+              <input type="radio" name="size" id="sz-512" value="512"><label for="sz-512"><b>512</b></label>
+              <input type="radio" name="size" id="sz-1024" value="1024"><label for="sz-1024"><b>1024</b></label>
+              <input type="radio" name="size" id="sz-2048" value="2048"><label for="sz-2048"><b>2048</b></label>
+            </div>
+          </div>
+          <p class="detail__use" id="dUse"></p>
+          <div class="actionbar">
+            <button type="button" class="btn btn-primary btn-lg" id="downloadBtn">
+              <span data-label>download svg</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
+            </button>
+            <button type="button" class="btn btn-quiet" id="copyBtn"><span data-label>kopieer</span></button>
+          </div>
+          <p class="preview__foot" id="dNote"></p>
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- Mobiel: het gekozen icoon in een paneel van onderen (js/icons/app.js verplaatst de kaart hierheen) -->
+<dialog class="sheet" id="sheet" aria-labelledby="dName">
+  <div class="sheet__panel" id="sheetPanel">
+    <span class="sheet__grip" aria-hidden="true"></span>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../js/shared/tools.js"></script>
+<script src="../js/shared/core.js"></script>
+<script src="../js/icons/icon-data.js"></script>
+<script src="../js/icons/icon-tags.js"></script>
+<script src="../js/icons/hex.js"></script>
+<script src="../js/icons/search.js"></script>
+<script src="../js/icons/app.js"></script>
+</body>
+</html>

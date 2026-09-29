@@ -1,5 +1,7 @@
 /**
- * Document Maker — interface en het A4-briefpapier
+ * Document Maker — toolspecifieke opmaak en het A4-briefpapier
+ * De indeling (appbalk, rail, panelen, podium, werkbalk) staat in css/editor.css,
+ * de gedeelde bouwstenen in css/global.css.
  *
  * Het briefpapier (.a4) is echte HTML op 794 × 1123 px (A4 op 96 dpi). De PDF
  * bouwt elke pagina daaruit opnieuw op als vector (js/document/pdf.js): tekst,
@@ -8,40 +10,58 @@
  * niet over. Zeshoeken zijn SVG.
  */
 
-.seg--4 { grid-template-columns: repeat(4, 1fr); }
+/* --- Soort: vier kaartjes met een mini-A4 --- */
 
-/* --- Eenmalig instellen: bedrijfsgegevens --- */
-
-.setup {
-  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem .75rem; align-items: start;
-  padding: .875rem 1rem; border: 1px solid var(--pm-line); border-left: 4px solid var(--pm-cyan); background: var(--pm-soft);
+.kinds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.kind {
+  position: relative; display: flex; flex-direction: column; gap: .125rem;
+  padding: .625rem .625rem .7rem; cursor: pointer;
+  border: 1px solid var(--pm-line); background: #fff;
+  transition: border-color .15s, box-shadow .15s, background-color .15s;
 }
-.setup__icon { width: 1.1rem; height: 1.27rem; margin-top: .15rem; background: var(--pm-cyan); }
-.setup__text { font-size: .875rem; line-height: 1.5; }
-.setup__actions { grid-column: 2; display: flex; align-items: center; gap: .75rem; }
-.setup__actions .linkbtn { margin: 0; }
-
-/* --- Teksteditor --- */
-
-.rte-wrap { border: 1px solid var(--pm-border); background: #fff; transition: border-color .15s, box-shadow .15s; }
-.rte-wrap:focus-within { border-color: var(--pm-cyan); box-shadow: 0 0 0 4px rgba(26, 185, 226, .18); }
-.rte-bar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: .125rem;
-  padding: .3rem; border-bottom: 1px solid var(--pm-line); background: var(--pm-zebra);
+.kind input { position: absolute; opacity: 0; pointer-events: none; }
+.kind__name { font-size: .875rem; font-weight: 700; line-height: 1.3; }
+.kind__sub { font-size: .75rem; color: var(--pm-muted); line-height: 1.35; }
+.kind:hover { border-color: var(--pm-cyan); }
+.kind:has(input:checked) { border-color: var(--pm-cyan); box-shadow: inset 0 0 0 1px var(--pm-cyan), 0 12px 24px -18px rgba(16, 40, 60, .5); background: var(--pm-soft); }
+.kind:has(input:checked)::after {
+  content: ''; position: absolute; top: .35rem; right: .35rem;
+  width: .9rem; height: 1.04rem; background: var(--pm-cyan); clip-path: var(--hex);
 }
-.rte-bar button {
-  min-width: 2rem; padding: .3rem .5rem; border: 1px solid transparent; background: none;
-  font-size: .75rem; font-weight: 600; color: var(--pm-muted);
+.kind:has(input:focus-visible) { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 2px; }
+
+/* Het mini-A4: cyaan balk, en in grijze strepen wat erop staat */
+.kind__art {
+  position: relative; display: flex; flex-direction: column; gap: .2rem;
+  width: 2.9rem; height: 4.1rem; margin-bottom: .45rem; padding: .5rem .35rem .3rem;
+  background: #fff; border: 1px solid var(--pm-border); border-top: 3px solid var(--pm-cyan);
+  box-shadow: 0 8px 16px -12px rgba(16, 40, 60, .5);
 }
-.rte-bar button:hover { color: var(--pm-ink); border-color: var(--pm-line); background: #fff; }
-.rte-bar button.is-active { color: var(--pm-ink); background: var(--pm-tint); box-shadow: inset 0 -2px 0 var(--pm-cyan); }
-.rte-bar__sep { width: 1px; height: 1.1rem; margin: 0 .25rem; background: var(--pm-line); }
+.kind__art i { display: block; height: 2px; width: 100%; background: #d5dde3; }
+.kind__art i:nth-child(1) { width: 55%; }
+.kind__art i:nth-child(2) { width: 45%; }
+.kind__art i:nth-child(3) { height: 4px; width: 80%; margin-top: .15rem; background: var(--pm-ink); }
+.kind__art i:nth-child(6) { width: 65%; }
+.kind__art--offerte i:nth-child(1) { height: 4px; width: 80%; background: var(--pm-ink); }
+.kind__art--offerte i:nth-child(2) { width: 50%; }
+.kind__art--offerte i:nth-child(3) { height: 3px; width: 100%; margin-top: .2rem; background: var(--pm-cyan); }
+.kind__art--offerte i:nth-child(n+4) { height: 3px; background: var(--pm-zebra); box-shadow: inset 0 -1px 0 #d5dde3; }
+.kind__art--offerte i:nth-child(6) { width: 55%; margin-left: auto; background: var(--pm-ink); box-shadow: none; }
+.kind__art--memo i:nth-child(1), .kind__art--notitie i:nth-child(1) { height: 4px; width: 80%; background: var(--pm-ink); }
+.kind__art--memo i:nth-child(2) { width: 100%; margin-top: .2rem; height: 2px; background: var(--pm-ink); }
+.kind__art--memo i:nth-child(3) { height: 2px; width: 60%; margin-top: 0; background: #d5dde3; }
+.kind__art--notitie i:nth-child(2) { width: 35%; background: var(--pm-cyan); }
+.kind__art--notitie i:nth-child(3) { height: 2px; width: 100%; margin-top: .2rem; background: #d5dde3; }
+
+/* --- Tekst: de editor vult het paneel; het paneel scrolt, niet de editor --- */
 
 .rte {
-  min-height: 14rem; max-height: 28rem; overflow-y: auto;
-  padding: .75rem .875rem; outline: none;
-  font-size: .875rem; line-height: 1.65;
+  min-height: 18rem; padding: .75rem .875rem; outline: none;
+  border: 1px solid var(--pm-border); background: #fff;
+  font-size: .875rem; line-height: 1.65; overflow-wrap: anywhere;
+  transition: border-color .15s, box-shadow .15s;
 }
+.rte:focus { border-color: var(--pm-cyan); box-shadow: 0 0 0 4px rgba(26, 185, 226, .18); }
 .rte > * { margin: 0; }
 .rte > * + * { margin-top: .6rem; }
 .rte h2 { font-size: 1.05rem; font-weight: 700; }
@@ -50,42 +70,159 @@
 .rte blockquote { border-left: 3px solid var(--pm-cyan); padding-left: .75rem; font-weight: 600; }
 .rte:empty::before { content: 'Typ of plak hier de tekst van je document…'; color: #8d99a3; }
 
-/* --- Offerteregels --- */
+/* De werkbalk hoort bij de tekst: alleen zichtbaar als het paneel Tekst open is */
+.app[data-app="document"]:not([data-panel="tekst"]) .tbar { display: none !important; }
+.tbar .tbar__help { margin: 0 .125rem 0 -.125rem; }
+/* Rondleiding, stap "werkbalk": de tekst blijft te gebruiken (boven de dimlaag, onder het kaartje) */
+.is-touring .app:has(#tbar.is-tour-target) #rte { position: relative; z-index: 81; }
 
-.items { display: flex; flex-direction: column; gap: .375rem; }
+/* --- Offerteregels: per regel de omschrijving, daaronder aantal, prijs en totaal --- */
+
+.items { display: flex; flex-direction: column; }
 .items__head, .item {
-  display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem 6.5rem 2rem; gap: .375rem; align-items: center;
+  display: grid; gap: .375rem .375rem; align-items: center;
+  grid-template-columns: 4.25rem minmax(0, 1fr) minmax(0, 1fr) 2.25rem;
+  grid-template-areas: "desc desc desc desc" "qty price sum del";
 }
-.items__head { font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pm-muted); }
-.item .input { padding: .5rem .6rem; }
-.item .input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
-.items__foot { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
-.items__vat { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; font-weight: 700; }
-.items__total { font-size: .8125rem; color: var(--pm-muted); text-align: right; }
-.items__total b { color: var(--pm-ink); }
+.items__head { padding-bottom: .375rem; row-gap: .125rem; }
+.items__h { font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pm-muted); line-height: 1.3; }
+.items__h--desc { grid-area: desc; display: flex; align-items: center; gap: .25rem; }
+.items__h--qty { grid-area: qty; }
+.items__h--price { grid-area: price; }
+.items__h--sum { grid-area: sum; text-align: right; }
+.items__h--del { grid-area: del; }
+.item { padding: .5rem 0; border-top: 1px solid var(--pm-line); }
+.item:last-child { border-bottom: 1px solid var(--pm-line); }
+.item__desc { grid-area: desc; }
+.item__qty { grid-area: qty; }
+.item__price { grid-area: price; }
+.item__sum { grid-area: sum; text-align: right; font-size: .8125rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item__del { grid-area: del; justify-self: end; }
+.item .input { min-width: 0; padding: .5rem .6rem; }
+.item .input--amount { text-align: right; font-variant-numeric: tabular-nums; }
+.items__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem; margin-top: .625rem; }
+.items__tip { font-size: .75rem; color: var(--pm-muted); }
+.items__vat { width: 100%; max-width: 14rem; font-size: .875rem; padding-top: .55rem; padding-bottom: .55rem; }
 
-/* --- Briefpapier-instellingen --- */
+/* Totalen, net als onder de tabel op de pagina */
+.sum { margin: 0; font-size: .8125rem; }
+.sum > div { display: flex; justify-content: space-between; gap: 1rem; padding: .2rem 0; }
+.sum dt { color: var(--pm-muted); }
+.sum dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sum .is-total { margin-top: .25rem; padding-top: .45rem; border-top: 3px solid var(--pm-cyan); font-size: .9375rem; }
+.sum .is-total dt, .sum .is-total dd { color: var(--pm-ink); font-weight: 800; }
 
-.sender summary { cursor: pointer; list-style: none; }
-.sender summary::-webkit-details-marker { display: none; }
-.sender summary::after { content: '+'; margin-left: auto; font-size: 1.1rem; font-weight: 700; color: var(--pm-blue); }
-.sender[open] summary::after { content: '−'; }
-.sender:not([open]) { gap: 0; }
+/* Smal paneel (zoals op 1024 px): velden onder elkaar, anders past een datum niet */
+.app[data-app="document"] .panel { container-type: inline-size; }
+@container (max-width: 21rem) {
+  .panel .grid2 { grid-template-columns: minmax(0, 1fr); }
+}
 
-/* --- Preview: pagina's geschaald naar de beschikbare breedte --- */
+/* --- Afsluiting en briefpapier --- */
 
-.preview__stage--doc { display: block; overflow: hidden; }
+.sign-fields { gap: 1.25rem; }
+.panel__lead .help { margin-left: .125rem; }
+
+/* Briefpapier in de rail: een stipje zolang adres, KvK en e-mail ontbreken */
+.rail__item.has-dot::before {
+  content: ''; position: absolute; top: .55rem; left: calc(50% + .45rem);
+  width: .55rem; height: .64rem; background: var(--pm-cyan); clip-path: var(--hex);
+}
+
+/* --- Podium: de pagina's, geschaald naar de breedte; meer pagina's scrollen --- */
+
+/* Kop, werkbalk en meldingen houden hun hoogte; alleen de pagina's krimpen en scrollen */
+.stage__head, .stage__tools, .stage__notes { flex: none; }
+.stage__scroll { position: relative; flex: 1 1 0; scrollbar-gutter: stable; }
 .sheets-wrap { position: relative; margin: 0 auto; }
 .sheets { position: absolute; top: 0; left: 0; width: 794px; transform-origin: top left; display: flex; flex-direction: column; gap: 24px; }
 .sheets .a4 { box-shadow: 0 1px 2px rgba(16, 40, 60, .08), 0 24px 48px -28px rgba(16, 40, 60, .45); }
-
-/* Klikbare onderdelen in de preview: bij hover een stippellijn, klik = naar het veld */
+/* Klikbare onderdelen: het kader met de naam tekent js/document/app.js (.region-hover uit editor.css) */
 .sheets [data-field] { cursor: pointer; }
-.sheets [data-field]:hover { outline: 2px dashed rgba(26, 185, 226, .75); outline-offset: 4px; }
-#docNote { margin-top: 0; margin-bottom: .75rem; }
+
+/* Emerce 100 met zijn [?] */
+.badge-wrap { display: inline-flex; align-items: center; gap: .125rem; }
+
+/* Meldingen onder de pagina's, met een knop die helpt */
+.stage__notes { display: flex; flex-direction: column; gap: .5rem; margin: 0 2rem 1rem; }
+.stage__notes:not(:has(.stage-note:not([hidden]))) { display: none; }
+.stage-note { display: flex; align-items: center; justify-content: space-between; gap: .5rem .75rem; margin: 0; }
+.stage-note .btn { flex: none; background: #fff; }
+.stage-note__acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .375rem; flex: none; }
 
 /* Onzichtbare container voor de export: dezelfde pagina's, ongeschaald */
 .a4-export { position: absolute; left: -12000px; top: 0; width: 794px; }
+
+/* --- Download: drie keuzes, elk met wat je krijgt --- */
+
+.dl { width: 25rem; }
+.dl__list { display: flex; flex-direction: column; gap: .375rem; margin: 0; padding: 0; list-style: none; }
+.dl__row { display: flex; align-items: center; gap: .25rem; }
+.dl__opt {
+  display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 0; min-height: 3.25rem;
+  padding: .55rem .75rem; border: 1px solid var(--pm-line); background: #fff; text-align: left;
+  transition: border-color .15s, background-color .15s;
+}
+.dl__opt svg { width: 1.5rem; height: 1.5rem; flex: none; color: var(--pm-blue); }
+.dl__txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.dl__txt b { font-size: .875rem; font-weight: 700; }
+.dl__txt i { font-style: normal; font-size: .75rem; color: var(--pm-muted); }
+.dl__opt:hover:not(:disabled) { border-color: var(--pm-cyan); background: var(--pm-soft); }
+.dl__opt:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--pm-cyan); }
+#pdfBtn { border-left: 3px solid var(--pm-magenta); }   /* dezelfde PDF als de grote knop */
+.dl__opt.is-busy { cursor: progress; }
+.dl__opt.is-busy svg { animation: pm-dl-busy 1s ease-in-out infinite; }
+@keyframes pm-dl-busy { 50% { opacity: .35; } }
+.dl__opt.is-done { border-color: var(--pm-green); background: #e3f4ee; }
+.dl__opt.is-done b { color: #00704f; }
+.dl__opt:disabled { cursor: default; }
+.dl .popover__note { margin-top: .875rem; }
+
+/* --- Controle vóór een download: nog voorbeeldtekst --- */
+
+.check { width: 24rem; border-top-color: #e0951f; }
+.check__text { font-size: .875rem; line-height: 1.5; }
+.check__list { display: flex; flex-direction: column; gap: .25rem; margin: .75rem 0 0; padding: 0; list-style: none; }
+.check__item {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: .5rem;
+  width: 100%; padding: .5rem .65rem; border: 1px solid var(--pm-line); border-left: 3px solid #e0951f;
+  background: #fdf7ec; text-align: left; font-size: .8125rem;
+}
+.check__item b { font-weight: 700; }
+.check__item q { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #8f5600; }
+.check__go { font-size: .75rem; font-weight: 700; color: var(--pm-blue); white-space: nowrap; }
+.check__item:hover { border-color: #e0951f; background: #fbeed6; }
+.check__item:focus-visible { outline: none; box-shadow: var(--ring); }
+.check__foot { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+
+/* --- Tablet en telefoon --- */
+
+@media (max-width: 1023px) {
+  .stage__notes { margin: 0 .75rem .5rem; }
+  .app.is-sheet-open .stage__notes { display: none; }   /* het blad gaat voor; de melding komt terug als het dicht is */
+  .rte { min-height: 12rem; }
+  /* Werkbalk bovenin het blad: zonder naamlabel (het paneel heet al Tekst), tooltips binnen het scherm */
+  .panels > .tbar .tbar__label { display: none; }
+  .panels { overflow-x: clip; }
+  /* Tabbalk: iconen op één lijn, ook als "Briefpapier" over twee regels gaat */
+  .rail__item { justify-content: flex-start; }
+}
+@media (max-width: 639px) {
+  .stage-note { flex-direction: column; align-items: stretch; }
+  .stage-note__acts { justify-content: flex-start; }
+  .rail__item.has-dot::before { top: .4rem; }
+}
+@media (max-width: 379px) {
+  .kind__sub { font-size: .6875rem; }
+  .rail__item { font-size: .625rem; }
+}
+/* Aanraakscherm: alles minstens 44 px */
+@media (pointer: coarse) {
+  .item__del, .iconbtn { width: 2.75rem; height: 2.75rem; }
+  .panels .input, .panels .switch { min-height: 2.75rem; }
+  .items__head, .item { grid-template-columns: 4.25rem minmax(0, 1fr) minmax(0, 1fr) 2.75rem; }
+  #addItem, #resetBtn, .check__foot .btn, .check__item, .stage-note .btn { min-height: 2.75rem; }
+}
 
 /* ============================================================
    HET BRIEFPAPIER
@@ -131,6 +268,13 @@
 .a4__foot b { color: var(--pm-ink); font-weight: 700; }
 .a4__pageno { display: flex; align-items: center; gap: 6px; flex: none; font-weight: 700; color: var(--pm-ink); font-variant-numeric: tabular-nums; }
 .a4__pageno svg { width: 9px; height: 10.4px; }
+
+/* Emerce 100-badge (optioneel, schakelaar in de kop van de preview): klein keurmerk rechts in de
+   voet, vóór het paginanummer. 26,2 px (7 mm) hoog: de bovenkant gelijk met de eerste
+   regel van de voet, de onderkant op de basislijn van de laatste. Zo is de voet met
+   badge even hoog als met twee regels gegevens, en verandert er niets aan de pagina's */
+.a4__badge { flex: none; margin-left: auto; }
+.a4__badge img { height: 26.2px; width: auto; vertical-align: baseline; }
 
 /* --- Inhoud --- */
 
@@ -206,13 +350,11 @@
 
 #printRoot { display: none; }
 
-@media (min-width: 1024px) {
-  .preview__stage--doc { max-height: calc(100vh - 16rem); overflow-y: auto; }
-}
-
 @media print {
   @page { size: A4; margin: 0; }
   html, body { background: #fff !important; }
+  /* De editor vult het scherm (editor.css); op papier gewoon de pagina's onder elkaar */
+  body.has-app { display: block !important; height: auto !important; overflow: visible !important; }
   body > *:not(#printRoot) { display: none !important; }
   #printRoot { display: block; }
   #printRoot .a4 { width: 210mm; height: 296.8mm; break-after: page; page-break-after: always; box-shadow: none; }

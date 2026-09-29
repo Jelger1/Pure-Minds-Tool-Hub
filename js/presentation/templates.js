@@ -17,6 +17,12 @@
    dat plan op het canvas. De PowerPoint-export (js/presentation/pptx.js)
    gebruikt hetzelfde plan en dezelfde vormmaten (GEOM), zodat een slide in
    PowerPoint er net zo uitziet als in de preview.
+
+   renderSlide() geeft ook terug wat waar staat (regions: rechthoeken in
+   ontwerp-px, voor klikken in de preview) en welke tekst niet paste
+   (overflowKeys, het grootste blok eerst). Grootte van de titel:
+   slide.titleSize = 'klein' | 'normaal' | 'groot' (typeschaal uit PM.brand),
+   als factor binnen het passend maken; normaal tekent precies als voorheen.
    ============================================================================= */
 (function (global) {
   'use strict';
@@ -24,12 +30,56 @@
   const {
     COLORS, CAP, DESC: K_DESC, SQRT3, flags,
     rgba, setFont, hexPath, paintBackground,
-    runsFrom, layoutText, drawText, layoutBody, drawBody,
+    runsFrom, layoutText, drawText, layoutBody, drawBody, ellipsize,
     drawLabel, drawDomain, drawLogo, drawPhoto, hexEcho, prepare, finish,
   } = global.PMCanvas;
 
   const W = 1920;
   const H = 1080;
+
+  /* ---------------------------------------------------------------------------
+     Wat er getekend is: regio's (klikken in de preview) en teksten die niet
+     pasten. Alleen meten, niets extra tekenen: de pixels blijven gelijk.
+     ------------------------------------------------------------------------- */
+
+  let regions = [];
+  let over = [];
+
+  const region = (key, x, y, w, h) => {
+    if (w > 0 && h > 0) regions.push({ key, rect: { x, y, w, h } });
+  };
+
+  // Rechthoek om een blok uit fitStack (tekst of lopende tekst), getekend vanaf (x, top)
+  function blockRegion(b, x, top) {
+    const lineW = (block) => Math.max(0, ...block.lines.map((l) => l.w));
+    const w = b.body != null
+      ? Math.max(0, ...b.block.items.map((it) => (it.bullet ? b.block.indent : 0) + lineW(it.block)))
+      : lineW(b.block);
+    region(b.key, x, top, w, b.block.height);
+  }
+
+  // Het label linksboven; direct na drawLabel, want dan staat het lettertype nog goed
+  function labelRegion(ctx, fr, text, maxW = fr.contentW) {
+    const value = String(text || '').trim();
+    if (!value) return;
+    const size = fr.labelSize;
+    const tx = fr.m + (size / 2) * SQRT3 + (size * 2) / 3;
+    const shown = ellipsize(ctx, value.toUpperCase(), maxW - (tx - fr.m));
+    region('label', fr.m, fr.labelTop, tx - fr.m + ctx.measureText(shown).width, size * CAP);
+  }
+
+  // Een stapel die niet paste: de velden erin, het grootste blok eerst (dat is meestal de oorzaak)
+  function noteOver(stack) {
+    if (!stack || !stack.over) return;
+    stack.blocks.filter((b) => !b.empty && b.key).sort((a, b) => b.block.height - a.block.height)
+      .forEach((b) => { if (!over.includes(b.key)) over.push(b.key); });
+  }
+
+  // Korpsgrootte van de titel in de gekozen stap van de typeschaal; normaal = de basismaat
+  function titleSize(base, s) {
+    const brand = global.PM && global.PM.brand;
+    return brand && s && s.titleSize && s.titleSize !== 'normaal' ? brand.sizeFor(base, s.titleSize) : base;
+  }
 
   const GRID = {
     m: 128,        // horizontale marge
@@ -178,11 +228,13 @@
       }
     }
     flags.overflow = true;
-    return last || tableLayout(ctx, t, TABLE_STYLE.min, maxW, true);
+    const res = last || tableLayout(ctx, t, TABLE_STYLE.min, maxW, true);
+    res.over = true;
+    return res;
   }
 
   function drawTable(ctx, T) {
-    for (const row of T.rows) {
+    T.rows.forEach((row, r) => {
       const y = T.y + row.y;
       if (row.fill) {
         ctx.fillStyle = row.fill;
@@ -194,9 +246,10 @@
       row.cells.forEach((cell, c) => {
         const top = y + (row.h - cell.block.height) / 2;
         drawText(ctx, cell.block, x + T.padX, top, { ...cell.colors, align: cell.align });
+        region(`cell:${r},${c}`, x, y, T.widths[c], row.h);
         x += T.widths[c];
       });
-    }
+    });
   }
 
   const TEXT = { color: '#ffffff', em: COLORS.cyan };
@@ -262,6 +315,7 @@
       if (height <= maxH) return result;
     }
     flags.overflow = true;
+    result.over = true;
     return result;
   }
 
@@ -272,6 +326,7 @@
       y += b.gap;
       if (b.body != null) drawBody(ctx, b.block, x, y, b.colors || BODY);
       else drawText(ctx, b.block, x, y, b.colors || TEXT);
+      if (b.key) blockRegion(b, x, y);
       y += b.block.height;
     }
   }
@@ -298,42 +353,43 @@
      Tekstblokken per layout
      ------------------------------------------------------------------------- */
 
+  // key = het veld van de slide (regio's in de preview, melding bij te lange tekst)
   const STACK = {
     title: (s, deck) => [
-      { runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(124), min: 60 },
-      { runs: runsFrom(s.subtitle), st: PARA(44), min: 26, gap: 40, colors: BODY },
-      { runs: runsFrom(s.meta), st: PARA(30, 700), min: 20, gap: 56, colors: META },
+      { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(titleSize(124, s)), min: 60 },
+      { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(44), min: 26, gap: 40, colors: BODY },
+      { key: 'meta', runs: runsFrom(s.meta), st: PARA(30, 700), min: 20, gap: 56, colors: META },
     ],
     section: (s, deck) => [
-      { runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(112), min: 56 },
-      { runs: runsFrom(s.subtitle), st: PARA(44), min: 26, gap: 36, colors: BODY },
+      { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(titleSize(112, s)), min: 56 },
+      { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(44), min: 26, gap: 36, colors: BODY },
     ],
     bullets: (s, deck) => [
-      { runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(88), min: 48 },
-      { body: asBullets(s.body), st: PARA(42), min: 22, gap: 56, colors: BODY },
+      { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(titleSize(88, s)), min: 48 },
+      { key: 'body', body: asBullets(s.body), st: PARA(42), min: 22, gap: 56, colors: BODY },
     ],
     split: (s, deck) => [
-      { runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(80), min: 44 },
-      { body: s.body, st: PARA(36), min: 20, gap: 44, colors: BODY },
+      { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(titleSize(80, s)), min: 44 },
+      { key: 'body', body: s.body, st: PARA(36), min: 20, gap: 44, colors: BODY },
     ],
     stat: (s) => [
-      { runs: runsFrom(s.subtitle), st: PARA(50, 600), min: 28, colors: TEXT },
-      { runs: runsFrom(s.author), st: PARA(28, 700), min: 18, gap: 28, colors: { color: SOFT, em: '#ffffff' } },
+      { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(50, 600), min: 28, colors: TEXT },
+      { key: 'author', runs: runsFrom(s.author), st: PARA(28, 700), min: 18, gap: 28, colors: { color: SOFT, em: '#ffffff' } },
     ],
     quote: (s) => [
-      { runs: runsFrom(s.quote), st: { ...TITLE(68), weight: 700, emWeight: 800, lh: 1.25 }, min: 36 },
-      { runs: runsFrom(s.author), st: PARA(32, 700), min: 20, gap: 48, colors: META },
+      { key: 'quote', runs: runsFrom(s.quote), st: { ...TITLE(titleSize(68, s)), weight: 700, emWeight: 800, lh: 1.25 }, min: 36 },
+      { key: 'author', runs: runsFrom(s.author), st: PARA(32, 700), min: 20, gap: 48, colors: META },
     ],
     table: (s, deck) => [
-      { runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(80), min: 44 },
+      { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(80), min: 44 },
     ],
     note: (s) => [
-      { runs: runsFrom(s.subtitle), st: PARA(26), min: 18, colors: { color: SOFT, em: '#ffffff' } },
+      { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(26), min: 18, colors: { color: SOFT, em: '#ffffff' } },
     ],
     closing: (s, deck) => [
-      { runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(124), min: 60 },
-      { runs: runsFrom(s.subtitle), st: PARA(44), min: 24, gap: 36, colors: BODY },
-      { body: asBullets(s.body), st: PARA(34, 600), min: 20, gap: 60, colors: TEXT },
+      { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(titleSize(124, s)), min: 60 },
+      { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(44), min: 24, gap: 36, colors: BODY },
+      { key: 'body', body: asBullets(s.body), st: PARA(34, 600), min: 20, gap: 60, colors: TEXT },
     ],
   };
 
@@ -352,6 +408,7 @@
    * het midden van het tekstgebied minus de halve hoogte.
    */
   function plan(ctx, fr, s, env, deck) {
+    over = [];
     const layout = STACK[s.layout] && RENDER[s.layout] ? s.layout : 'bullets';
     const area = fr.contentBottom - fr.contentTop;
     const centered = (stack) => fr.contentTop + (area - stack.height) / 2;
@@ -359,18 +416,21 @@
     if (layout === 'title' || layout === 'closing') {
       const maxW = Math.min(1100, heroLeft(env) - fr.m - 80);
       const stack = fitStack(ctx, STACK[layout](s, deck), maxW, area);
+      noteOver(stack);
       return { layout, stack, x: fr.m, top: centered(stack), maxW, maxH: area, center: true, labelW: maxW };
     }
     if (layout === 'section') {
       const { r } = GEOM.section;
       const x = fr.m + r * SQRT3 + GEOM.section.gap;
       const stack = fitStack(ctx, STACK.section(s, deck), W - fr.m - x, area);
+      noteOver(stack);
       const cy = (fr.contentTop + fr.contentBottom) / 2;
       return { layout, stack, x, top: cy - stack.height / 2, maxW: W - fr.m - x, maxH: area, center: true, hex: { cx: fr.m + (r * SQRT3) / 2, cy, r } };
     }
     if (layout === 'bullets') {
       const maxW = Math.round(fr.contentW * 0.86);
       const stack = fitStack(ctx, STACK.bullets(s, deck), maxW, area);
+      noteOver(stack);
       return { layout, stack, x: fr.m, top: fr.contentTop, maxW, maxH: area, center: false };
     }
     if (layout === 'split') {
@@ -380,6 +440,7 @@
       const x = left ? half + pad : fr.m;
       const maxW = left ? W - fr.m - x : half - pad - fr.m;
       const stack = fitStack(ctx, STACK.split(s, deck), maxW, area);
+      noteOver(stack);
       const photoBox = { x: left ? 0 : half, y: 0, w: half, h: H };
       return { layout, stack, x, top: fr.contentTop, maxW, maxH: area, center: false, left, photoBox, textFrame: { ...fr, m: x, contentW: maxW } };
     }
@@ -391,8 +452,9 @@
       const noteGap = note.height ? 32 : 0;
       const before = flags.overflow;
       let best = null;
-      for (const size of [80, 64, 52]) {
+      for (const base of [80, 64, 52]) {
         flags.overflow = false;
+        const size = titleSize(base, s);
         const items = STACK.table(s, deck).map((it) => ({ ...it, st: TITLE(size), min: Math.min(it.min, size) }));
         const stack = fitStack(ctx, items, maxW, area * 0.34);
         const tableTop = fr.contentTop + stack.height + (stack.height ? 56 : 0);
@@ -403,6 +465,9 @@
       }
       flags.overflow = before || !best.fits;
       const { stack, tableTop, T } = best;
+      if (T.over) over.push('table');
+      noteOver(stack);
+      noteOver(note);
       const titleH = stack.height;
       Object.assign(T, { x: fr.m, y: tableTop });
       return {
@@ -415,6 +480,7 @@
       const size = fitValueSize(ctx, value, fr.contentW * 0.9);
       const maxH = area - size * CAP - GEOM.stat.gap;
       const stack = fitStack(ctx, STACK.stat(s), fr.contentW * 0.8, maxH);
+      noteOver(stack);
       const total = size * CAP + GEOM.stat.gap + stack.height;
       const top = fr.contentTop + (area - total) / 2;
       return { layout, stack, x: fr.m, top: top + size * CAP + GEOM.stat.gap, maxW: fr.contentW * 0.8, maxH, center: false, value: { text: value, size, baseline: top + size * CAP } };
@@ -423,6 +489,7 @@
       const { r } = GEOM.quote;
       const x = fr.m + r * SQRT3 + GEOM.quote.gap;
       const stack = fitStack(ctx, STACK.quote(s), W - fr.m - x, area);
+      noteOver(stack);
       const top = centered(stack);
       return { layout, stack, x, top, maxW: W - fr.m - x, maxH: area, center: true, hex: { cx: fr.m + (r * SQRT3) / 2, cy: top + r, r } };
     }
@@ -435,6 +502,7 @@
 
   function heroVisual(ctx, env) {
     const { r, cx, cy, echo } = GEOM.hero;
+    region('photo', cx - (r * SQRT3) / 2, cy - r, Math.min(r * SQRT3, W - (cx - (r * SQRT3) / 2)), r * 2);
     if (env.photo) {
       // Onderkant (met de verschoven lijn) blijft boven de voetregel
       hexEcho(ctx, cx, cy, r, echo);
@@ -461,6 +529,7 @@
   function title(ctx, fr, s, env, deck, p) {
     const photo = heroVisual(ctx, env);
     drawLabel(ctx, fr, s.label, LABEL_PAL, p.labelW);
+    labelRegion(ctx, fr, s.label, p.labelW);
     drawStack(ctx, p.stack, p.x, p.top);
     return { photo };
   }
@@ -478,12 +547,14 @@
     ctx.fillText(num, cx - ctx.measureText(num).width / 2, cy + (size * CAP) / 2);
 
     drawLabel(ctx, fr, s.label, LABEL_PAL);
+    labelRegion(ctx, fr, s.label);
     drawStack(ctx, p.stack, p.x, p.top);
     return {};
   }
 
   function bullets(ctx, fr, s, env, deck, p) {
     drawLabel(ctx, fr, s.label, LABEL_PAL);
+    labelRegion(ctx, fr, s.label);
     drawStack(ctx, p.stack, p.x, p.top);
     return {};
   }
@@ -491,6 +562,7 @@
   function split(ctx, fr, s, env, deck, p) {
     const half = W / 2;
     const photo = drawPhoto(ctx, env.photo, { ...p.photoBox, hintSize: 40 }, env.crop);
+    region('photo', p.photoBox.x, p.photoBox.y, p.photoBox.w, p.photoBox.h);
     if (!p.left && env.photo) {
       // Rustig verloop onder het logo, dat op de foto staat
       const { fade } = GEOM.split;
@@ -506,12 +578,14 @@
 
     // Tekst in de andere helft: eigen raster met dezelfde marges
     drawLabel(ctx, p.textFrame, s.label, LABEL_PAL, p.maxW);
+    labelRegion(ctx, p.textFrame, s.label, p.maxW);
     drawStack(ctx, p.stack, p.x, p.top);
     return { photo, footerFrame: p.textFrame };
   }
 
   function quote(ctx, fr, s, env, deck, p) {
     drawLabel(ctx, fr, s.label, LABEL_PAL);
+    labelRegion(ctx, fr, s.label);
 
     if (p.value) {
       // Grote, vage zeshoek rechts als achtergrondvorm
@@ -523,6 +597,7 @@
       setFont(ctx, 800, p.value.size, -0.03);
       ctx.fillStyle = COLORS.cyan;
       ctx.fillText(p.value.text, fr.m, p.value.baseline);
+      region('value', fr.m, p.value.baseline - p.value.size * CAP, ctx.measureText(p.value.text).width, p.value.size * CAP);
       drawStack(ctx, p.stack, p.x, p.top);
       return {};
     }
@@ -541,6 +616,7 @@
 
   function table(ctx, fr, s, env, deck, p) {
     drawLabel(ctx, fr, s.label, LABEL_PAL);
+    labelRegion(ctx, fr, s.label);
     drawStack(ctx, p.stack, p.x, p.top);
     drawTable(ctx, p.table);
     if (p.note) drawStack(ctx, p.note.stack, p.x, p.note.top);
@@ -560,12 +636,15 @@
    *   deck:  { slides: [...], dot, showNumbers }
    *   env:   { logo, photo, crop, sectionNumber }
    *   opts:  { scale } — 1 = 1920 × 1080
+   * Geeft { photo, overflow, overflowKeys, regions, width, height }.
    */
   function renderSlide(canvas, deck, index, env, opts = {}) {
     const fr = frame();
     const ctx = prepare(canvas, W, H, opts.scale || 1);
     const slide = deck.slides[index] || {};
+    regions = [];
     const p = plan(ctx, fr, slide, env || {}, deck);
+    const overflowKeys = over.slice();
 
     paintBackground(ctx, fr);
     ctx.save();
@@ -583,11 +662,11 @@
     }
     drawLogo(ctx, fr, env && env.logo);
     finish(ctx, W, GRID.bar);
-    return { photo: info.photo || null, overflow: flags.overflow, width: W, height: H };
+    return { photo: info.photo || null, overflow: flags.overflow, overflowKeys, regions: regions.slice(), width: W, height: H };
   }
 
   global.PMSlides = {
-    renderSlide, plan, frame, LAYOUTS, GRID, GEOM, W, H,
+    renderSlide, plan, frame, titleSize, LAYOUTS, GRID, GEOM, W, H,
     defaultTable, normalizeTable, TABLE_LIMITS, TABLE_STYLE,
     palettes: { TEXT, BODY, SOFT, META, LABEL_PAL },
   };

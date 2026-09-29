@@ -61,7 +61,7 @@
   function fillRect(pdf, color, x, y, w, h) {
     if (w <= 0 || h <= 0) return;
     withAlpha(pdf, color.a, () => {
-      pdf.setFillColor(color.r, color.g, color.b);
+      pdf.setFillColor(...PM.pdfColor(color));
       pdf.rect(x * K, y * K, w * K, h * K, 'F');
     });
   }
@@ -158,7 +158,7 @@
     const underline = underlineOf(el);
 
     setFont(pdf, cs, size);
-    pdf.setTextColor(color.r, color.g, color.b);
+    pdf.setTextColor(...PM.pdfColor(color));
     pdf.setCharSpace(spacing * K);
 
     for (const line of lineBoxes(node, size)) {
@@ -192,7 +192,7 @@
     const size = parseFloat(mcs.fontSize) || parseFloat(getComputedStyle(li).fontSize);
     const color = parseColor(mcs.color) || { r: 0, g: 0, b: 0, a: 1 };
     setFont(pdf, mcs, size);
-    pdf.setTextColor(color.r, color.g, color.b);
+    pdf.setTextColor(...PM.pdfColor(color));
     // De browser zet "1. " (met spatie) tegen de linkerrand van het item
     const width = pdf.getTextWidth(`${number}. `) / K;
     const x = li.getBoundingClientRect().left - width - o.x;
@@ -299,24 +299,14 @@
    * in de DOM). meta: { title, subject, author }. Geeft een Blob terug.
    */
   async function exportPages(pages, meta = {}, onProgress) {
-    const JsPDF = await PM.libs.svg2pdf();
-    await PM.fontsReady;
-    const pdf = new JsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait', compress: true, putOnlyUsedFonts: true });
-    await PM.pdfFonts(pdf);
+    const pdf = await PM.pdfDocument({ format: 'a4', orientation: 'portrait' });
     for (let i = 0; i < pages.length; i++) {
       if (onProgress) onProgress(i, pages.length);
       if (i > 0) pdf.addPage('a4', 'portrait');
       const origin = pages[i].getBoundingClientRect();
       await drawNode(pdf, pages[i], { x: origin.left, y: origin.top });
     }
-    pdf.setProperties({
-      title: meta.title || 'Document',
-      subject: meta.subject || '',
-      author: meta.author || 'Pure Minds',
-      creator: 'Pure Minds Generator Hub',
-    });
-    pdf.setLanguage('nl-NL');
-    return pdf.output('blob');
+    return PM.pdfFinish(pdf, { title: meta.title || 'Document', subject: meta.subject, author: meta.author });
   }
 
   global.PMDocPdf = { exportPages };

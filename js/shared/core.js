@@ -10,6 +10,8 @@
      PM.toast(msg, err, action)  korte melding onderin, eventueel met knop ("ongedaan maken")
      PM.run(knop, tekst, taak)   export met feedback op de knop: bezig, voortgang, ✓ klaar
      PM.textTools(root)    knoppen "cyaan"/"vet" en "+ klant" bij tekstvelden
+     PM.toggleEmphasis(veld), PM.insertAtCaret(veld, tekst)
+                           dezelfde acties los, voor de werkbalk (js/shared/toolbar.js)
      PM.miniPreview(stage, canvas)  zwevende live preview op mobiel
      PM.store              localStorage met JSON en try/catch
      PM.idb                IndexedDB voor afbeeldingen (te groot voor localStorage)
@@ -18,6 +20,7 @@
      PM.saveBlob(...)      bestand downloaden
      PM.libs               jsPDF, svg2pdf, JSZip en docx, pas geladen bij de eerste export
      PM.pdfFonts(pdf)      Open Sans insluiten in een PDF (echte, bewerkbare tekst)
+     PM.pdfDocument(opts)  een nieuwe PDF zoals alle makers hem maken; PM.pdfFinish(pdf, meta) -> Blob
      PM.fontFiles()        Open Sans als bytes per snede (voor Word en PowerPoint)
      PM.brandImage(key)    logo als Image, met ingebedde kopie bij file://
      PM.brandSvg(key)      logo als SVG-tekst (vector in PDF's)
@@ -207,6 +210,8 @@
       }
       const src = URL.createObjectURL(file);
       const img = new Image();
+      // Een SVG is op elke maat scherp: de PDF-export tekent hem dan niet op zijn eigen (kleine) maat
+      if (/svg/i.test(file.type)) img.dataset.pdfType = 'SVG';
       img.onload = () => resolve({ img, url: src });
       img.onerror = () => {
         URL.revokeObjectURL(src);
@@ -255,6 +260,9 @@
   const brandFiles = {
     logoWhite: 'assets/brand/logo/PureMinds-zeshoek-logo.png',
     logoBlack: 'assets/brand/logo/PureMinds-zeshoek-logo-zwart.svg',
+    // Emerce 100-badge 2026 (liggend): wit voor donkere posts, zwart voor het briefpapier
+    badgeWhite: 'assets/brand/emerce/e100-2026-liggend-wit.svg',
+    badgeBlack: 'assets/brand/emerce/e100-2026-liggend-zwart.svg',
   };
   function brandSrc(key) {
     const embedded = global.PM_BRAND && global.PM_BRAND[key];
@@ -578,16 +586,70 @@
     return 'normal';
   }
 
-  // Open Sans in een jsPDF-document insluiten, alleen de snedes die nodig zijn
+  /**
+   * Open Sans in een jsPDF-document insluiten, alleen de snedes die nodig zijn,
+   * zo dat elk programma (ook Canva) het gewicht van de tekst herkent:
+   *   - jsPDF schrijft de familienaam als fontnaam, voor elke snede dezelfde
+   *     ("OpenSans"). Canva maakte daardoor alle tekst even dik en liet koppen
+   *     weg. Tijdens het wegschrijven krijgt elke snede zijn PostScript-naam
+   *     ("OpenSans-ExtraBold"); daarna weer de familienaam, zodat setFont blijft werken.
+   *   - jsPDF schrijft /StemV 0, en PDFium (waar veel importers op bouwen) leidt
+   *     het gewicht alleen daaruit af: StemV = gewicht/5 (onder 700) of
+   *     (gewicht-140)/4 geeft daar precies 400/600/700/800. De CapHeight staat
+   *     in font-eenheden in plaats van per 1000. Geen van beide verandert de weergave.
+   */
   async function pdfFonts(pdf, styles) {
     const fonts = await loadLib('fonts');
+    const names = [];
     for (const style of styles || Object.keys(fonts)) {
       const font = fonts[style];
       if (!font) continue;
       pdf.addFileToVFS(font.file, font.data);
       pdf.addFont(font.file, 'OpenSans', style);
+      names.push([style, font.file.replace(/\.ttf$/i, '')]);
+      const md = pdf.internal.getFont('OpenSans', style).metadata;
+      if (md && md.os2 && md.os2.exists) {
+        const w = md.os2.weightClass || 400;
+        md.stemV = w < 700 ? Math.round(w / 5) : Math.round((w - 140) / 4);
+        if (md.os2.capHeight) md.capHeight = Math.round(md.os2.capHeight * md.scaleFactor);
+      }
     }
+    const rename = (toPostScript) => names.forEach(([style, ps]) => {
+      const entry = pdf.internal.getFont('OpenSans', style);
+      if (entry) entry.fontName = toPostScript ? ps : 'OpenSans';
+    });
+    pdf.internal.events.subscribe('buildDocument', () => rename(true));
+    pdf.internal.events.subscribe('postPutResources', () => rename(false));
     return 'OpenSans';
+  }
+
+  /**
+   * Een nieuwe PDF zoals alle makers hem maken: in pt, gecomprimeerd, met
+   * Open Sans, en als PDF 1.4 (doorzichtigheid bestaat pas sinds 1.4; jsPDF
+   * schrijft 1.3). Afronden met pdfFinish.
+   */
+  async function pdfDocument({ format, orientation = 'portrait' }) {
+    const JsPDF = await libs.svg2pdf();
+    await fontsReady;
+    const pdf = new JsPDF({ unit: 'pt', format, orientation, compress: true, putOnlyUsedFonts: true });
+    if (pdf.__private__ && pdf.__private__.setPdfVersion) pdf.__private__.setPdfVersion('1.4');
+    await pdfFonts(pdf);
+    return pdf;
+  }
+
+  // Eigenschappen en taal erin, en de PDF als Blob
+  function pdfFinish(pdf, { title, subject = '', author = 'Pure Minds' } = {}) {
+    pdf.setProperties({ title: title || 'Pure Minds', subject, author, creator: 'Pure Minds Generator Hub' });
+    if (pdf.setLanguage) pdf.setLanguage('nl');   // 'nl-NL' staat niet in de lijst van jsPDF en wordt stil genegeerd
+    return pdf.output('blob');
+  }
+
+  // Kleur voor jsPDF als tekst met 4 decimalen. Getallen rondt jsPDF af op 2
+  // (vlakken) of 3 (tekst): merkcyaan #1ab9e2 werd dan #1abae3 in Canva.
+  // Een kwart stap erbij, zodat afronden (Canva) en afkappen (MuPDF) allebei
+  // precies de oorspronkelijke waarde 0-255 teruggeven
+  function pdfColor({ r, g, b }) {
+    return [r, g, b].map((v) => Math.min(1, (Math.round(v) + 0.25) / 255).toFixed(4));
   }
 
   /* ---------------------------------------------------------------------------
@@ -609,9 +671,9 @@
   const uid = () => Math.random().toString(36).slice(2, 10);
 
   global.PM = {
-    url, esc, renderToolNav, recentTools, startParams, toast, run, textTools, miniPreview, wait, store, idb, readImage, bindDrop, preventStrayDrops,
+    url, esc, renderToolNav, recentTools, startParams, toast, run, textTools, toggleEmphasis, insertAtCaret, miniPreview, wait, store, idb, readImage, bindDrop, preventStrayDrops,
     brandImage, brandSrc, brandSvg, saveBlob, canvasToBlob, fileProtocolError, slug, formatSize, busy,
-    libs, pdfFonts, pdfFontStyle, fontFiles, fontsReady, debounce, uid,
+    libs, pdfFonts, pdfFontStyle, pdfDocument, pdfFinish, pdfColor, fontFiles, fontsReady, debounce, uid,
   };
 
   function init() {

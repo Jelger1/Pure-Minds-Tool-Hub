@@ -1,9 +1,9 @@
 /* =============================================================================
    tools.js — register van alle tools in de Pure Minds Generator Hub
    -----------------------------------------------------------------------------
-   Eén plek voor de hub (snelle starts, recente concepten en kaarten op
-   index.html) én de toolwisselaar in de kop van elke tool. Een nieuwe tool
-   toevoegen:
+   Eén plek voor de hub (index.html: een kaart per tool, met formaten, je
+   concept en de rondleiding) én de toolwisselaar in de kop van elke tool. Een
+   nieuwe tool toevoegen:
 
      1. Maak tools/<id>.html (kopieer de kop van een bestaande tool).
      2. Voeg hieronder een regel toe.
@@ -17,39 +17,48 @@
      name         naam op de kaart en in de kop
      short        korte naam voor de toolwisselaar
      href         pad vanaf de root van de site
-     group        blok op het dashboard: een id uit PM_GROUPS (standaard 'design')
+     group        zone op het dashboard: een id uit PM_GROUPS (standaard de eerste, 'design')
      kind         leeg = een pagina in deze hub; 'web' = web-app elders, opent in een
-                  nieuw tabblad; 'lokaal' = downloaden en op je eigen computer starten
+                  nieuw tabblad ("open de web-app"); 'lokaal' = downloaden en op je
+                  eigen computer starten ("hoe start je hem?" plus "direct downloaden")
      guide        bij 'lokaal': id van de <dialog> met de uitleg in index.html
-     category     soort: een sleutel uit PM_CATEGORIES (kopje boven de snelle starts)
+     file         bij 'lokaal': wat je downloadt, naast "direct downloaden" ('zip 0,2 MB')
      description  één korte zin op de kaart: wat maak je ermee
      exports      hoe je het meeneemt (PNG, PDF, Word ...); bij tools van buiten
-                  de hub: wat je eruit krijgt
-     cta          tekst op de knop van de kaart, begint met een werkwoord
-     art          illustratie op de kaart: 'post' | 'doc' | 'slides' | 'consent' |
-                  'ads' | 'seo' | 'hex'
+                  de hub: wat je eruit krijgt ("je krijgt ...")
+     cta          knop op de kaart van een maker zonder formaten, of het label van
+                  zijn zoekveld; begint met een werkwoord ('zoek een icoon')
      tone         'light' = de output is wit (briefpapier); anders donker zoals posts en slides
      status       'live' | 'nieuw' | 'binnenkort' (binnenkort = niet klikbaar)
-     newUntil     tot deze datum (JJJJ-MM-DD) staat er "nieuw" op de kaart
-     starts       snelle starts op het dashboard: [{ label, sub, ratio, stack, params }]
+     newUntil     tot deze datum (JJJJ-MM-DD) kan er "nieuw" op de kaart staan, en
+                  alleen zolang je de tool in deze browser nog niet geopend hebt
+     starts       formaten op de kaart (snelle starts): [{ label, sub, ratio, stack, params }]
                   ratio = verhouding van het formaat ('1 / 1', '210 / 297' ...),
                   stack = meerdere pagina's (carousel), params gaan als
                   ?sleutel=waarde mee; de tool leest ze met PM.startParams()
+     search       de tool kan meteen zoeken: een zoekveld op de kaart dat
+                  <href>?<param>=<zoekterm> opent. { param, placeholder }; het
+                  label is de cta. In plaats van formaten.
+     tour         de tool heeft een rondleiding (js/<id>/help.js): wat je erin maakt,
+                  bijv. 'je eerste post'. Op de kaart staat dan "hoe werkt het?
+                  (2 min)"; die link opent <href>#rondleiding en de rondleiding
+                  start direct. Is hij gedaan, dan verdwijnt de link.
      draft        het concept in deze browser: { key, summary(opgeslagen) }
-                  summary geeft { title, sub, ratio } voor "Verder werken"
+                  summary geeft { title, sub, ratio, noun }: noun is wat het is
+                  ('post', 'offerte' ...), voor "jouw post" onder "verder waar je was".
+                  De tool zelf gebruikt title en sub voor zijn appbalk.
    ============================================================================= */
-// Blokken op het dashboard, in deze volgorde. De technische tools krijgen
-// een eigen, donker vlak: ze openen buiten de hub en werken anders.
-window.PM_GROUPS = [
-  { id: 'design', name: 'Design & content', short: 'design', lead: 'posts, documenten en presentaties, direct in de huisstijl' },
-  { id: 'techniek', name: 'Techniek & analyse', short: 'techniek', tone: 'dark', lead: 'checks en analyses voor websites, ads en SEO. Ze openen buiten de hub: in een nieuw tabblad of op je eigen computer.' },
-];
 
-window.PM_CATEGORIES = {
-  social: 'social media',
-  documenten: 'documenten',
-  presentaties: 'presentaties',
-};
+// Zones op het dashboard, in deze volgorde. De eerste is "maken" (de vraag
+// bovenaan index.html); de andere krijgen hun eigen kop en staan ernaast.
+//   name      naam van de zone
+//   question  kop als vraag (niet bij de eerste: die staat in index.html)
+//   lead      één regel uitleg onder de kop
+//   tone      'dark' = donker vlak met zeshoekpatroon
+window.PM_GROUPS = [
+  { id: 'design', name: 'Design & content' },
+  { id: 'techniek', name: 'Techniek & analyse', question: 'Wat wil je checken?', tone: 'dark', lead: 'Deze tools openen buiten de hub: in een nieuw tabblad of op je eigen computer.' },
+];
 
 window.PM_TOOLS = [
   {
@@ -57,11 +66,9 @@ window.PM_TOOLS = [
     name: 'Insta Post Maker',
     short: 'posts',
     href: 'tools/insta.html',
-    category: 'social',
     description: 'Posts voor Instagram en LinkedIn in vijf templates, van losse foto tot swipe-carousel.',
     exports: ['PNG', 'JPG', 'PDF'],
-    cta: 'maak een post',
-    art: 'post',
+    tour: 'je eerste post',
     status: 'live',
     starts: [
       { label: 'Instagram-post', sub: '1:1 · feed', ratio: '1 / 1', params: { template: 'overlay', format: 'square' } },
@@ -76,7 +83,8 @@ window.PM_TOOLS = [
         const d = (s.data && s.data[s.template]) || {};
         const title = s.template === 'carousel' ? d.slides && d.slides[0] && d.slides[0].title : d.title || d.client || d.label;
         const f = formats[s.format] || formats.square;
-        return { title, sub: [names[s.template], f[0]].filter(Boolean).join(' · '), ratio: f[1] };
+        const noun = s.template === 'carousel' ? 'carousel' : s.format === 'story' ? 'story' : 'post';
+        return { title, sub: [names[s.template], f[0]].filter(Boolean).join(' · '), ratio: f[1], noun };
       },
     },
   },
@@ -85,11 +93,9 @@ window.PM_TOOLS = [
     name: 'Document Maker',
     short: 'documenten',
     href: 'tools/document.html',
-    category: 'documenten',
     description: 'Brief, offerte, memo of notitie op het A4-briefpapier van Pure Minds.',
     exports: ['PDF', 'Word', 'Google Docs', 'afdrukken'],
-    cta: 'maak een document',
-    art: 'doc',
+    tour: 'je eerste document',
     tone: 'light',
     status: 'nieuw',
     newUntil: '2026-11-01',
@@ -99,7 +105,7 @@ window.PM_TOOLS = [
     ],
     draft: {
       key: 'pm-document-v1',
-      summary: (s) => ({ title: s.title, sub: s.type, ratio: '210 / 297' }),
+      summary: (s) => ({ title: s.title, sub: s.type, ratio: '210 / 297', noun: s.type || 'document' }),
     },
   },
   {
@@ -107,11 +113,9 @@ window.PM_TOOLS = [
     name: 'Presentation Maker',
     short: 'presentaties',
     href: 'tools/presentation.html',
-    category: 'presentaties',
     description: 'Slides in zeven layouts, van titel en tabel tot kerncijfer en afsluiter.',
     exports: ['PDF', 'PowerPoint', 'Google Slides', 'PNG'],
-    cta: 'maak een presentatie',
-    art: 'slides',
+    tour: 'je eerste presentatie',
     status: 'nieuw',
     newUntil: '2026-11-01',
     starts: [
@@ -121,9 +125,21 @@ window.PM_TOOLS = [
       key: 'pm-presentation-v1',
       summary: (s) => {
         const n = Array.isArray(s.slides) ? s.slides.length : 0;
-        return { title: n ? s.slides[0].title || s.slides[0].label : '', sub: n === 1 ? '1 slide' : `${n} slides`, ratio: '16 / 9' };
+        return { title: n ? s.slides[0].title || s.slides[0].label : '', sub: n === 1 ? '1 slide' : `${n} slides`, ratio: '16 / 9', noun: 'presentatie' };
       },
     },
+  },
+  {
+    id: 'icons',
+    name: 'Icon Finder',
+    short: 'iconen',
+    href: 'tools/icons.html',
+    description: '1.690 iconen, de meeste in lijn en vol, te zoeken in het Nederlands of Engels. Los of in de zeshoek, in de merkkleuren.',
+    exports: ['SVG', 'PNG', 'kopiëren'],
+    cta: 'zoek een icoon',
+    search: { param: 'q', placeholder: 'bijv. euro, pijl of grafiek' },   // js/icons/app.js leest ?q=
+    status: 'nieuw',
+    newUntil: '2026-12-01',
   },
   {
     id: 'consent-check',
@@ -132,10 +148,9 @@ window.PM_TOOLS = [
     kind: 'lokaal',
     href: 'https://github.com/Jelger1/consent-check/archive/refs/heads/main.zip',
     guide: 'guide-consent',
+    file: 'zip 0,2 MB',
     description: 'Meet per website welke cookies en trackers er vóór en ná het cookie-akkoord laden.',
     exports: ['8 bevindingen', 'PDF', 'JSON'],
-    cta: 'download',                  // zo heet de knop ook in de uitleg: "Klik op de 'Download' knop"
-    art: 'consent',
     status: 'nieuw',
     newUntil: '2026-12-01',
   },
@@ -147,8 +162,6 @@ window.PM_TOOLS = [
     href: 'https://landingpage-ads-optimizer-qr13.vercel.app/',
     description: 'Checkt of je Google Ads-advertentie en je landingspagina op elkaar aansluiten, met een CRO-briefing in twee minuten.',
     exports: ['CRO-briefing', 'PDF', 'Word', 'Google Docs'],
-    cta: 'check je campagne',
-    art: 'ads',
     status: 'nieuw',
     newUntil: '2026-12-01',
   },
@@ -160,8 +173,6 @@ window.PM_TOOLS = [
     href: 'https://seo-content-gap-analyzer-1yxm.vercel.app/',
     description: 'Zet je pagina naast de Google-top 10 en laat zien welke koppen, termen en vragen jij nog mist.',
     exports: ['contentbriefing', 'markdown'],
-    cta: 'analyseer je pagina',
-    art: 'seo',
     status: 'nieuw',
     newUntil: '2026-12-01',
   },

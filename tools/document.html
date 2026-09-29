@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#1ab9e2">
 <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
 <link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/editor.css">
 <link rel="stylesheet" href="../css/document.css">
 </head>
 <body>
@@ -32,76 +33,149 @@
   </div>
 </header>
 
-<main class="container layout">
+<div class="app" data-app="document">
 
   <!-- ============================================================
-       INVOER
+       APPBALK: je document, ongedaan maken, hulp en de ene hoofdactie
        ============================================================ -->
-  <section class="layout__form">
-    <form class="card card--accent editor" id="editor" autocomplete="off" novalidate>
-      <h2 class="editor__title">Maak je document<span class="dot">.</span></h2>
-
-      <!-- Eenmalig instellen: zonder bedrijfsgegevens is de voet van het briefpapier leeg -->
-      <div class="setup" id="senderNudge" role="note" hidden>
-        <span class="setup__icon hex" aria-hidden="true"></span>
-        <p class="setup__text"><b>Eén keer instellen:</b> je adres, KvK, btw en IBAN staan nog niet in de voet van het briefpapier.</p>
-        <div class="setup__actions">
-          <button type="button" class="btn btn-outline btn-sm" id="senderNudgeBtn">gegevens invullen</button>
-          <button type="button" class="linkbtn" id="senderNudgeLater">later</button>
+  <header class="appbar">
+    <div class="appbar__left">
+      <div class="appbar__doc" aria-live="polite">
+        <span class="appbar__title" id="docTitle">Nieuw document</span>
+        <span class="appbar__sub" id="docSub">brief · 1 pagina</span>
+      </div>
+      <span class="appbar__sep appbar__sep--name" aria-hidden="true"></span>
+      <button type="button" class="appbar__btn" id="undoBtn" aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl + Z)" aria-keyshortcuts="Control+Z Meta+Z" disabled><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.82843 6.99955L8.36396 9.53509L6.94975 10.9493L2 5.99955L6.94975 1.0498L8.36396 2.46402L5.82843 4.99955H13C17.4183 4.99955 21 8.58127 21 12.9996C21 17.4178 17.4183 20.9996 13 20.9996H4V18.9996H13C16.3137 18.9996 19 16.3133 19 12.9996C19 9.68584 16.3137 6.99955 13 6.99955H5.82843Z"/></svg></button>
+      <button type="button" class="appbar__btn" id="redoBtn" aria-label="Opnieuw" title="Opnieuw (Ctrl + Shift + Z)" aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z" disabled><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.1716 6.99955H11C7.68629 6.99955 5 9.68584 5 12.9996C5 16.3133 7.68629 18.9996 11 18.9996H20V20.9996H11C6.58172 20.9996 3 17.4178 3 12.9996C3 8.58127 6.58172 4.99955 11 4.99955H18.1716L15.636 2.46402L17.0503 1.0498L22 5.99955L17.0503 10.9493L15.636 9.53509L18.1716 6.99955Z"/></svg></button>
+    </div>
+    <div class="appbar__right">
+      <div class="menu">
+        <button type="button" class="appbar__btn" data-help-menu aria-haspopup="menu" aria-controls="helpMenu" title="Rondleiding en sneltoetsen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM11 15H13V17H11V15ZM13 13.3551V14H11V12.5C11 11.9477 11.4477 11.5 12 11.5C12.8284 11.5 13.5 10.8284 13.5 10C13.5 9.17157 12.8284 8.5 12 8.5C11.2723 8.5 10.6656 9.01823 10.5288 9.70577L8.56731 9.31346C8.88637 7.70919 10.302 6.5 12 6.5C13.933 6.5 15.5 8.067 15.5 10C15.5 11.5855 14.4457 12.9248 13 13.3551Z"/></svg><span class="appbar__txt">hulp</span></button>
+        <div class="menu__list" id="helpMenu" role="menu" aria-label="Hulp">
+          <button type="button" class="menu__item" role="menuitem" data-action="tour"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM16.5 7.5L14 14L7.5 16.5L10 10L16.5 7.5ZM12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"/></svg><span data-label>rondleiding starten</span></button>
+          <button type="button" class="menu__item" role="menuitem" data-action="sneltoetsen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17H21V19H3V17ZM3 11H6V14H3V11ZM8 11H11V14H8V11ZM3 5H6V8H3V5ZM13 5H16V8H13V5ZM18 5H21V8H18V5ZM13 11H16V14H13V11ZM18 11H21V14H18V11ZM8 5H11V8H8V5Z"/></svg>sneltoetsen<kbd aria-hidden="true">?</kbd></button>
         </div>
       </div>
 
-      <!-- Soort document -->
-      <fieldset class="block">
-        <legend class="field-label"><span class="field-badge hex" data-step></span>Soort document</legend>
-        <div class="seg seg--4" role="radiogroup" aria-label="Soort document">
-          <input type="radio" name="type" id="t-brief" value="brief"><label for="t-brief"><b>brief</b></label>
-          <input type="radio" name="type" id="t-offerte" value="offerte"><label for="t-offerte"><b>offerte</b></label>
-          <input type="radio" name="type" id="t-memo" value="memo"><label for="t-memo"><b>memo</b></label>
-          <input type="radio" name="type" id="t-notitie" value="notitie"><label for="t-notitie"><b>notitie</b></label>
+      <!-- Download: de knop maakt meteen de PDF; het pijltje toont Word en afdrukken, met wat je krijgt -->
+      <div class="split" data-tour="download">
+        <button type="button" class="btn btn-primary" id="downloadBtn" title="Download als PDF (Ctrl + S)" aria-keyshortcuts="Control+S Meta+S"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 10H18L12 16L6 10H11V3H13V10ZM4 19H20V12H22V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V12H4V19Z"/></svg><span data-label>download pdf</span></button>
+        <button type="button" class="btn btn-primary split__more" aria-haspopup="dialog" aria-controls="dlPop" aria-label="Meer downloadopties: PDF, Word en afdrukken"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"/></svg></button>
+        <div class="popover dl" id="dlPop" role="dialog" aria-labelledby="dlTitle">
+          <h2 class="popover__title" id="dlTitle">Download<span class="dot">.</span></h2>
+          <ul class="dl__list">
+            <li class="dl__row">
+              <button type="button" class="dl__opt" id="pdfBtn" aria-describedby="pdfWhat">
+                <svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4H15V8H19V20H5V4ZM3.9985 2C3.44749 2 3 2.44405 3 2.9918V21.0082C3 21.5447 3.44476 22 3.9934 22H20.0066C20.5551 22 21 21.5489 21 20.9925L20.9997 7L16 2H3.9985ZM10.4999 7.5C10.4999 9.07749 10.0442 10.9373 9.27493 12.6534C8.50287 14.3757 7.46143 15.8502 6.37524 16.7191L7.55464 18.3321C10.4821 16.3804 13.7233 15.0421 16.8585 15.49L17.3162 13.5513C14.6435 12.6604 12.4999 9.98994 12.4999 7.5H10.4999ZM11.0999 13.4716C11.3673 12.8752 11.6042 12.2563 11.8037 11.6285C12.2753 12.3531 12.8553 13.0182 13.5101 13.5953C12.5283 13.7711 11.5665 14.0596 10.6352 14.4276C10.7999 14.1143 10.9551 13.7948 11.0999 13.4716Z"/></svg>
+                <span class="dl__txt"><b data-label>PDF</b><i id="pdfWhat">om te versturen of te printen, precies zoals de preview</i></span>
+              </button>
+              <button type="button" class="help" data-help="download-pdf"></button>
+            </li>
+            <li class="dl__row">
+              <button type="button" class="dl__opt" id="docxBtn" aria-describedby="docxWhat">
+                <svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 19H20V4.99997H17V2.99997H21C21.5523 2.99997 22 3.44769 22 3.99997V20C22 20.5523 21.5523 21 21 21H17V19ZM2.85858 2.87732L15.4293 1.0815C15.7027 1.04245 15.9559 1.2324 15.995 1.50577C15.9983 1.52919 16 1.55282 16 1.57648V22.4235C16 22.6996 15.7761 22.9235 15.5 22.9235C15.4763 22.9235 15.4527 22.9218 15.4293 22.9184L2.85858 21.1226C2.36593 21.0522 2 20.6303 2 20.1327V3.86727C2 3.36962 2.36593 2.9477 2.85858 2.87732ZM4 4.73457V19.2654L14 20.694V3.30599L4 4.73457ZM11 7.99997H13V16H11L9 14L7 16H5V7.99997H7L7.01083 13L9 11L11 12.989V7.99997Z"/></svg>
+                <span class="dl__txt"><b data-label>Word (.docx)</b><i id="docxWhat">om verder te bewerken, ook in Google Docs</i></span>
+              </button>
+              <button type="button" class="help" data-help="download-word"></button>
+            </li>
+            <li class="dl__row">
+              <button type="button" class="dl__opt" id="printBtn" aria-describedby="printWhat" aria-keyshortcuts="Control+P Meta+P">
+                <svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2C17.5523 2 18 2.44772 18 3V7H21C21.5523 7 22 7.44772 22 8V18C22 18.5523 21.5523 19 21 19H18V21C18 21.5523 17.5523 22 17 22H7C6.44772 22 6 21.5523 6 21V19H3C2.44772 19 2 18.5523 2 18V8C2 7.44772 2.44772 7 3 7H6V3C6 2.44772 6.44772 2 7 2H17ZM16 17H8V20H16V17ZM20 9H4V17H6V16C6 15.4477 6.44772 15 7 15H17C17.5523 15 18 15.4477 18 16V17H20V9ZM8 10V12H5V10H8ZM16 4H8V7H16V4Z"/></svg>
+                <span class="dl__txt"><b data-label>afdrukken</b><i id="printWhat">direct naar je printer, op A4</i></span>
+              </button>
+            </li>
+          </ul>
+          <p class="popover__note">Je krijgt <b id="dlSum">1 pagina A4</b><span class="for-mouse"> &middot; <kbd>Ctrl</kbd> + <kbd>S</kbd> downloadt de PDF</span></p>
         </div>
-      </fieldset>
 
-      <!-- Gegevens -->
-      <fieldset class="block">
-        <legend class="field-label"><span class="field-badge hex" data-step></span>Gegevens</legend>
+        <!-- Controle vóór een download: staat er nog voorbeeldtekst in? Nooit stil tegenhouden -->
+        <div class="popover check" id="checkPop" role="alertdialog" aria-labelledby="checkTitle" aria-describedby="checkText" tabindex="-1" hidden>
+          <h2 class="popover__title" id="checkTitle">Even checken<span class="dot">.</span></h2>
+          <p class="check__text" id="checkText">Nog voorbeeldtekst in: <b id="checkNames">aanhef</b>.</p>
+          <ul class="check__list" id="checkList"></ul>
+          <div class="check__foot">
+            <button type="button" class="btn btn-outline btn-sm" id="checkGo">naar het veld</button>
+            <button type="button" class="btn btn-quiet btn-sm" id="checkAnyway" data-check-anyway>toch downloaden</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
 
+  <!-- ============================================================
+       RAIL: één knop per onderdeel (volgorde uit PM_HELP.document.sections)
+       ============================================================ -->
+  <nav class="rail" aria-label="Onderdelen van je document">
+    <button class="rail__item" data-section="soort"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.9998 6V3C6.9998 2.44772 7.44752 2 7.9998 2H19.9998C20.5521 2 20.9998 2.44772 20.9998 3V17C20.9998 17.5523 20.5521 18 19.9998 18H16.9998V20.9991C16.9998 21.5519 16.5499 22 15.993 22H4.00666C3.45059 22 3 21.5554 3 20.9991L3.0026 7.00087C3.0027 6.44811 3.45264 6 4.00942 6H6.9998ZM5.00242 8L5.00019 20H14.9998V8H5.00242ZM8.9998 6H16.9998V16H18.9998V4H8.9998V6ZM7 11H13V13H7V11ZM7 15H13V17H7V15Z"/></svg><span>Soort</span></button>
+    <button class="rail__item" data-section="gegevens"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2H19.0049C20.1068 2 21 2.89821 21 3.9908V20.0092C21 21.1087 20.1074 22 19.0049 22H3V2ZM7 4H5V20H7V4ZM9 20H19V4H9V20ZM11 16C11 14.3431 12.3431 13 14 13C15.6569 13 17 14.3431 17 16H11ZM14 12C12.8954 12 12 11.1046 12 10C12 8.89543 12.8954 8 14 8C15.1046 8 16 8.89543 16 10C16 11.1046 15.1046 12 14 12ZM22 6H24V10H22V6ZM22 12H24V16H22V12Z"/></svg><span>Gegevens</span></button>
+    <button class="rail__item" data-section="tekst"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5V19H19V5H5ZM4 3H20C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4C3 3.44772 3.44772 3 4 3ZM9.86885 15L9.04918 17H6.83333L11 7H13L17.1667 17H14.9508L14.1311 15H9.86885ZM10.6885 13H13.3115L12 9.8L10.6885 13Z"/></svg><span>Tekst</span></button>
+    <button class="rail__item" data-section="prijzen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.0049 22.0027C6.48204 22.0027 2.00488 17.5256 2.00488 12.0027C2.00488 6.4799 6.48204 2.00275 12.0049 2.00275C17.5277 2.00275 22.0049 6.4799 22.0049 12.0027C22.0049 17.5256 17.5277 22.0027 12.0049 22.0027ZM12.0049 20.0027C16.4232 20.0027 20.0049 16.421 20.0049 12.0027C20.0049 7.58447 16.4232 4.00275 12.0049 4.00275C7.5866 4.00275 4.00488 7.58447 4.00488 12.0027C4.00488 16.421 7.5866 20.0027 12.0049 20.0027ZM10.0549 11.0027H15.0049V13.0027H10.0549C10.2865 14.1439 11.2954 15.0027 12.5049 15.0027C13.1201 15.0027 13.6833 14.7806 14.1188 14.412L15.8198 15.546C14.9973 16.4415 13.8166 17.0027 12.5049 17.0027C10.1886 17.0027 8.28107 15.2527 8.03235 13.0027H7.00488V11.0027H8.03235C8.28107 8.75277 10.1886 7.00275 12.5049 7.00275C13.8166 7.00275 14.9973 7.56402 15.8198 8.45951L14.1189 9.59351C13.6834 9.22496 13.1201 9.00275 12.5049 9.00275C11.2954 9.00275 10.2865 9.86163 10.0549 11.0027Z"/></svg><span>Prijzen</span></button>
+    <button class="rail__item" data-section="afsluiting"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.93912 14.0328C6.7072 14.6563 6.51032 15.2331 6.33421 15.8155C7.29345 15.1189 8.43544 14.6767 9.75193 14.5121C12.2652 14.198 14.4976 12.5385 15.6279 10.4537L14.1721 8.99888L15.5848 7.58417C15.9185 7.25004 16.2521 6.91614 16.5858 6.58248C17.0151 6.15312 17.5 5.35849 18.0129 4.2149C12.4197 5.08182 8.99484 8.50647 6.93912 14.0328ZM17 8.99739L18 9.99669C17 12.9967 14 15.9967 10 16.4967C7.33146 16.8303 5.66421 18.6636 4.99824 21.9967H3C4 15.9967 6 1.99669 21 1.99669C20.0009 4.99402 19.0018 6.99313 18.0027 7.99402C17.6662 8.33049 17.3331 8.66382 17 8.99739Z"/></svg><span>Af&shy;sluiting</span></button>
+    <button class="rail__item" data-section="briefpapier" id="senderTab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 19H23V21H1V19H3V4C3 3.44772 3.44772 3 4 3H14C14.5523 3 15 3.44772 15 4V19H19V11H17V9H20C20.5523 9 21 9.44772 21 10V19ZM5 5V19H13V5H5ZM7 11H11V13H7V11ZM7 7H11V9H7V7Z"/></svg><span>Brief&shy;papier</span><span class="sr-only" id="senderTabNote" hidden>, adres, KvK en e-mail nog niet ingevuld</span></button>
+  </nav>
+
+  <!-- ============================================================
+       PANELEN: één tegelijk (koppen uit PM_HELP.document.sections)
+       ============================================================ -->
+  <form class="panels" id="editor" autocomplete="off" novalidate>
+
+    <!-- Soort: wat maak je -->
+    <section class="panel" data-section="soort">
+      <div class="panel__body">
         <div class="field">
+          <span class="label" id="typeLabel">Wat maak je? <button type="button" class="help" data-help="soort"></button></span>
+          <div class="kinds" role="radiogroup" aria-labelledby="typeLabel" data-tour="soort">
+            <label class="kind"><input type="radio" name="type" value="brief"><span class="kind__art kind__art--brief" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="kind__name">Brief</span><span class="kind__sub">adres, kenmerk en aanhef</span></label>
+            <label class="kind"><input type="radio" name="type" value="offerte"><span class="kind__art kind__art--offerte" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="kind__name">Offerte</span><span class="kind__sub">prijzen, btw en akkoord</span></label>
+            <label class="kind"><input type="radio" name="type" value="memo"><span class="kind__art kind__art--memo" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="kind__name">Memo</span><span class="kind__sub">aan, van en cc, intern</span></label>
+            <label class="kind"><input type="radio" name="type" value="notitie"><span class="kind__art kind__art--notitie" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="kind__name">Notitie</span><span class="kind__sub">titel, datum en tekst</span></label>
+          </div>
+          <p class="field-hint">Wisselen mag altijd: je tekst blijft staan.</p>
+        </div>
+
+        <div class="panel__foot">
+          <span>Alles wordt in deze browser onthouden.</span>
+          <button type="button" class="linkbtn" id="resetBtn">nieuw document</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gegevens: eerst het onderwerp, dan aan wie; datum en label als laatste -->
+    <section class="panel" data-section="gegevens">
+      <div class="panel__body">
+        <div class="field" data-tour="titel">
           <label class="label" for="dTitle"><span data-type-text="brief:Onderwerp|offerte:Titel van de offerte|memo:Onderwerp|notitie:Titel">Titel</span></label>
           <input class="input" id="dTitle" data-bind="title" maxlength="120">
         </div>
 
-        <div class="grid2" data-for="brief offerte">
+        <div class="field" data-for="brief offerte">
+          <label class="label" for="dRecipient"><span data-type-text="brief:Aan|offerte:Klant">Aan</span> <i>één regel per adresregel</i> <button type="button" class="help" data-help="adres"></button></label>
+          <textarea class="input" id="dRecipient" data-bind="recipient" rows="4"></textarea>
+        </div>
+        <div class="field" data-for="brief">
+          <label class="label" for="dRef">Kenmerk <i>optioneel</i> <button type="button" class="help" data-help="kenmerk"></button></label>
+          <input class="input" id="dRef" data-bind="reference" maxlength="40">
+        </div>
+        <div class="grid2" data-for="offerte">
           <div class="field">
-            <label class="label" for="dRecipient"><span data-type-text="brief:Aan|offerte:Klant">Aan</span> <i>één regel per adresregel</i></label>
-            <textarea class="input" id="dRecipient" data-bind="recipient" rows="4"></textarea>
+            <label class="label" for="dQuoteNo">Offertenummer</label>
+            <input class="input" id="dQuoteNo" data-bind="quoteNumber" maxlength="30">
           </div>
-          <div class="stack">
-            <div class="field" data-for="brief">
-              <label class="label" for="dRef">Kenmerk <i>optioneel</i></label>
-              <input class="input" id="dRef" data-bind="reference" maxlength="40">
-            </div>
-            <div class="field" data-for="offerte">
-              <label class="label" for="dQuoteNo">Offertenummer</label>
-              <input class="input" id="dQuoteNo" data-bind="quoteNumber" maxlength="30">
-            </div>
-            <div class="field" data-for="offerte">
-              <label class="label" for="dValid">Geldig tot</label>
-              <input class="input" type="date" id="dValid" data-bind="validUntil">
-            </div>
+          <div class="field">
+            <label class="label" for="dValid">Geldig tot <button type="button" class="help" data-help="geldig-tot"></button></label>
+            <input class="input" type="date" id="dValid" data-bind="validUntil">
           </div>
         </div>
-
         <div class="field" data-for="brief">
           <label class="label" for="dSalutation">Aanhef</label>
           <input class="input" id="dSalutation" data-bind="salutation" maxlength="80">
         </div>
 
-        <div class="grid3" data-for="memo">
-          <div class="field">
-            <label class="label" for="dMemoTo">Aan</label>
-            <input class="input" id="dMemoTo" data-bind="memoTo" maxlength="80">
-          </div>
+        <div class="field" data-for="memo">
+          <label class="label" for="dMemoTo">Aan</label>
+          <input class="input" id="dMemoTo" data-bind="memoTo" maxlength="80">
+        </div>
+        <div class="grid2" data-for="memo">
           <div class="field">
             <label class="label" for="dMemoFrom">Van</label>
             <input class="input" id="dMemoFrom" data-bind="memoFrom" maxlength="80">
@@ -118,71 +192,74 @@
             <input class="input" type="date" id="dDate" data-bind="date">
           </div>
           <div class="field">
-            <label class="label" for="dLabel" title="Klein, boven de titel">Label <i>optioneel</i></label>
+            <label class="label" for="dLabel">Label <i>optioneel</i> <button type="button" class="help" data-help="label"></button></label>
             <input class="input" id="dLabel" data-bind="label" maxlength="40">
           </div>
         </div>
-      </fieldset>
+      </div>
+    </section>
 
-      <!-- Tekst -->
-      <fieldset class="block">
-        <legend class="field-label"><span class="field-badge hex" data-step></span>Tekst</legend>
-        <div class="rte-wrap">
-          <div class="rte-bar" role="toolbar" aria-label="Opmaak" id="rteBar">
-            <button type="button" data-block="p" title="Gewone alinea">alinea</button>
-            <button type="button" data-block="h2" title="Kop">kop</button>
-            <button type="button" data-block="h3" title="Tussenkop">tussenkop</button>
-            <span class="rte-bar__sep" aria-hidden="true"></span>
-            <button type="button" data-cmd="bold" title="Vet (Ctrl+B)" aria-label="Vet"><b>B</b></button>
-            <button type="button" data-cmd="italic" title="Cursief (Ctrl+I)" aria-label="Cursief"><i>I</i></button>
-            <button type="button" data-cmd="underline" title="Onderstrepen (Ctrl+U)" aria-label="Onderstrepen"><u>U</u></button>
-            <span class="rte-bar__sep" aria-hidden="true"></span>
-            <button type="button" data-cmd="insertUnorderedList" title="Opsomming">&bull; lijst</button>
-            <button type="button" data-cmd="insertOrderedList" title="Genummerde lijst">1. lijst</button>
-            <button type="button" data-block="blockquote" title="Citaat of nadruk">citaat</button>
-            <button type="button" data-cmd="removeFormat" title="Opmaak van de selectie wissen">wis opmaak</button>
+    <!-- Tekst: de editor; de werkbalk staat boven de pagina's (op mobiel bovenin het blad) -->
+    <section class="panel" data-section="tekst">
+      <div class="panel__body">
+        <div class="field field--rte" data-tour="tekst">
+          <span class="label">Tekst <i>typ, of plak uit Word of Google Docs</i> <button type="button" class="help" data-help="plakken"></button></span>
+          <div class="rte" id="rte" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Tekst van het document" spellcheck="true"
+               data-toolbar="stijl vet cursief onderstreept opsomming nummering wissen" data-toolbar-label="tekst"></div>
+          <p class="field-hint">Koppen, lijsten, vet, cursief en onderstreept blijven over; lettertype en maten komen uit de huisstijl.<span class="for-mouse"> <kbd>Alt</kbd> + <kbd>F10</kbd> gaat naar de werkbalk.</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Prijzen: alleen bij een offerte -->
+    <section class="panel" data-section="prijzen">
+      <div class="panel__body">
+        <div class="field" data-tour="regels">
+          <span class="label" id="itemsLabel">Offerteregels <button type="button" class="help" data-help="offerteregels"></button></span>
+          <div class="items" id="items" role="table" aria-labelledby="itemsLabel">
+            <div class="items__head" role="row">
+              <span class="items__h items__h--desc" role="columnheader">Omschrijving <button type="button" class="help" data-help="plakken-uit-excel"></button></span>
+              <span class="items__h items__h--qty" role="columnheader">Aantal</span>
+              <span class="items__h items__h--price" role="columnheader">Prijs per stuk, excl. btw</span>
+              <span class="items__h items__h--sum" role="columnheader">Totaal</span>
+              <span class="items__h items__h--del" role="columnheader"><span class="sr-only">Verwijderen</span></span>
+            </div>
+            <div id="itemRows"></div>
           </div>
-          <div class="rte" id="rte" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Tekst van het document" spellcheck="true"></div>
-        </div>
-        <p class="field-hint">Plakken uit Word of Google Docs mag: alleen koppen, lijsten, vet, cursief en onderstreept blijven over.</p>
-      </fieldset>
-
-      <!-- Offerteregels -->
-      <fieldset class="block" data-for="offerte">
-        <legend class="field-label"><span class="field-badge hex" data-step></span>Offerteregels</legend>
-        <div class="items" id="items" role="table" aria-label="Offerteregels">
-          <div class="items__head" role="row">
-            <span role="columnheader">Omschrijving</span><span role="columnheader">Aantal</span><span role="columnheader">Prijs (€)</span><span role="columnheader"><span class="sr-only">Verwijderen</span></span>
+          <div class="items__foot">
+            <button type="button" class="btn btn-quiet btn-sm" id="addItem">+ regel toevoegen</button>
+            <span class="items__tip for-mouse">Enter = volgende regel</span>
           </div>
-          <div id="itemRows"></div>
         </div>
-        <div class="items__foot">
-          <button type="button" class="btn btn-quiet btn-sm" id="addItem">+ regel toevoegen</button>
-          <label class="items__vat">btw
-            <select class="input input--select" data-bind="vat" id="dVat">
-              <option value="21">21%</option>
-              <option value="9">9%</option>
-              <option value="0">0% / verlegd</option>
-            </select>
-          </label>
-        </div>
-        <p class="items__total" id="itemsTotal"></p>
-        <label class="switch">
-          <input type="checkbox" data-bind="acceptBlock">
-          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
-          <span class="switch__txt">Blok &ldquo;voor akkoord&rdquo; voor de klant</span>
-        </label>
-      </fieldset>
 
-      <!-- Ondertekening -->
-      <fieldset class="block">
-        <legend class="field-label"><span class="field-badge hex" data-step></span>Ondertekening</legend>
+        <div class="field">
+          <label class="label" for="dVat">Btw <button type="button" class="help" data-help="btw"></button></label>
+          <select class="input input--select items__vat" id="dVat" data-bind="vat">
+            <option value="21">21%</option>
+            <option value="9">9%</option>
+            <option value="0">0% / verlegd</option>
+          </select>
+        </div>
+
+        <dl class="sum" id="itemsTotal" aria-live="polite"></dl>
+
         <label class="switch">
-          <input type="checkbox" data-bind="showSignature">
+          <input type="checkbox" data-bind="acceptBlock" id="dAccept">
           <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
-          <span class="switch__txt">Ondertekening onder het document</span>
+          <span class="switch__txt">Blok &ldquo;voor akkoord&rdquo; voor de klant <button type="button" class="help" data-help="voor-akkoord"></button></span>
         </label>
-        <div class="stack" id="signFields">
+      </div>
+    </section>
+
+    <!-- Afsluiting: slotgroet, naam, functie en handtekening -->
+    <section class="panel" data-section="afsluiting">
+      <div class="panel__body">
+        <label class="switch">
+          <input type="checkbox" data-bind="showSignature" id="dShowSign">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Ondertekening onder het document <button type="button" class="help" data-help="ondertekening"></button></span>
+        </label>
+        <div class="stack sign-fields" id="signFields">
           <div class="field">
             <label class="label" for="dClosing">Slotgroet</label>
             <input class="input" id="dClosing" data-bind="closing" maxlength="60">
@@ -198,23 +275,25 @@
             </div>
           </div>
           <div class="field">
-            <span class="label">Handtekening <i>optioneel &middot; een PNG met transparante achtergrond werkt het mooist</i></span>
+            <span class="label" id="sigLabel">Handtekening <i>optioneel</i> <button type="button" class="help" data-help="handtekening"></button></span>
             <div class="file-tile file-tile--wide">
-              <button type="button" class="file-tile__btn" id="sigBtn">
+              <button type="button" class="file-tile__btn" id="sigBtn" aria-labelledby="sigLabel sigName">
                 <span class="file-tile__img" id="sigThumb" aria-hidden="true"></span>
                 <span class="file-tile__txt" id="sigName">handtekening kiezen</span>
               </button>
               <button type="button" class="iconbtn" id="sigClear" aria-label="Handtekening verwijderen" hidden>&times;</button>
             </div>
             <input type="file" id="sigInput" accept="image/*" hidden>
+            <p class="field-hint">Een PNG met transparante achtergrond werkt het mooist.<span class="for-mouse"> Slepen mag ook.</span></p>
           </div>
         </div>
-      </fieldset>
+      </div>
+    </section>
 
-      <!-- Briefpapier -->
-      <details class="block sender" id="senderPanel">
-        <summary class="field-label"><span class="field-badge hex">&#9881;</span>Briefpapier <span class="muted">afzender en bedrijfsgegevens</span></summary>
-        <p class="field-hint">Vul dit één keer in; het wordt in deze browser onthouden voor elk document. Lege velden worden weggelaten.</p>
+    <!-- Briefpapier: één keer invullen, voor elk document -->
+    <section class="panel" data-section="briefpapier">
+      <div class="panel__body">
+        <p class="panel__lead">Eén keer invullen: kop en voet van elk document, ook bij een nieuw document. Lege velden vallen weg. <button type="button" class="help" data-help="briefpapier"></button></p>
         <div class="field">
           <label class="label" for="sCompany">Bedrijfsnaam</label>
           <input class="input" id="sCompany" data-sender="company" maxlength="80">
@@ -222,7 +301,7 @@
         <div class="grid2">
           <div class="field">
             <label class="label" for="sStreet">Straat en nummer</label>
-            <input class="input" id="sStreet" data-sender="street" maxlength="80">
+            <input class="input" id="sStreet" data-sender="street" maxlength="80" autocomplete="street-address">
           </div>
           <div class="field">
             <label class="label" for="sCity">Postcode en plaats</label>
@@ -230,11 +309,11 @@
           </div>
           <div class="field">
             <label class="label" for="sPhone">Telefoon</label>
-            <input class="input" id="sPhone" data-sender="phone" maxlength="40">
+            <input class="input" id="sPhone" data-sender="phone" maxlength="40" inputmode="tel">
           </div>
           <div class="field">
             <label class="label" for="sEmail">E-mail</label>
-            <input class="input" id="sEmail" data-sender="email" maxlength="80">
+            <input class="input" id="sEmail" data-sender="email" maxlength="80" inputmode="email">
           </div>
           <div class="field">
             <label class="label" for="sWeb">Website</label>
@@ -242,7 +321,7 @@
           </div>
           <div class="field">
             <label class="label" for="sKvk">KvK-nummer</label>
-            <input class="input" id="sKvk" data-sender="kvk" maxlength="20">
+            <input class="input" id="sKvk" data-sender="kvk" maxlength="20" inputmode="numeric">
           </div>
           <div class="field">
             <label class="label" for="sVat">Btw-nummer</label>
@@ -253,53 +332,51 @@
             <input class="input" id="sIban" data-sender="iban" maxlength="34">
           </div>
         </div>
-      </details>
-
-      <div class="editor__foot">
-        <span>Alles wordt in deze browser onthouden.</span>
-        <button type="button" class="linkbtn" id="resetBtn">nieuw document</button>
       </div>
-    </form>
-  </section>
+    </section>
+  </form>
 
   <!-- ============================================================
-       PREVIEW + EXPORT
+       PODIUM: de A4-pagina's; klik op een deel om het aan te passen
        ============================================================ -->
-  <section class="layout__preview">
-    <div class="card preview">
-      <div class="card-head">
-        <div class="card-head__left">
-          <h2 class="card-title">Preview</h2>
-          <span class="pill pill-info" id="typePill">brief</span>
-        </div>
+  <main class="stage" id="stage">
+    <div class="stage__head">
+      <div class="stage__group">
+        <span class="pill pill-info" id="typePill">Brief</span>
         <span class="pill" id="pagePill">1 pagina &middot; A4</span>
+        <button type="button" class="help" data-help="paginas"></button>
       </div>
-
-      <div class="preview__stage preview__stage--doc" id="stage">
-        <div class="sheets-wrap" id="sheetsWrap">
-          <div class="sheets" id="sheets" aria-label="Preview van het document"></div>
-        </div>
-      </div>
-
-      <div class="notice" id="docNote" role="status" hidden></div>
-
-      <div class="export">
-      <div class="actionbar">
-        <button type="button" class="btn btn-primary btn-lg" id="pdfBtn">
-          <span data-label>download pdf</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
-        </button>
-        <button type="button" class="btn btn-outline" id="docxBtn" title="Bewerkbaar in Word en Google Docs">
-          <span data-label>word</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M4 20h16"/></svg>
-        </button>
-        <button type="button" class="btn btn-quiet" id="printBtn" title="Afdrukken via de printer">afdrukken</button>
-      </div>
-      <p class="preview__foot"><b>PDF</b> om te versturen of te printen &middot; <b>Word</b> om verder te bewerken, ook in Google Docs (upload in Drive en kies Bestand &rarr; Opslaan als Google Documenten) &middot; klik in de preview op een onderdeel om het aan te passen<span class="for-mouse"> &middot; <kbd>Ctrl</kbd> + <kbd>S</kbd> downloadt de PDF</span></p>
+      <div class="stage__group">
+        <!-- Emerce 100-badge: hoort bij het briefpapier, dus aan = elke pagina van elk document -->
+        <span class="badge-wrap">
+          <label class="badge-toggle">
+            <input type="checkbox" id="sBadge">
+            <img class="badge-toggle__mark" src="../assets/brand/emerce/e100-2026-liggend-zwart.svg" alt="" width="38" height="14">
+            <span class="badge-toggle__txt">Emerce 100<span class="sr-only">-badge in de voet</span></span>
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          </label>
+          <button type="button" class="help" data-help="emerce-badge"></button>
+        </span>
       </div>
     </div>
-  </section>
-</main>
+    <div class="stage__tools"><div id="tbar" data-tour="werkbalk"></div></div>
+    <div class="stage__scroll" id="stageScroll">
+      <div class="sheets-wrap" id="sheetsWrap" data-tour="preview">
+        <div class="sheets" id="sheets" role="region" aria-label="Preview van het document" data-shell-keep></div>
+      </div>
+    </div>
+    <div class="stage__notes">
+      <div class="notice notice-warn stage-note" id="clipNote" role="status" hidden><span>Een blok is langer dan een hele pagina en wordt afgekapt. Maak het korter of splits het in alinea's.</span> <button type="button" class="btn btn-quiet btn-xs" data-note-go="tekst">naar de tekst</button></div>
+      <div class="notice stage-note" id="docNote" role="status" hidden><span id="docNoteText"></span> <span class="stage-note__acts"><button type="button" class="btn btn-quiet btn-xs" id="docNoteAccept">voor akkoord uitzetten</button><button type="button" class="btn btn-quiet btn-xs" data-note-go="tekst">naar de tekst</button></span></div>
+    </div>
+  </main>
+</div>
+
+<!-- [?] bij de stijl en de lijsten in de werkbalk (js/document/app.js zet ze erin) -->
+<template id="tbarHelp">
+  <button type="button" class="help" data-help="koppen" data-after="stijl"></button>
+  <button type="button" class="help" data-help="lijst" data-after="nummering"></button>
+</template>
 
 <!-- Afdrukken: de pagina's worden hier naartoe gekopieerd -->
 <div id="printRoot" aria-hidden="true"></div>
@@ -308,6 +385,13 @@
 <script src="../js/shared/tools.js"></script>
 <script src="../js/shared/core.js"></script>
 <script src="../js/shared/brand-data.js"></script>
+<script src="../js/shared/history.js"></script>
+<script src="../js/shared/shell.js"></script>
+<script src="../js/shared/help.js"></script>
+<script src="../js/shared/toolbar.js"></script>
+<script src="../js/shared/tour.js"></script>
+<script src="../js/document/help.js"></script>
+<script src="../js/document/model.js"></script>
 <script src="../js/document/pdf.js"></script>
 <script src="../js/document/docx.js"></script>
 <script src="../js/document/app.js"></script>

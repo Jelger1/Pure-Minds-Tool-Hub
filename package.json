@@ -1,12 +1,14 @@
 {
   "name": "pure-minds-generator-hub",
   "version": "1.0.0",
-  "description": "Pure Minds Generator Hub: posts, documenten en presentaties in de huisstijl (vanilla HTML, CSS en JS)",
+  "description": "Pure Minds Generator Hub: posts, documenten, presentaties en iconen in de huisstijl (vanilla HTML, CSS en JS)",
   "private": true,
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "brand": "node scripts/build-brand-data.js"
+    "brand": "node scripts/build-brand-data.js",
+    "icons": "node scripts/build-icon-data.js && node scripts/build-icon-tags.js",
+    "test": "node --test tests/*.test.js"
   },
   "engines": {
     "node": ">=18.17"

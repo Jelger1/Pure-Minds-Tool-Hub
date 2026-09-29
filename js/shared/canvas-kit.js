@@ -8,7 +8,8 @@
    vak of zeshoek, het label met zeshoek-bullet, de voetregel en het logo.
 
    Een template geeft een raster (fr) mee met o.a. m (marge), w, h,
-   labelTop, labelSize, footerY, footerSize, contentW en logo {x, y, w, h}.
+   labelTop, labelSize, footerY, footerSize, contentW en logo {x, y, w, h};
+   posts ook badge {x, y, w, h} voor het keurmerk linksonder.
    ============================================================================= */
 (function (global) {
   'use strict';
@@ -320,7 +321,7 @@
   }
 
   /* ---------------------------------------------------------------------------
-     Vaste onderdelen: label, voetregel, logo, pijl, knop
+     Vaste onderdelen: label, voetregel, logo, badge, pijl, cta-blok
      Maten komen uit het raster (fr.labelSize, fr.footerSize), zodat posts en
      slides dezelfde verhoudingen houden.
      ------------------------------------------------------------------------- */
@@ -360,6 +361,14 @@
     ctx.drawImage(img, L.x, L.y, L.w, L.h);
   }
 
+  // Keurmerk (de Emerce 100-badge) op fr.badge. Het is een SVG: de browser
+  // tekent hem op de doelmaat, dus ook op 2160 px scherp; in een PDF via vectors
+  function drawBadge(ctx, fr, img) {
+    if (!img || !img.complete || !img.naturalWidth || !fr.badge) return;
+    const B = fr.badge;
+    ctx.drawImage(img, B.x, B.y, B.w, B.h);
+  }
+
   function drawArrow(ctx, x, y, len, color, lw, head = 13) {
     ctx.save();
     ctx.strokeStyle = color;
@@ -378,15 +387,16 @@
     ctx.restore();
   }
 
-  // Hoofdactie: magenta, rechte hoeken, kleine letters (zoals .btn-primary)
-  function planButton(ctx, label, s = 1) {
+  // Cta-blok: magenta, rechte hoeken, kleine letters, tekst in het midden.
+  // Bewust zonder pijl: het is een oproep, geen knop om op te klikken
+  function planCta(ctx, label, s = 1) {
     const size = 28 * s;
     const padX = 34 * s;
     const h = 78 * s;
     const text = String(label || '').trim() || 'lees meer';
     setFont(ctx, 700, size, 0.01);
     const tw = ctx.measureText(text).width;
-    const w = padX + tw + (20 + 34) * s + padX;
+    const w = padX + tw + padX;
     return {
       w,
       h,
@@ -396,7 +406,6 @@
         setFont(ctx, 700, size, 0.01);
         ctx.fillStyle = '#ffffff';
         ctx.fillText(text, x + padX, y + h / 2 + (size * CAP) / 2);
-        drawArrow(ctx, x + padX + tw + 20 * s, y + h / 2, 34 * s, '#ffffff', 4 * s, 13 * s);
       },
     };
   }
@@ -498,7 +507,7 @@
     COLORS, FONT_FAMILY, CAP, DESC, SQRT3, flags,
     clamp, rgba, setFont, addHex, hexPath, hexPattern, paintBackground,
     runsFrom, layoutText, fitText, drawText, parseBody, layoutBody, drawBody, ellipsize,
-    drawLabel, drawDomain, drawLogo, drawArrow, planButton,
+    drawLabel, drawDomain, drawLogo, drawBadge, drawArrow, planCta,
     drawPhoto, drawContain, hexEcho, prepare, finish,
   };
 })(window);

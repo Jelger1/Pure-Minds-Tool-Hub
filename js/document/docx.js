@@ -10,7 +10,8 @@
      tekst     alinea's, koppen, opsommingen met cyaan zeshoek, genummerde
                lijsten, citaten, vet, cursief en (cyaan) onderstreept
      offerte   de tabel, de totalen en het blok "voor akkoord" als Word-tabellen
-     voet      bedrijfsgegevens en "pagina X van Y" als echte velden
+     voet      bedrijfsgegevens en "pagina X van Y" als echte velden, en zo
+               gekozen de Emerce 100-badge (SVG, met PNG voor Google Docs)
      letters   Open Sans wordt ingesloten, zodat het document ook goed oogt op
                een computer zonder dat lettertype
 
@@ -197,6 +198,17 @@
     const patternPng = await svgToPng(model.pattern, 360, 240, 2);
     const barPng = await pngRect(`#${CYAN}`);
 
+    // Emerce 100-badge (optioneel): even hoog als in de preview (.a4__badge img),
+    // de breedte volgt uit de viewBox van de SVG
+    let badge = null;
+    if (model.badge) {
+      const vb = /viewBox="([^"]+)"/.exec(model.badge);
+      const [, , vw, vh] = vb ? vb[1].trim().split(/[\s,]+/).map(Number) : [0, 0, 353.33, 130.58];
+      const h = 26.2;
+      const w = Math.round((h * vw / vh) * 100) / 100;
+      badge = { w, h, png: await svgToPng(model.badge, w, h, 8) };
+    }
+
     const svgImage = (svg, png, width, height, extra = {}) => new ImageRun({ type: 'svg', data: svgBytes(svg), fallback: { type: 'png', data: png }, transformation: { width, height }, ...extra });
     const logoImage = (h) => new ImageRun({ type: 'svg', data: logoSvg, fallback: { type: 'png', data: logoPng }, transformation: { width: Math.round(h * 2229.16 / 2568.97 * 100) / 100, height: h } });
     const hexImage = (w = 11, h = 12.7) => svgImage(hexSvg, hexPng, w, h);
@@ -262,10 +274,23 @@
         left.push(run(v, { size: 9.5, color: MUTED, break: !i && one.length ? 1 : undefined }));
       });
       const pageNo = [hexImage(9, 10.4), new TextRun({ children: [' pagina ', PageNumber.CURRENT, ' van ', PageNumber.TOTAL_PAGES], font: 'Open Sans', bold: true, size: hp(9.5), color: INK })];
+      let right = para(pageNo, { align: AlignmentType.RIGHT, lh: 1.6 });
+      let rightW = 150;
+      if (badge) {
+        // Badge vóór het paginanummer, in dezelfde alinea: dan staat hij vanzelf op
+        // de basislijn en schuift hij mee met de breedte van het nummer. 24 px ertussen
+        // met harde spaties (ook in Google Docs). Enkele regelafstand, zodat de regel
+        // met de badge niet hoger wordt; Word zet de extra regelafstand ónder de tekst,
+        // dus die ruimte komt eronder terug en de basislijnen blijven gelijk.
+        const nbsp = String.fromCharCode(0xa0);
+        const gap = nbsp.repeat(Math.max(1, Math.round(24 / textWidth(nbsp, 9.5))));
+        right = para([svgImage(model.badge, badge.png, badge.w, badge.h), run(gap, { size: 9.5 }), ...pageNo], { align: AlignmentType.RIGHT, lh: LINE, after: (1.6 - LINE) * 9.5 });
+        rightW = Math.ceil(badge.w + 24 + 9 + textWidth(' pagina 88 van 88', 9.5, 700)) + 8;
+      }
       const t = table([row([
-        cell([para(left.length ? left : [run('', { size: 9.5 })], { lh: 1.6 })], { width: CONTENT_W - 150, pt: 12, bt: line(1, LINE_C), valign: VerticalAlign.BOTTOM }),
-        cell([para(pageNo, { align: AlignmentType.RIGHT, lh: 1.6 })], { width: 150, pt: 12, bt: line(1, LINE_C), valign: VerticalAlign.BOTTOM }),
-      ])], [CONTENT_W - 150, 150]);
+        cell([para(left.length ? left : [run('', { size: 9.5 })], { lh: 1.6 })], { width: CONTENT_W - rightW, pt: 12, bt: line(1, LINE_C), valign: VerticalAlign.BOTTOM }),
+        cell([right], { width: rightW, pt: 12, bt: line(1, LINE_C), valign: VerticalAlign.BOTTOM }),
+      ])], [CONTENT_W - rightW, rightW]);
       return new Footer({ children: [t, tinyPara()] });
     }
 

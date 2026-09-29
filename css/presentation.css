@@ -1,25 +1,34 @@
 /**
  * Presentation Maker — toolspecifieke opmaak
- * Gedeelde bouwstenen (zeshoek-tabs, preview, strip, knoppen) staan in css/global.css.
- * De slides zelf worden op canvas getekend: js/presentation/templates.js.
+ * De indeling (appbalk, rail, panelen, podium, werkbalk) staat in css/editor.css,
+ * de gedeelde bouwstenen in css/global.css. De slides zelf worden op canvas
+ * getekend: js/presentation/templates.js.
  */
 
-.slides__nav { display: flex; flex-wrap: wrap; gap: .375rem; }
-.slides__actions { display: flex; flex-wrap: wrap; gap: .375rem; }
+/* --- Welke slide je bewerkt (bovenaan het paneel Inhoud) --- */
 
-/* --- Layout: huidige layout met een knop; de keuze klapt open --- */
-
-.layout-now {
-  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
-  padding: .6rem .75rem; border: 1px solid var(--pm-line); background: var(--pm-soft);
+.slide-lead {
+  display: flex; align-items: center; gap: .5rem; margin-bottom: -.25rem;
+  padding: .5rem .5rem .5rem .625rem; background: var(--pm-soft); border-left: 3px solid var(--pm-cyan);
+  font-size: .8125rem;
 }
-.layout-now__txt { display: flex; flex-direction: column; line-height: 1.3; }
-.layout-now__txt b { font-size: .9375rem; }
-.layout-now__txt i { font-style: normal; font-size: .75rem; color: var(--pm-muted); }
+.slide-lead__no {
+  padding: .05rem .4rem; background: var(--pm-ink); color: #fff;
+  font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+}
+.slide-lead__name { min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slide-lead .linkbtn { margin-left: auto; padding-top: .25rem; padding-bottom: .25rem; font-size: .75rem; }
+.slide-lead .linkbtn:hover { color: var(--pm-blue); }
+/* Bladeren zonder het blad te sluiten: alleen op een smal scherm (daar is de strook dan weg) */
+.slide-lead__nav { display: none; flex: none; }
+.slide-lead__nav .iconbtn svg { width: 1.25rem; height: 1.25rem; }
+.slide-lead__nav .iconbtn:disabled { opacity: .35; cursor: default; }
+.slide-lead__nav .iconbtn:not(:disabled):hover { color: var(--pm-ink); background: #fff; }
+.slide-lead__nav .iconbtn:focus-visible { outline: none; box-shadow: var(--ring); }
 
-/* --- Layoutkeuze met live miniaturen --- */
+/* --- Layoutkeuze: altijd open, met live miniaturen van je eigen slide --- */
 
-.layout-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: .5rem; }
+.layout-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
 .layout-tile {
   position: relative; display: flex; flex-direction: column; gap: .1rem;
   padding: .3rem .3rem .45rem; cursor: pointer;
@@ -38,9 +47,13 @@
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 }
 .layout-tile:has(input:focus-visible) { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 2px; }
+@media (min-width: 560px) and (max-width: 1023px) {
+  .layout-grid { grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); }
+}
 
 /* --- Tabel bewerken: raster van cellen, met een ×-knop per kolom (boven) en per rij (rechts) --- */
 
+.tbl-hint { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem; margin-top: -.25rem; }
 .tbl-wrap { overflow-x: auto; padding-bottom: .25rem; }
 .tbl {
   display: grid; gap: .25rem; align-items: center;
@@ -56,37 +69,200 @@
 }
 .tbl__del:not(:disabled):hover { color: var(--pm-magenta); border-color: var(--pm-line); background: #fff; }
 .tbl__del:disabled { opacity: .25; cursor: default; }
-.tbl__del:focus-visible { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 1px; }
-.tbl-actions { display: flex; gap: .375rem; }
+.tbl-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; }
+.tbl-actions__sep { width: 1px; height: 1.25rem; margin: 0 .125rem; background: var(--pm-line); }
 
-/* --- De slide (canvas, 1920 × 1080 ontwerpraster) --- */
+/* --- Paneel Foto: de [?] naast de kop --- */
 
-/* Op een lage laptop begrensd, zodat preview, slides en downloadknoppen samen in beeld passen */
-#slideCanvas {
-  display: block; width: min(100%, calc((100vh - 27rem) * 16 / 9)); min-width: min(100%, 22rem); margin: 0 auto;
-  height: auto; aspect-ratio: 16 / 9;
-  box-shadow: 0 1px 2px rgba(16, 40, 60, .08), 0 24px 48px -28px rgba(16, 40, 60, .45);
-}
+.panel__title .help { margin-left: .25rem; vertical-align: .1em; }
+.photo-note { margin: 0; }
+
+/* --- Podium: de slide, klikbaar en versleepbaar --- */
+
+.stage.is-over .preview__drop { display: flex; }
+.stage .preview__drop { z-index: 6; }
+#slideCanvas { display: block; width: 100%; height: auto; }
+#slideCanvas.needs-photo { cursor: pointer; }
 #slideCanvas.can-pan { cursor: grab; touch-action: none; }   /* alleen dan: anders kun je over de preview heen scrollen */
+#slideCanvas.can-pan.has-region { cursor: pointer; }
 #slideCanvas.is-panning { cursor: grabbing; }
+#slideCanvas:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 3px; }
 
-/* --- Slides: strook met miniaturen (slepen = volgorde), acties ernaast --- */
+/* Meldingen onder de slide, met een knop naar het veld */
+.stage__notes { display: flex; flex-direction: column; gap: .5rem; margin: -1rem 2rem 1rem; }
+.stage__notes:not(:has(.stage-note:not([hidden]))) { display: none; }
+.stage-note { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin: 0; }
+.stage-note .btn { flex: none; background: #fff; }
 
-.slidebar { border-top: 1px solid var(--pm-line); background: #fff; }
-.slidebar .strip { border-top: 0; }
-.slidebar__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; padding: 0 1.25rem .75rem; }
-.slidebar__add { margin-right: auto; }
-.strip--slides .strip__item canvas { width: 7.5rem; }
-.strip__item { cursor: grab; }
+/* --- Slides onder het podium: + slide, de acties voor de gekozen slide, de strook --- */
+
+.slidebar { container: slidebar / inline-size; }
+.slidebar__bar { display: flex; align-items: center; justify-content: space-between; gap: .5rem 1rem; padding: .625rem 1.25rem 0; }
+.slidebar__left { display: flex; align-items: center; gap: .625rem; min-width: 0; }
+.slidebar__add { padding-left: .55rem; }
+.slidebar__add svg.ri { width: 1.125rem; height: 1.125rem; }
+.slidebar__count { font-size: .8125rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.slidebar__acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .375rem; }
+.slidebar__acts .btn { gap: .4rem; }
+.slidebar__acts .btn svg.ri { width: 1.05rem; height: 1.05rem; }
+.slidebar__menu { display: none; }
+.slidebar__more { gap: .35rem; font-variant-numeric: tabular-nums; }
+.slidebar__more svg.ri { width: 1.125rem; height: 1.125rem; }
+/* Het menu klapt omhoog open: de strook staat onderaan het scherm */
+.slidebar__menu .menu__list { top: auto; bottom: calc(100% + .5rem); min-width: 13rem; }
+.menu__item--danger:hover, .menu__item--danger:focus { color: #9e1744; }
+.menu__item:disabled { color: #aab4bd; cursor: not-allowed; }
+.menu__item:disabled svg { color: inherit; }
+
+.slidebar__track { position: relative; }
+.strip--slides { position: relative; gap: .625rem; padding: .625rem 1.25rem .875rem; border-top: 0; scrollbar-width: thin; }
+.strip--slides .strip__item { cursor: pointer; }
+.strip--slides .strip__item canvas { width: 7.5rem; background: var(--pm-ink); }
+.strip--slides .strip__item[aria-selected="true"] { border-color: var(--pm-cyan); box-shadow: 0 0 0 1px var(--pm-cyan); }
+.strip--slides .strip__item:focus { outline: none; }
+.strip--slides .strip__item:focus-visible { outline: 3px solid rgba(26, 185, 226, .55); outline-offset: 2px; }
 .strip__item.is-dragging { opacity: .4; }
-.strip__item.is-drop { border-color: var(--pm-magenta); }
-
-/* --- Export: pdf en PowerPoint, afbeeldingen als tweede regel --- */
-
-.export__opts--png { padding-top: 0; padding-bottom: .25rem; }
-.export__opts--png .seg { min-width: 8rem; }
+.strip__item.is-drop { border-color: var(--pm-magenta); box-shadow: -6px 0 0 -2px var(--pm-magenta); }
 .strip__no {
   position: absolute; left: .25rem; bottom: .25rem;
   padding: 0 .3rem; font-size: .625rem; font-weight: 800;
-  background: var(--pm-cyan); color: var(--pm-ink);
+  background: rgba(255, 255, 255, .9); color: var(--pm-ink);
+}
+.strip__item[aria-selected="true"] .strip__no { background: var(--pm-cyan); }
+
+/* Past de strook niet: een verloop met een pijl aan de kant waar nog slides staan */
+.slidebar__cue {
+  position: absolute; top: 0; bottom: 0; z-index: 2; display: flex; align-items: center;
+  width: 3.25rem; padding: 0 .35rem; border: 0; color: var(--pm-blue); cursor: pointer;
+}
+.slidebar__cue[hidden] { display: none; }
+.slidebar__cue svg { width: 1.5rem; height: 1.5rem; fill: currentColor; }
+.slidebar__cue--prev { left: 0; justify-content: flex-start; background: linear-gradient(to right, #fff 35%, rgba(255, 255, 255, 0)); }
+.slidebar__cue--next { right: 0; justify-content: flex-end; background: linear-gradient(to left, #fff 35%, rgba(255, 255, 255, 0)); }
+.slidebar__cue:hover { color: var(--pm-ink); }
+
+/* Weinig ruimte naast de strook: de acties in een menu (dezelfde knoppen, met naam) */
+@container slidebar (max-width: 46rem) {
+  .slidebar__acts { display: none; }
+  .slidebar__menu { display: inline-flex; }
+  .slidebar__count, .slidebar__left .help { display: none; }
+}
+
+/* --- Download-opties: pdf, PowerPoint en afbeeldingen, met wat je krijgt --- */
+
+.dl { width: 26rem; }
+.dl .popover__body { gap: .5rem; }
+.dl__opt { display: flex; align-items: center; gap: .25rem; }
+.dl__btn {
+  display: flex; align-items: center; gap: .75rem; flex: 1 1 auto; min-width: 0;
+  padding: .65rem .75rem; text-align: left;
+  border: 1px solid var(--pm-line); background: #fff; color: var(--pm-ink);
+  transition: border-color .15s, background-color .15s;
+}
+.dl__btn svg.ri { width: 1.5rem; height: 1.5rem; flex: none; color: var(--pm-blue); }
+.dl__txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.dl__txt b { font-size: .875rem; font-weight: 700; }
+.dl__txt i { font-style: normal; font-size: .75rem; color: var(--pm-muted); }
+.dl__btn:not(:disabled):hover { border-color: var(--pm-cyan); background: var(--pm-soft); }
+.dl__btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.dl__btn:disabled { cursor: progress; }
+.dl__btn.is-busy { border-color: var(--pm-cyan); background: var(--pm-tint); }
+.dl__btn.is-done { border-color: var(--pm-green); background: #e3f4ee; }
+.dl__btn.is-done svg.ri { color: var(--pm-green); }
+.dl__group { display: flex; flex-direction: column; gap: .5rem; margin-top: .5rem; padding-top: .875rem; border-top: 1px solid var(--pm-line); }
+.dl__res label { flex-direction: column; gap: 0; line-height: 1.25; }
+.dl__res label i { color: var(--pm-muted); font-size: .6875rem; }
+.dl__row { display: grid; grid-template-columns: 1fr 1fr; gap: .375rem; }
+.dl__btn--sm { gap: .5rem; padding: .55rem .6rem; }
+.dl__btn--sm svg.ri { width: 1.25rem; height: 1.25rem; }
+.dl__note { margin: 0; font-size: .75rem; }
+
+/* --- Nog even checken vóór het downloaden --- */
+
+.check {
+  width: min(34rem, calc(100vw - 2rem)); max-height: min(40rem, calc(100dvh - 2rem));
+  padding: 0; border: 0; border-top: 3px solid var(--pm-cyan);
+  color: var(--pm-ink); background: #fff; box-shadow: var(--lift);
+}
+.check[open] { display: flex; flex-direction: column; }
+.check::backdrop { background: rgba(16, 40, 60, .45); }
+.check__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem .75rem .25rem 1.5rem; }
+.check__title { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
+.check__title:focus { outline: none; }
+.check__lead { padding: 0 1.5rem .75rem; font-size: .875rem; color: #45505a; }
+.check__list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0; padding: 0 1.5rem; list-style: none; }
+.check__item {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "slide goto" "rows goto";
+  gap: .15rem 1rem; align-items: start; padding: .7rem 0; border-top: 1px solid var(--pm-line);
+}
+.check__slide { grid-area: slide; font-size: .75rem; color: var(--pm-muted); }
+.check__slide b { margin-right: .35rem; color: var(--pm-ink); font-size: .8125rem; }
+.check__rows { grid-area: rows; margin: 0; padding: 0; list-style: none; font-size: .8125rem; line-height: 1.5; }
+.check__rows li { overflow-wrap: anywhere; }
+.check__goto { grid-area: goto; align-self: center; }
+.check__foot {
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem;
+  padding: 1rem 1.5rem 1.25rem; border-top: 1px solid var(--pm-line);
+}
+
+/* Meldingen boven de strook met slides, niet eroverheen: daar klik je na verwijderen meteen verder */
+.has-app .toast { bottom: 10.25rem; }
+
+/* --- Tablet en telefoon --- */
+
+@media (max-width: 1023px) {
+  .has-app .toast { bottom: calc(9rem + env(safe-area-inset-bottom)); }
+  .has-app:has(.app.is-sheet-open) .toast { bottom: calc(4.75rem + env(safe-area-inset-bottom)); }
+  .stage__notes { margin: 0 .75rem .5rem; }
+  .app.is-sheet-open #previewPhotoBtn { display: none; }
+  .app.is-sheet-open .stage__notes { display: none; }   /* dezelfde melding staat in het blad bij het veld */
+  .app.is-sheet-open .stage__head { display: none; }
+  /* Blad open: de slide krijgt de ruimte; tijdens de rondleiding blijft de strook staan */
+  .app.is-sheet-open .slidebar { display: none; }
+  .is-touring .app.is-sheet-open .slidebar { display: flex; }
+
+  /* De strook in één rij: + slide, de miniaturen, en de acties in een menu */
+  .slidebar { display: flex; align-items: center; }
+  .slidebar__bar, .slidebar__left { display: contents; }
+  .slidebar__add { order: 0; flex: none; margin-left: .75rem; }
+  .slidebar__track { order: 1; flex: 1 1 auto; min-width: 0; }
+  .slidebar__menu { order: 2; display: inline-flex; flex: none; margin-right: .75rem; }
+  .slidebar__acts, .slidebar__count, .slidebar__left .help { display: none; }
+  .strip--slides { padding: .5rem .625rem; gap: .5rem; }
+  .strip--slides .strip__item canvas { width: 5rem; }
+  .slide-lead { gap: .375rem; padding: .25rem .25rem .25rem .5rem; margin-bottom: -.5rem; }
+  .slide-lead__nav { display: inline-flex; margin-left: auto; }
+  .slide-lead .linkbtn { margin-left: 0; margin-right: 0; }
+}
+@media (max-width: 559px) {
+  #dimPill { display: none; }   /* de maat staat ook in de download-opties */
+  #previewPhotoBtn { padding: .4rem .6rem; }
+  .slidebar__add { padding: .4rem .55rem; }
+  .strip--slides .strip__item canvas { width: 4.5rem; }
+  .dl__row { grid-template-columns: 1fr; }
+  .check__head { padding-left: 1.25rem; }
+  .check__lead, .check__list { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .check__item { grid-template-columns: 1fr; grid-template-areas: "slide" "rows" "goto"; }
+  .check__goto { justify-self: start; margin-top: .25rem; }
+  .check__foot { padding: .875rem 1.25rem 1rem; }
+}
+@media (max-width: 400px) {
+  #downloadBtn svg { display: none; }   /* ruimte voor "download pdf" naast ongedaan maken en hulp */
+  .slide-lead .linkbtn { display: none; }   /* de tab Layout staat er vlak onder */
+}
+
+/* Aanraakscherm: alles minstens 44 px */
+@media (pointer: coarse) {
+  .slidebar__add, .slidebar__more, .slidebar__acts .btn { min-height: 2.75rem; }
+  .slidebar__more { min-width: 2.75rem; }
+  .strip--slides .strip__item { min-height: 2.75rem; }
+  .tbl__del { min-width: 2.75rem; height: 2.75rem; }
+  .tbl { grid-template-columns: repeat(var(--cols, 4), minmax(5rem, 1fr)) 2.75rem; }
+  .tbl__cell { min-height: 2.75rem; }
+  .tbl-actions .btn { min-height: 2.75rem; }
+  .slide-lead .linkbtn { min-height: 2.75rem; }
+  .dl__btn { min-height: 2.75rem; }
+  .check__goto, .check__foot .btn { min-height: 2.75rem; }
+  #previewPhotoBtn, #resetBtn, #cropReset, #photoReplace { min-height: 2.75rem; }
+  .slide-lead__nav .iconbtn { width: 2.75rem; height: 2.75rem; }
 }

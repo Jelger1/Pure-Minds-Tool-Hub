@@ -12,8 +12,15 @@
      - logo rechtsonder in een inkt-zeshoek, in elk template op dezelfde plek
      - bij de carousel de swipe-indicator linksonder, verticaal gecentreerd
        op het logo; de posts hebben verder geen voetregel
+     - optioneel de Emerce 100-badge op die plek: klein, wit, verticaal
+       gecentreerd op het logo (in de carousel alleen op de laatste slide)
      - koppen Open Sans ExtraBold met -2% tracking, tekst Open Sans Regular
      - de zeshoek-duo (foto of vlak + verschoven cyaan lijn) als vormelement
+
+   renderPost() geeft ook terug wat waar staat (regions: rechthoeken in
+   ontwerp-px, voor klikken in de preview) en welke tekst niet paste
+   (overflowKeys). Grootte van de kop: data.titleSize = 'klein' | 'normaal' |
+   'groot' (typeschaal uit PM.brand); normaal tekent precies als voorheen.
 
    De tekenbouwstenen (kleuren, zeshoek, tekstopmaak, foto, label, logo)
    staan in js/shared/canvas-kit.js en worden gedeeld met de Presentation Maker.
@@ -24,8 +31,8 @@
   const {
     COLORS, CAP, DESC, SQRT3, flags,
     clamp, rgba, setFont, hexPath, hexPattern, paintBackground,
-    runsFrom, layoutText, fitText, drawText, layoutBody, drawBody,
-    drawLabel, drawLogo, drawArrow, planButton,
+    runsFrom, layoutText, fitText, drawText, layoutBody, drawBody, ellipsize,
+    drawLabel, drawLogo, drawBadge, drawArrow, planCta,
     drawPhoto, drawContain, hexEcho, prepare, finish,
   } = global.PMCanvas;
 
@@ -40,6 +47,8 @@
     bar: 12,
     logoW: 112,
     logoH: 112 * 1109 / 962,  // verhouding van PureMinds-zeshoek-logo.png
+    badgeH: 112 * 1109 / 962 * 0.45,  // Emerce 100-badge: 45% van de logohoogte
+    badgeRatio: 353.3 / 130.6,        // verhouding van e100-2026-liggend-wit.svg
     labelSize: 24,
     labelTrack: 0.12,
     labelGap: 72,             // van label tot inhoud
@@ -55,6 +64,52 @@
   };
   const TITLE_MIN = 44;
   const BODY_MIN = 24;
+
+  /* ---------------------------------------------------------------------------
+     Wat er getekend is: regio's (klikken in de preview) en teksten die niet
+     pasten. Alleen meten, niets extra tekenen: de pixels blijven gelijk.
+     ------------------------------------------------------------------------- */
+
+  let regions = [];
+  let over = [];
+
+  const region = (key, x, y, w, h) => {
+    if (w > 0 && h > 0) regions.push({ key, rect: { x, y, w, h } });
+  };
+
+  // fitText, maar met onthouden welke tekst niet paste
+  function fit(key, ...args) {
+    const before = flags.overflow;
+    flags.overflow = false;
+    const block = fitText(...args);
+    if (flags.overflow) over.push(key);
+    flags.overflow = before || flags.overflow;
+    return block;
+  }
+
+  // Rechthoek om een tekstblok van fitText/layoutText, getekend vanaf (x, top)
+  function textRegion(key, block, x, top, align = 'left') {
+    if (!block || !block.lines.length) return;
+    const w = Math.max(...block.lines.map((l) => l.w));
+    const dx = align === 'center' ? (block.maxW - w) / 2 : 0;
+    region(key, x + dx, top, w, block.height);
+  }
+
+  // Het label linksboven; direct na drawLabel, want dan staat het lettertype nog goed
+  function labelRegion(ctx, fr, text, maxW = fr.contentW) {
+    const value = String(text || '').trim();
+    if (!value) return;
+    const size = fr.labelSize;
+    const tx = fr.m + (size / 2) * SQRT3 + (size * 2) / 3;
+    const shown = ellipsize(ctx, value.toUpperCase(), maxW - (tx - fr.m));
+    region('label', fr.m, fr.labelTop, tx - fr.m + ctx.measureText(shown).width, size * CAP);
+  }
+
+  // Korpsgrootte van de kop in de gekozen stap van de typeschaal
+  function titleSize(base, d) {
+    const brand = global.PM && global.PM.brand;
+    return brand && d && d.titleSize ? brand.sizeFor(base, d.titleSize) : base;
+  }
 
   // Alle posts zijn donker: inkt of foto, met witte tekst en cyaan nadruk
   const PAL = {
@@ -81,12 +136,15 @@
     const story = f.h / f.w > 1.5;
     const v = story ? GRID.storySafe : m;  // verticale marge
     const logo = { x: f.w - m - GRID.logoW, y: f.h - v - GRID.logoH, w: GRID.logoW, h: GRID.logoH };
+    // Badge linksonder, even ver van de rand als het logo rechts
+    const badge = { x: m, y: logo.y + (logo.h - GRID.badgeH) / 2, w: GRID.badgeH * GRID.badgeRatio, h: GRID.badgeH };
     return {
       w: f.w,
       h: f.h,
       m,
       v,
       logo,
+      badge,
       story,
       portrait: f.h > f.w,
       labelTop: v,
@@ -175,11 +233,14 @@
       const cy = (top + bottom) / 2 - r * 0.07;
       hexEcho(ctx, cx, cy, r);
       const photo = drawPhoto(ctx, env.photo, { x: cx - (r * SQRT3) / 2, y: cy - r, w: r * SQRT3, h: r * 2, hex: { cx, cy, r } }, env.crop);
+      region('photo', cx - (r * SQRT3) / 2, cy - r, r * SQRT3, r * 2);
       drawLabel(ctx, fr, d.label, PAL);
+      labelRegion(ctx, fr, d.label);
       return { photo };
     }
 
     const photo = drawPhoto(ctx, env.photo, { x: 0, y: 0, w: fr.w, h: fr.h }, env.crop);
+    region('photo', 0, 0, fr.w, fr.h);
     if (env.photo) {
       // Rustige verlopen onder het label en het logo, zodat die leesbaar blijven
       const bottom = ctx.createLinearGradient(0, fr.logo.y - 220, 0, fr.h);
@@ -196,12 +257,14 @@
       }
     }
     drawLabel(ctx, fr, d.label, PAL);
+    labelRegion(ctx, fr, d.label);
     return { photo };
   }
 
   // 2. Foto met tekst-overlay: aankondiging in wit op een merkverloop
   function tplOverlay(ctx, fr, d, env) {
     const photo = drawPhoto(ctx, env.photo, { x: 0, y: 0, w: fr.w, h: fr.h }, env.crop);
+    region('photo', 0, 0, fr.w, fr.h);
     const k = clamp((d.strength != null ? Number(d.strength) : 80) / 100, 0, 1);
     const middle = d.position === 'middle';
 
@@ -226,20 +289,25 @@
       ctx.strokeStyle = COLORS.cyan;
       ctx.lineWidth = 10;
       ctx.stroke();
+      const dx = fr.w - 64 - 232 * (SQRT3 / 2);
+      region('decor', dx, fr.labelTop + 96 - 232, fr.w - dx, 464);
     }
 
     drawLabel(ctx, fr, d.label, PAL, fr.contentW - 220);
+    labelRegion(ctx, fr, d.label, fr.contentW - 220);
 
     const maxW = fr.contentW - 40;
     const areaH = fr.contentBottom - fr.contentTop;
-    const sub = fitText(ctx, runsFrom(d.subtitle), maxW, 190, TYPE.body, { min: 26, maxLines: 4 });
+    const sub = fit('subtitle', ctx, runsFrom(d.subtitle), maxW, 190, TYPE.body, { min: 26, maxLines: 4 });
     const gap = sub.lines.length ? 34 : 0;
-    const title = fitText(ctx, runsFrom(d.title, { dot: d.dot }), maxW, areaH - sub.height - gap, TYPE.title, { min: TITLE_MIN });
+    const title = fit('title', ctx, runsFrom(d.title, { dot: d.dot }), maxW, areaH - sub.height - gap, { ...TYPE.title, size: titleSize(TYPE.title.size, d) }, { min: TITLE_MIN });
     const total = title.height + gap + sub.height;
     const top = middle ? fr.contentTop + (areaH - total) / 2 : fr.contentBottom - total;
 
     drawText(ctx, title, fr.m, top, { color: '#ffffff', em: COLORS.cyan });
     drawText(ctx, sub, fr.m, top + title.height + gap, { color: 'rgba(255,255,255,.9)', em: '#ffffff' });
+    textRegion('title', title, fr.m, top);
+    textRegion('subtitle', sub, fr.m, top + title.height + gap);
     return { photo };
   }
 
@@ -253,26 +321,31 @@
     const cy = fr.labelTop - 44 + r;
     hexEcho(ctx, cx, cy, r);
     const photo = drawPhoto(ctx, env.photo, { x: cx - (r * SQRT3) / 2, y: cy - r, w: r * SQRT3, h: r * 2, hex: { cx, cy, r } }, env.crop);
+    region('photo', cx - (r * SQRT3) / 2, cy - r, Math.min(r * SQRT3, fr.w - (cx - (r * SQRT3) / 2)), r * 2);
 
     const hexLeft = cx - r * 0.17 - (r * SQRT3) / 2;
     const colW = hexLeft - fr.m - 44;
     drawLabel(ctx, fr, d.label, pal, colW);
+    labelRegion(ctx, fr, d.label, colW);
 
-    // Onderin: zin met het onderwerp + magenta knop
-    const button = planButton(ctx, d.button);
+    // Onderin: zin met het onderwerp + magenta cta-blok (geen knop: zonder pijl)
+    const block = planCta(ctx, d.button);
     const topic = String(d.topic || '').trim();
     const ctaText = String(d.cta || '').replace(/\{onderwerp\}/gi, topic ? `**${topic}**` : '…');
-    const cta = fitText(ctx, runsFrom(ctaText), fr.contentW, 150, { ...TYPE.body, size: 32 }, { min: BODY_MIN, maxLines: 3 });
-    const buttonY = fr.contentBottom - button.h;
-    const ctaTop = cta.lines.length ? buttonY - 34 - cta.height : buttonY;
+    const cta = fit('cta', ctx, runsFrom(ctaText), fr.contentW, 150, { ...TYPE.body, size: 32 }, { min: BODY_MIN, maxLines: 3 });
+    const blockY = fr.contentBottom - block.h;
+    const ctaTop = cta.lines.length ? blockY - 34 - cta.height : blockY;
 
     // Titel bovenin de linkerkolom, naast de zeshoek
     const titleMaxH = Math.max(80, ctaTop - 52 - fr.contentTop);
-    const title = fitText(ctx, runsFrom(d.title, { dot: d.dot }), colW, titleMaxH, { ...TYPE.title, size: 72 }, { min: 40 });
+    const title = fit('title', ctx, runsFrom(d.title, { dot: d.dot }), colW, titleMaxH, { ...TYPE.title, size: titleSize(72, d) }, { min: 40 });
     drawText(ctx, title, fr.m, fr.contentTop, { color: pal.text, em: pal.em });
 
     drawText(ctx, cta, fr.m, ctaTop, { color: pal.body, em: pal.text });
-    button.draw(fr.m, buttonY);
+    block.draw(fr.m, blockY);
+    textRegion('title', title, fr.m, fr.contentTop);
+    textRegion('cta', cta, fr.m, ctaTop);
+    region('button', fr.m, blockY, block.w, block.h);
     return { photo };
   }
 
@@ -292,7 +365,7 @@
     const valueW = value ? ctx.measureText(value).width : 0;
     const descX = x + bar + pad + (value ? valueW + 36 : 0);
     const descW = x + w - pad - descX;
-    const desc = fitText(ctx, runsFrom(label), descW, 150, { ...TYPE.body, size: 32, lh: 1.35 }, { min: BODY_MIN, maxLines: 3 });
+    const desc = fit('result', ctx, runsFrom(label), descW, 150, { ...TYPE.body, size: 32, lh: 1.35 }, { min: BODY_MIN, maxLines: 3 });
     const valueH = value ? valueSize * CAP : 0;
     const descH = desc.lines.length ? desc.height - desc.st.size * DESC : 0;
     const rowH = Math.max(valueH, descH);
@@ -328,6 +401,7 @@
     const usePhoto = !!(d.photoBg && env.photo);
     const pal = PAL;
     let photo = null;
+    region(usePhoto ? 'photo' : 'background', 0, 0, fr.w, fr.h);
     if (usePhoto) {
       photo = drawPhoto(ctx, env.photo, { x: 0, y: 0, w: fr.w, h: fr.h }, env.crop);
       ctx.fillStyle = rgba(COLORS.ink, 0.86);
@@ -346,16 +420,18 @@
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     const client = String(d.client || '').trim();
+    region(env.clientLogo ? 'logo' : 'client', hx - (r * SQRT3) / 2, hy - r, r * SQRT3, r * 2);
     if (env.clientLogo) {
       drawContain(ctx, env.clientLogo, hx - r * 0.6, hy - r * 0.42, r * 1.2, r * 0.84);
     } else {
-      const name = fitText(ctx, runsFrom(client || 'klantlogo'), r * 1.25, r * 0.9, { size: 32, weight: 800, emWeight: 800, track: -0.01, lh: 1.1 }, { min: 18 });
+      const name = fit('client', ctx, runsFrom(client || 'klantlogo'), r * 1.25, r * 0.9, { size: 32, weight: 800, emWeight: 800, track: -0.01, lh: 1.1 }, { min: 18 });
       drawText(ctx, name, hx - r * 0.625, hy - (name.height - name.st.size * DESC) / 2, { color: COLORS.ink, em: COLORS.ink, align: 'center' });
     }
 
     const hexLeft = hx - r * 0.17 - (r * SQRT3) / 2;
     const colW = hexLeft - fr.m - 40;
     drawLabel(ctx, fr, d.label, pal, colW);
+    labelRegion(ctx, fr, d.label, colW);
 
     // "Voor {klant} hebben wij {diensten} gedaan." — diensten krijgen nadruk
     const services = (d.services || []).map((s) => String(s || '').trim()).filter(Boolean).map((s) => `**${s}**`);
@@ -369,10 +445,14 @@
     const result = planResult(ctx, fr, d, pal);
     const resultY = result ? fr.contentBottom - result.h : fr.contentBottom;
     const titleMaxH = Math.max(80, resultY - 52 - fr.contentTop);
-    const title = fitText(ctx, runsFrom(sentence, { dot: d.dot }), colW, titleMaxH, { ...TYPE.title, size: 68 }, { min: 38 });
+    const title = fit('title', ctx, runsFrom(sentence, { dot: d.dot }), colW, titleMaxH, { ...TYPE.title, size: titleSize(68, d) }, { min: 38 });
     drawText(ctx, title, fr.m, fr.contentTop, { color: pal.text, em: pal.em });
+    textRegion('title', title, fr.m, fr.contentTop);
 
-    if (result) result.draw(resultY);
+    if (result) {
+      result.draw(resultY);
+      region('result', fr.m, resultY, fr.contentW, result.h);
+    }
     return { photo };
   }
 
@@ -387,6 +467,7 @@
     const last = !!slide.last;
 
     drawLabel(ctx, fr, d.label, pal);
+    labelRegion(ctx, fr, d.label);
 
     // Slidenummer in een cyaan zeshoek, zoals de kernwaarden in het brandbook
     const r = 46;
@@ -399,6 +480,7 @@
     const num = String(index + 1).padStart(2, '0');
     ctx.fillStyle = COLORS.ink;
     ctx.fillText(num, bx - ctx.measureText(num).width / 2, by + (32 * CAP) / 2);
+    region('slide', bx - (r * SQRT3) / 2, by - r, r * SQRT3, r * 2);
 
     const top = by + r + 48;
     const areaH = fr.contentBottom - top;
@@ -410,22 +492,29 @@
     let body;
     let gap;
     for (let k = 1; k >= 0.5; k -= 0.04) {
-      title = layoutText(ctx, titleRuns, maxW, { ...TYPE.title, size: Math.round(72 * k) });
+      title = layoutText(ctx, titleRuns, maxW, { ...TYPE.title, size: Math.round(titleSize(72, d) * k) });
       body = layoutBody(ctx, slide.body, maxW, { ...TYPE.body, size: Math.max(22, Math.round(36 * k)) });
       gap = title.lines.length && body.items.length ? Math.round(36 * k) : 0;
       if (title.height + gap + body.height <= areaH) break;
-      if (k - 0.04 < 0.5) flags.overflow = true;
+      if (k - 0.04 < 0.5) {
+        flags.overflow = true;
+        over.push('body');
+      }
     }
 
     drawText(ctx, title, fr.m, top, { color: pal.text, em: pal.em });
     drawBody(ctx, body, fr.m, top + title.height + gap, { color: pal.body, em: pal.text });
+    textRegion('title', title, fr.m, top);
+    region('body', fr.m, top + title.height + gap, maxW, body.height);
 
     // De laatste slide nodigt niet uit om door te swipen
     if (!last) {
       drawSwipe(ctx, fr, index, slides.length, pal);
       drawEdgeCue(ctx, fr);
     }
-    return { photo: null, slideIndex: index, last };
+    // Badge alleen op de laatste slide: daar is linksonder vrij en staat de
+    // afsluiter; op elke slide zou het een watermerk worden
+    return { photo: null, slideIndex: index, last, badge: last };
   }
 
   const TEMPLATES = {
@@ -442,13 +531,15 @@
 
   /**
    * Tekent de post op `canvas`.
-   *   state: { template, format, dot, data: { [template]: {...} } }
-   *   env:   { photo, clientLogo, logo, crop, slideIndex }
+   *   state: { template, format, dot, badge, data: { [template]: {...} } }
+   *   env:   { photo, clientLogo, logo, badge, crop, slideIndex }
    *   opts:  { scale } — 1 = 1080 px breed
    */
   function renderPost(canvas, state, env, opts = {}) {
     const fr = frame(state.format);
     const ctx = prepare(canvas, fr.w, fr.h, opts.scale || 1);
+    regions = [];
+    over = [];
     const id = TEMPLATES[state.template] ? state.template : 'photo';
     const data = { ...(state.data && state.data[id]), dot: state.dot !== false };
 
@@ -458,10 +549,12 @@
 
     // Vaste elementen als laatste, zodat niets ze kan bedekken
     drawLogo(ctx, fr, env && env.logo);
+    // Emerce 100-badge: alleen als hij aan staat en het template hem niet weglaat
+    if (state.badge && info.badge !== false) drawBadge(ctx, fr, env && env.badge);
     finish(ctx, fr.w, GRID.bar);
 
-    return { ...info, overflow: flags.overflow, width: fr.w, height: fr.h };
+    return { ...info, overflow: flags.overflow, overflowKeys: over.slice(), regions: regions.slice(), width: fr.w, height: fr.h, frame: fr };
   }
 
-  global.PMTemplates = { renderPost, FORMATS, TEMPLATE_META, COLORS, GRID };
+  global.PMTemplates = { renderPost, frame, FORMATS, TEMPLATE_META, COLORS, GRID };
 })(window);

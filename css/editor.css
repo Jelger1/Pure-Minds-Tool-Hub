@@ -1,0 +1,529 @@
+/**
+ * Pure Minds Generator Hub — editor-bouwstenen voor de makers
+ *
+ * De indeling zoals Canva: appbalk, rail met één paneel tegelijk en het
+ * ontwerp op een podium; daarbij de tekstwerkbalk, de [?]-uitleg, de
+ * rondleiding, het hulpmenu en het overzicht met sneltoetsen.
+ * Gedrag in js/shared/shell.js, toolbar.js, help.js en tour.js.
+ * Alleen merkkleuren uit css/global.css; rechte hoeken, kleine letters,
+ * cyaan voor focus en actieve staat, magenta alleen voor "download".
+ */
+
+:root {
+  --hex: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  --ring: 0 0 0 3px rgba(26, 185, 226, .5);
+  --lift: 0 1px 2px rgba(16, 40, 60, .06), 0 24px 48px -22px rgba(16, 40, 60, .45);
+}
+
+/* Remix-iconen zijn gevuld; .btn svg in global.css is een lijn-icoon */
+svg.ri, .btn svg.ri { fill: currentColor; stroke: none; }
+
+/* --- Pagina: kop bovenin, de editor vult de rest; niets scrolt de pagina --- */
+
+body.has-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+body.has-app > .topstrip, body.has-app > .site-header { flex: none; }
+.has-app .site-header .container { max-width: none; padding: 0 1.25rem; }
+.has-app .site-header__inner { height: 3.5rem; }
+.has-app .site-header__logo { height: 2.15rem; }
+.has-app .toast { z-index: 95; }
+
+.app {
+  --rail-w: 4.75rem;
+  --panel-w: clamp(20rem, 27vw, 24rem);
+  flex: 1 1 auto; min-height: 0;
+  display: grid;
+  grid-template-columns: var(--rail-w) var(--panel-w) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "bar bar bar" "rail panels stage";
+}
+.app.is-collapsed { grid-template-columns: var(--rail-w) 0 minmax(0, 1fr); }
+
+/* --- Appbalk: naam en ongedaan maken links, hulp en download rechts --- */
+
+/* Geen z-index: dan kunnen menu en popover (z 60) tijdens de rondleiding boven de dimlaag komen */
+.appbar {
+  grid-area: bar; position: relative;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  height: 3.5rem; padding: 0 .75rem 0 .875rem;
+  background: #fff; border-bottom: 1px solid var(--pm-line);
+}
+.appbar__left, .appbar__right { display: flex; align-items: center; gap: .25rem; min-width: 0; }
+.appbar__right { gap: .5rem; }
+
+.appbar__name {
+  width: 17rem; min-width: 0; max-width: 32vw; padding: .35rem .55rem;
+  border: 1px solid transparent; background: transparent; border-radius: 0;
+  font-size: .9375rem; font-weight: 700; letter-spacing: -.01em; text-overflow: ellipsis;
+  transition: border-color .15s, box-shadow .15s;
+}
+.appbar__name:hover { border-color: var(--pm-line); }
+.appbar__name:focus { outline: none; border-color: var(--pm-cyan); box-shadow: 0 0 0 3px rgba(26, 185, 226, .18); }
+.appbar__sep { width: 1px; height: 1.5rem; margin: 0 .375rem; background: var(--pm-line); flex: none; }
+/* Naam van het ontwerp, alleen lezen (zoals "Verder werken" op het dashboard) */
+.appbar__doc { display: flex; flex-direction: column; justify-content: center; min-width: 0; max-width: 26rem; padding: 0 .5rem 0 .375rem; line-height: 1.3; }
+.appbar__title { font-size: .9375rem; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appbar__sub { font-size: .75rem; color: var(--pm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.appbar__btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: none;
+  min-width: 2.5rem; height: 2.5rem; padding: 0 .5rem;
+  border: 1px solid transparent; background: none; color: var(--pm-ink);
+  font-size: .8125rem; font-weight: 700;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.appbar__btn svg { width: 1.25rem; height: 1.25rem; flex: none; }
+.appbar__btn:hover:not(:disabled) { background: var(--pm-soft); border-color: var(--pm-line); }
+.appbar__btn:disabled { color: #b3bcc4; cursor: default; }
+.appbar__btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.appbar__btn[aria-expanded="true"] { background: var(--pm-tint); border-color: var(--pm-cyan); }
+/* Stipje: er staat nog iets klaar (de rondleiding) */
+.appbar__btn.has-dot::after {
+  content: ''; position: absolute; top: .3rem; left: 1.55rem; width: .5rem; height: .58rem;
+  background: var(--pm-cyan); clip-path: var(--hex);
+}
+
+/* Download: één magenta knop met een pijltje voor de opties */
+.split { position: relative; display: inline-flex; flex: none; }
+.split > .btn-primary { padding: .5rem .95rem; }
+.split > .btn-primary + .btn-primary { padding: .5rem .45rem; box-shadow: inset 1px 0 0 rgba(255, 255, 255, .35); }
+.split__more svg { width: 1.125rem; height: 1.125rem; transition: transform .15s; }
+.split__more[aria-expanded="true"] { background: var(--pm-magenta-dark); }
+.split__more[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* --- Menu en popover onder een knop in de appbalk --- */
+
+.menu { position: relative; display: inline-flex; }
+.menu__list, .popover {
+  position: absolute; top: calc(100% + .5rem); right: 0; z-index: 60;
+  background: #fff; border: 1px solid var(--pm-line); border-top: 3px solid var(--pm-cyan);
+  box-shadow: var(--lift);
+}
+.menu__list { min-width: 16rem; padding: .375rem 0; }
+.menu__list:focus, .popover:focus { outline: none; }
+.menu__item {
+  display: flex; align-items: center; gap: .75rem; width: 100%;
+  padding: .6rem 1rem .6rem .875rem; border: 0; background: none; text-align: left;
+  font-size: .875rem; font-weight: 600; color: var(--pm-ink); white-space: nowrap;
+}
+.menu__item svg { width: 1.125rem; height: 1.125rem; flex: none; color: var(--pm-blue); }
+.menu__item kbd { margin-left: auto; }
+.menu__item:hover, .menu__item:focus { outline: none; background: var(--pm-soft); box-shadow: inset 3px 0 0 var(--pm-cyan); }
+.menu__sep { height: 1px; margin: .375rem 0; background: var(--pm-line); }
+
+.popover { width: 23rem; max-width: calc(100vw - 1.5rem); padding: 1.125rem 1.25rem 1.25rem; }
+.popover__title { font-size: 1.0625rem; font-weight: 700; letter-spacing: -.01em; margin-bottom: .875rem; }
+.popover__body { display: flex; flex-direction: column; gap: .875rem; }
+.popover__sum {
+  display: flex; align-items: baseline; justify-content: space-between; gap: .75rem;
+  padding: .55rem .75rem; background: var(--pm-zebra); border-left: 3px solid var(--pm-cyan);
+  font-size: .8125rem;
+}
+.popover__sum > span { flex: none; white-space: nowrap; }
+.popover__sum b { font-variant-numeric: tabular-nums; text-align: right; }
+.popover__foot { display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem; }
+.popover__foot .btn-primary { width: 100%; }
+.popover__note { font-size: .75rem; color: var(--pm-muted); line-height: 1.5; }
+.popover__row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+
+/* --- Rail: grote knoppen, icoon boven een kort woord --- */
+
+.rail {
+  grid-area: rail; display: flex; flex-direction: column; gap: .125rem;
+  padding: .5rem 0; background: #fff; border-right: 1px solid var(--pm-line);
+  overflow: visible;   /* de tooltip van een uitgezet onderdeel steekt uit */
+}
+.rail__item {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+  width: 100%; min-height: 4.25rem; padding: .5rem .25rem;
+  border: 0; background: none; color: var(--pm-muted);
+  font-size: .6875rem; font-weight: 700; line-height: 1.2; text-align: center;
+  transition: background-color .15s, color .15s;
+}
+.rail__item svg { width: 1.5rem; height: 1.5rem; flex: none; fill: currentColor; }
+.rail__item:hover { background: var(--pm-soft); color: var(--pm-ink); }
+.rail__item[aria-selected="true"] { background: var(--pm-tint); color: var(--pm-ink); box-shadow: inset 3px 0 0 var(--pm-cyan); }
+.rail__item[aria-selected="true"] svg { color: var(--pm-blue); }
+.rail__item:focus-visible { outline: none; box-shadow: inset 0 0 0 3px rgba(26, 185, 226, .5); }
+.rail__item[aria-selected="true"]:focus-visible { box-shadow: inset 3px 0 0 var(--pm-cyan), inset 0 0 0 3px rgba(26, 185, 226, .5); }
+/* Uit voor deze keuze: grijs, met de reden als tooltip (en een melding bij klikken) */
+.rail__item[aria-disabled="true"] { color: #aab4bd; cursor: not-allowed; }
+.rail__item[aria-disabled="true"]:hover { background: none; color: #aab4bd; }
+.rail__item[aria-disabled="true"]::after {
+  content: attr(data-reason); position: absolute; left: calc(100% + .5rem); top: 50%; z-index: 70;
+  width: max-content; max-width: 14rem; padding: .35rem .6rem; transform: translateY(-50%);
+  background: var(--pm-ink); color: #fff; font-size: .75rem; font-weight: 600; line-height: 1.4; text-align: left; white-space: normal;
+  opacity: 0; pointer-events: none; transition: opacity .12s;
+}
+.rail__item[aria-disabled="true"]:hover::after, .rail__item[aria-disabled="true"]:focus-visible::after { opacity: 1; transition-delay: .25s; }
+
+/* --- Paneel: één tegelijk, scrolt zelf --- */
+
+.panels {
+  grid-area: panels; position: relative; min-height: 0; min-width: 0;
+  display: flex; flex-direction: column;
+  background: #fff; border-right: 1px solid var(--pm-line); border-top: 3px solid var(--pm-cyan);
+}
+/* position: relative, zodat ook verborgen radio's (.seg, .switch) binnen het scrollvlak blijven */
+.panel { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.panel__head {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: 1.35rem .75rem .875rem 1.5rem;
+  background: rgba(255, 255, 255, .95); backdrop-filter: blur(6px);
+}
+.panel__title { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; }
+.panel__title:focus { outline: none; }
+.panel__title:focus-visible { outline: none; box-shadow: -1.5rem 0 0 -1.25rem var(--pm-cyan); }
+.panel__close {
+  display: grid; place-items: center; flex: none; width: 2.25rem; height: 2.25rem;
+  border: 1px solid transparent; background: none; color: var(--pm-muted);
+}
+.panel__close svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
+.panel__close svg + svg { display: none; }   /* breed: inklappen; smal: sluiten (×) */
+.panel__close:hover { color: var(--pm-ink); border-color: var(--pm-line); background: var(--pm-soft); }
+.panel__close:focus-visible { outline: none; box-shadow: var(--ring); }
+.panel__body { display: flex; flex-direction: column; gap: 1.5rem; padding: .125rem 1.5rem 2rem; }
+.panel__lead { font-size: .8125rem; color: var(--pm-muted); }
+.panel__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  padding-top: 1rem; border-top: 1px solid var(--pm-line); font-size: .75rem; color: var(--pm-muted);
+}
+/* Ruimte onder de vaste kop als iets in beeld gescrold wordt (rondleiding, klik in het ontwerp) */
+.panel__body > *, .panel [data-tour] { scroll-margin: 5rem 0 1rem; }
+.panel.is-entering { animation: pm-panel-in .18s ease-out; }
+@keyframes pm-panel-in { from { opacity: 0; transform: translateX(-6px); } }
+
+/* --- Podium: het ontwerp in het midden, passend geschaald --- */
+
+.stage {
+  grid-area: stage; position: relative; min-width: 0; min-height: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--pm-canvas);
+}
+.stage__head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem;
+  min-height: 3.5rem; padding: .625rem 1.25rem;
+}
+.stage__group { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; }
+.stage__head .pill { background: #fff; box-shadow: inset 0 0 0 1px var(--pm-line); }
+.stage__head .pill-info { background: var(--pm-tint); box-shadow: none; }
+.stage__tools { position: relative; display: flex; justify-content: center; align-items: flex-start; min-height: 3.25rem; padding: 0 1rem; }
+.stage__canvas { flex: 1 1 auto; min-height: 0; display: flex; padding: .25rem 2rem 2rem; }
+.stage__fit {
+  position: relative; flex: 1 1 auto; min-width: 0; min-height: 0;
+  container-type: size; display: grid; place-items: center;
+}
+/* De tool zet --ar (breedte / hoogte) op het canvas */
+.stage__design { position: relative; }
+.stage__fit > canvas, .stage__fit > .stage__design {
+  display: block; width: min(100cqw, 100cqh * var(--ar, 1)); height: auto;
+  box-shadow: 0 1px 2px rgba(16, 40, 60, .08), 0 24px 48px -28px rgba(16, 40, 60, .45);
+}
+.stage__scroll { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0 2rem 2rem; }
+.stage__foot { flex: none; background: #fff; border-top: 1px solid var(--pm-line); }
+.stage__note { margin: 0 2rem 1rem; }
+
+/* Klikbare delen van het ontwerp (PM.shell setRegions) */
+.region-hover {
+  position: absolute; z-index: 3; pointer-events: none;
+  outline: 2px solid var(--pm-cyan); outline-offset: 2px; background: rgba(26, 185, 226, .08);
+}
+.region-hover__tag {
+  position: absolute; left: -4px; bottom: calc(100% + 4px);
+  padding: .1rem .45rem; background: var(--pm-cyan); color: var(--pm-ink);
+  font-size: .6875rem; font-weight: 700; line-height: 1.5; white-space: nowrap;
+}
+canvas.has-region { cursor: pointer; }
+
+/* --- Tekstwerkbalk (PM.toolbar) --- */
+
+.tbar {
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: .125rem; max-width: 100%;
+  padding: .25rem; background: #fff; border: 1px solid var(--pm-line);
+  box-shadow: 0 12px 28px -16px rgba(16, 40, 60, .45);
+}
+.tbar.is-active { animation: pm-tbar-in .14s ease-out; }
+@keyframes pm-tbar-in { from { opacity: 0; transform: translateY(-4px); } }
+.tbar__label {
+  margin: 0 .375rem 0 .25rem; padding: .1rem .45rem; background: var(--pm-tint); color: var(--pm-blue);
+  font-size: .6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+}
+.tbar__btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .35rem; flex: none;
+  min-width: 2.25rem; height: 2.25rem; padding: 0 .4rem;
+  border: 1px solid transparent; background: none; color: var(--pm-ink);
+  font-size: .8125rem; font-weight: 700; white-space: nowrap;
+  transition: background-color .12s, border-color .12s;
+}
+.tbar__btn svg { width: 1.125rem; height: 1.125rem; }
+.tbar__btn--text { padding: 0 .6rem; color: var(--pm-blue); }
+.tbar__btn:hover { background: var(--pm-soft); border-color: var(--pm-line); }
+.tbar__btn[aria-pressed="true"] { background: var(--pm-tint); color: var(--pm-ink); box-shadow: inset 0 -2px 0 var(--pm-cyan); }
+.tbar__btn:focus-visible, .tbar__select:focus-visible { outline: none; box-shadow: var(--ring); }
+.tbar__hex { width: .6rem; height: .69rem; flex: none; background: var(--pm-cyan); clip-path: var(--hex); }
+.tbar__sep { width: 1px; height: 1.25rem; margin: 0 .25rem; flex: none; background: var(--pm-line); }
+.tbar__field { position: relative; display: inline-flex; align-items: center; gap: .1rem; padding-left: .35rem; color: var(--pm-muted); }
+.tbar__field svg { width: 1rem; height: 1rem; flex: none; }
+.tbar__select {
+  height: 2.25rem; padding: 0 1.6rem 0 .4rem; border: 1px solid transparent; border-radius: 0; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c6670' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right .45rem center / .75rem no-repeat;
+  font-size: .8125rem; font-weight: 700; color: var(--pm-ink);
+}
+.tbar__select--wide { min-width: 7.5rem; }
+.tbar__select:hover { border-color: var(--pm-line); background-color: var(--pm-soft); }
+/* Tooltip met de sneltoets, na een korte pauze */
+.tbar [data-tip]::after {
+  content: attr(data-tip); position: absolute; top: calc(100% + .5rem); left: 50%; z-index: 10;
+  transform: translate(-50%, -2px); padding: .3rem .55rem;
+  background: var(--pm-ink); color: #fff; font-size: .6875rem; font-weight: 600; line-height: 1.4; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s;
+}
+.tbar [data-tip]:hover::after { opacity: 1; transform: translate(-50%, 0); transition-delay: .45s; }
+.tbar [data-tip]:focus-visible::after, .tbar__field:has(:focus-visible)::after { opacity: 1; transform: translate(-50%, 0); }
+
+/* --- Richfield: nadruk en invulplekken zoals ze bedoeld zijn (PM.richfield) --- */
+
+.rf-source[hidden] { display: none !important; }
+.rf {
+  min-height: calc(var(--rows, 1) * 1.5em + 1.25rem + 2px);
+  max-height: 18rem; overflow-y: auto;   /* een heel lange tekst scrolt in het veld */
+  line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; cursor: text;
+}
+.rf.is-empty::before { content: attr(data-placeholder); color: #8d99a3; pointer-events: none; }
+/* Nadruk in cyaan: in het ontwerp cyaan op donker, hier als cyaan markeerstift op wit */
+.rf-em { color: var(--pm-ink); font-weight: 700; background: rgba(26, 185, 226, .26); }
+/* In een carousel betekent ** vet */
+.rf--vet .rf-em { color: var(--pm-ink); font-weight: 800; background: none; box-shadow: none; }
+/* Invulplek: een vast blokje, niet te typen, wel in één keer weg te halen */
+.rf-chip {
+  display: inline-flex; align-items: center; gap: .3rem; margin: 0 .1rem; padding: 0 .45rem 0 .35rem;
+  background: var(--pm-ink); color: #fff; font-size: .8125rem; font-weight: 700; line-height: 1.55;
+  vertical-align: baseline; white-space: nowrap; cursor: default; user-select: all;
+}
+.rf-chip::before { content: ''; width: .5rem; height: .58rem; flex: none; background: var(--pm-cyan); clip-path: var(--hex); }
+.rf-em .rf-chip { box-shadow: inset 0 -2px 0 var(--pm-cyan); }
+
+/* --- [?]: kleine uitleg naast een instelling (PM.help) --- */
+
+.help {
+  position: relative; display: inline-grid; place-items: center; flex: none; vertical-align: middle;
+  width: 1.5rem; height: 1.5rem; margin: -.25rem 0; padding: 0;
+  border: 0; background: none; color: var(--pm-muted);
+  font-size: .6875rem; font-weight: 800; line-height: 1; cursor: pointer;
+}
+.help::before { content: ''; grid-area: 1 / 1; width: 1.05rem; height: 1.2rem; background: var(--pm-track); clip-path: var(--hex); transition: background-color .15s; }
+.help::after { content: '?'; grid-area: 1 / 1; position: relative; }
+.help:hover { color: var(--pm-blue); }
+.help:hover::before { background: var(--pm-tint); }
+.help.is-open { color: var(--pm-ink); }
+.help.is-open::before { background: var(--pm-cyan); }
+.help:focus-visible { outline: none; box-shadow: var(--ring); color: var(--pm-blue); }
+.help:focus-visible::before { background: var(--pm-tint); }
+.label .help, .field-label .help { align-self: center; margin-left: -.125rem; }
+.switch__txt .help { margin-left: .125rem; }
+
+.helptip {
+  position: fixed; z-index: 90; max-width: min(18rem, calc(100vw - 1.5rem));
+  padding: .7rem .9rem .75rem; background: var(--pm-ink); color: #fff; border-left: 3px solid var(--pm-cyan);
+  font-size: .8125rem; line-height: 1.55; box-shadow: 0 18px 40px -16px rgba(16, 40, 60, .6);
+  opacity: 0; transform: translateY(-3px); transition: opacity .15s, transform .15s;
+}
+.helptip[data-side="top"] { transform: translateY(3px); }
+.helptip.is-visible { opacity: 1; transform: none; }
+.helptip__title { display: block; margin-bottom: .2rem; font-weight: 700; }
+.helptip p { color: rgba(255, 255, 255, .86); }
+.helptip p + p { margin-top: .4rem; }
+.helptip b { color: #fff; }
+
+.help-inline {
+  padding: .6rem .8rem; background: var(--pm-soft); border-left: 3px solid var(--pm-cyan);
+  font-size: .8125rem; font-weight: 400; line-height: 1.55; color: var(--pm-ink);
+}
+.help-inline__title { display: block; font-weight: 700; }
+.help-inline p + p { margin-top: .4rem; }
+
+/* --- Rondleiding (PM.tour): de pagina gedimd, het doel uitgelicht --- */
+
+.tour-pane { position: fixed; z-index: 80; background: rgba(16, 40, 60, .52); }
+/* Hoort bij de stap: de werkbalk van het uitgelichte veld en de download-opties blijven bruikbaar */
+.is-touring .tbar.is-lifted { position: relative; z-index: 84; }
+.is-touring .popover { z-index: 84; }
+.tour-ring {
+  position: fixed; z-index: 81; pointer-events: none;
+  outline: 2px solid var(--pm-cyan); box-shadow: 0 0 0 6px rgba(26, 185, 226, .22);
+  transition: top .25s, left .25s, width .25s, height .25s;
+}
+.tour {
+  position: fixed; z-index: 82; width: min(22.5rem, calc(100vw - 1.5rem));
+  padding: 1.125rem 1.25rem 1rem; background: #fff; border-top: 3px solid var(--pm-cyan);
+  box-shadow: 0 1px 2px rgba(16, 40, 60, .1), 0 32px 64px -24px rgba(16, 40, 60, .65);
+}
+.tour:focus { outline: none; }
+.tour.is-center { width: min(27rem, calc(100vw - 1.5rem)); padding: 1.75rem 1.75rem 1.25rem; }
+.tour.is-docked { left: .75rem !important; right: .75rem; width: auto; }
+.tour.is-nudge { animation: pm-tour-nudge .35s; }
+@keyframes pm-tour-nudge { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+.tour__close {
+  position: absolute; top: .45rem; right: .45rem; display: grid; place-items: center;
+  width: 2.25rem; height: 2.25rem; border: 1px solid transparent; background: none; color: var(--pm-muted);
+}
+.tour__close svg { width: 1.125rem; height: 1.125rem; }
+.tour__close:hover { color: var(--pm-ink); border-color: var(--pm-line); background: var(--pm-soft); }
+.tour__close:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* Het zeshoek-duo uit de posts: gevulde zeshoek met een verschoven cyaan lijn */
+.tour__art { position: relative; display: block; width: 3.6rem; height: 3.4rem; margin-bottom: 1.1rem; }
+.tour__art span { position: absolute; width: 2.6rem; height: 3rem; clip-path: var(--hex); }
+.tour__art span:first-child { left: 0; top: .4rem; background: var(--pm-cyan); }
+.tour__art span:first-child::after { content: ''; position: absolute; inset: 4px 3.5px; background: #fff; clip-path: var(--hex); }
+.tour__art span:last-child { left: .5rem; top: 0; background: var(--pm-ink); }
+.tour.is-finish .tour__art span:last-child { background: var(--pm-cyan); }
+.tour.is-finish .tour__art span:last-child::after {
+  content: ''; position: absolute; left: 50%; top: 43%; width: .55rem; height: 1rem;
+  border-right: 3px solid var(--pm-ink); border-bottom: 3px solid var(--pm-ink); transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.tour__progress {
+  display: flex; align-items: center; gap: .6rem; margin-bottom: .55rem; padding-right: 2rem;
+  font-size: .6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--pm-muted);
+}
+.tour__hexes { display: inline-flex; gap: .2rem; }
+.tour__hex { width: .5rem; height: .58rem; background: var(--pm-track); clip-path: var(--hex); }
+.tour__hex.is-done { background: #8fd8ee; }
+.tour__hex.is-now { background: var(--pm-cyan); }
+.tour__title { margin-bottom: .35rem; font-size: 1.0625rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.3; }
+.tour.is-center .tour__title { font-size: 1.375rem; letter-spacing: -.02em; }
+.tour__text { font-size: .875rem; line-height: 1.6; color: #45505a; }
+.tour__text p + p { margin-top: .5rem; }
+.tour__text b { color: var(--pm-ink); }
+
+/* Doe-stap: de opdracht met een kloppende zeshoek, daarna een groen vinkje */
+.tour__doe {
+  display: flex; align-items: center; gap: .6rem; margin-top: .875rem; padding: .55rem .75rem;
+  background: var(--pm-soft); border-left: 3px solid var(--pm-cyan);
+  font-size: .8125rem; font-weight: 700; transition: background-color .2s, border-color .2s, color .2s;
+}
+.tour__pulse { position: relative; width: .8rem; height: .92rem; flex: none; background: var(--pm-cyan); clip-path: var(--hex); animation: pm-tour-pulse 1.4s ease-in-out infinite; }
+@keyframes pm-tour-pulse { 50% { transform: scale(.72); opacity: .55; } }
+.tour.is-done .tour__doe { background: #e3f4ee; border-left-color: var(--pm-green); color: #00704f; }
+.tour.is-done .tour__pulse { display: none; }
+.tour.is-done .tour__doe-txt::before { content: '✓ '; }
+
+.tour__foot { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: 1.125rem; }
+.tour__nav { display: flex; gap: .5rem; margin-left: auto; }
+.tour__skip { margin-left: -.5rem; margin-right: 0; }
+
+/* --- Sneltoetsen --- */
+
+.keys {
+  width: min(32rem, calc(100vw - 2rem)); max-height: min(38rem, calc(100dvh - 2rem));
+  padding: 0; border: 0; border-top: 3px solid var(--pm-cyan);
+  color: var(--pm-ink); background: #fff; box-shadow: var(--lift);
+}
+.keys::backdrop { background: rgba(16, 40, 60, .45); }
+.keys__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem .75rem .75rem 1.5rem; }
+.keys__title { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
+.keys__list { margin: 0; padding: 0 1.5rem 1.5rem; }
+.keys__row { display: grid; grid-template-columns: minmax(0, 13.5rem) minmax(0, 1fr); gap: 1rem; align-items: baseline; padding: .6rem 0; border-top: 1px solid var(--pm-line); font-size: .875rem; }
+.keys__row dt { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .4rem; }
+.keys__combo { white-space: nowrap; }
+.keys__row dd { margin: 0; color: var(--pm-muted); }
+
+/* --- Tablet en telefoon: ontwerp boven, rail als tabbalk onderin, paneel als blad --- */
+
+@media (max-width: 1023px) {
+  .app, .app.is-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "bar" "stage" "panels" "rail";
+  }
+  .appbar { height: 3.25rem; padding: 0 .5rem; }
+  .appbar__name { width: 13rem; max-width: 36vw; }
+
+  .rail {
+    flex-direction: row; gap: 0; padding: 0 0 env(safe-area-inset-bottom);
+    border-right: 0; border-top: 1px solid var(--pm-line); overflow: visible;
+  }
+  .rail__item { flex: 1 1 0; min-width: 0; min-height: 3.75rem; padding: .45rem .125rem; }
+  .rail__item[aria-selected="true"] { box-shadow: inset 0 3px 0 var(--pm-cyan); }
+  .rail__item[aria-disabled="true"]::after { left: 50%; top: auto; bottom: calc(100% + .5rem); transform: translateX(-50%); }
+  .rail__item[aria-selected="true"]:focus-visible { box-shadow: inset 0 3px 0 var(--pm-cyan), inset 0 0 0 3px rgba(26, 185, 226, .5); }
+
+  .panels {
+    max-height: 60vh; max-height: 60dvh; border-right: 0; border-top: 1px solid var(--pm-line);
+    box-shadow: 0 -18px 36px -24px rgba(16, 40, 60, .45);
+  }
+  /* Greep bovenaan: zo herken je een blad */
+  .panels::before { content: ''; position: absolute; top: .4rem; left: 50%; z-index: 3; width: 2.25rem; height: 4px; margin-left: -1.125rem; background: var(--pm-border); }
+  .panel__head { padding: 1.1rem .5rem .5rem 1.25rem; }
+  /* De werkbalk bovenin het blad (PM.toolbar verplaatst hem hierheen) */
+  .panels > .tbar {
+    flex: none; display: flex; justify-content: center; width: 100%; max-width: none;
+    padding: 1.1rem .5rem .375rem; border: 0; border-bottom: 1px solid var(--pm-line); box-shadow: none;
+  }
+  .panels:has(> .tbar:not([hidden])) .panel__head { padding-top: .75rem; }
+  .panel__title { font-size: 1.0625rem; }
+  .panel__close svg:first-child { display: none; }
+  .panel__close svg + svg { display: block; }
+  .panel__body { padding: .125rem 1.25rem 1.5rem; gap: 1.25rem; }
+  .panel.is-entering { animation-name: pm-sheet-in; }
+  @keyframes pm-sheet-in { from { opacity: 0; transform: translateY(12px); } }
+
+  .has-app .toast { bottom: calc(4.75rem + env(safe-area-inset-bottom)); }   /* boven de tabbalk */
+  .stage__head { flex-wrap: nowrap; min-height: 0; padding: .5rem .75rem; }
+  .stage__head .stage__group { flex-wrap: nowrap; }
+  .stage__head .stage__group:first-child { min-width: 0; overflow: hidden; }
+  /* Blad open: alleen wat je daar kunt schakelen blijft staan (zoals de Emerce 100-badge), het ontwerp krijgt de rest */
+  .app.is-sheet-open .stage__head { justify-content: flex-end; padding-top: .25rem; padding-bottom: .25rem; }
+  .app.is-sheet-open .stage__head .stage__group:first-child { display: none; }
+  .stage__tools { min-height: 0; padding: 0 .75rem; }
+  .stage__tools:has(.tbar:not([hidden])) { padding-top: .5rem; }
+  .stage__canvas { padding: .5rem .75rem .75rem; }
+  .stage__scroll { padding: 0 .75rem .75rem; }
+  .stage__note { margin: 0 .75rem .75rem; }
+}
+
+@media (max-width: 639px) {
+  /* Telefoon: het blad iets lager, zodat het ontwerp erboven groot genoeg blijft om mee te kijken */
+  .panels { max-height: 52vh; max-height: 52dvh; }
+  /* Smal: van de Emerce 100-schakelaar alleen het merkje; de naam blijft voor schermlezers */
+  .stage__head .badge-toggle__txt { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .has-app .site-header__inner { height: 3.25rem; }
+  .has-app .site-header__logo { height: 1.9rem; }
+  .appbar__name, .appbar__doc, .appbar__sep--name { display: none; }
+  .appbar__txt { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .split > .btn-primary { padding: .5rem .7rem; }
+  .tour { padding: 1rem 1rem .875rem; }
+  .tour.is-center { padding: 1.5rem 1.25rem 1.125rem; }
+  .keys__row { grid-template-columns: 1fr; gap: .25rem; }
+}
+
+/* Heel smal (320 px): downloaden als icoon (de naam blijft voor schermlezers), anders
+   past de appbalk niet; de kop van het podium mag op twee regels, zodat de Emerce
+   100-schakelaar nooit wordt afgesneden */
+@media (max-width: 359px) {
+  .split > .btn-primary:first-child [data-label] {
+    position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
+  }
+  .split > .btn-primary:first-child { gap: 0; }
+  .appbar { gap: .5rem; }
+  .stage__head, .stage__head .stage__group { flex-wrap: wrap; }
+  .stage__head .stage__group:last-child { justify-content: flex-end; }
+}
+
+/* Aanraakscherm: alles minstens 44 px */
+@media (pointer: coarse) {
+  .appbar__btn, .panel__close, .tour__close { min-width: 2.75rem; height: 2.75rem; }
+  .split > .btn-primary { min-height: 2.75rem; }
+  .split > .split__more { min-width: 2.75rem; }
+  .tbar__btn, .tbar__select { min-width: 2.75rem; height: 2.75rem; }
+  .menu__item { min-height: 2.75rem; }
+  .help { width: 2.75rem; height: 2.75rem; margin: -.875rem -.625rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel.is-entering, .tbar.is-active, .tour.is-nudge { animation: none; }
+  .tour__pulse { animation: none; }
+}

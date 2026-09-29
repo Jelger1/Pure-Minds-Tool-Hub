@@ -465,6 +465,27 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
 .file-tile__txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-tile--wide .file-tile__img { width: 4.5rem; }
 
+/* --- Emerce 100-badge aan/uit: in de kop van de preview, naast wat hij verandert.
+       Het merkje zelf staat erin, zodat je hem herkent zonder te lezen. --- */
+
+.badge-toggle {
+  position: relative; display: inline-flex; align-items: center; gap: .5rem; flex: none;
+  min-height: 2.25rem; padding: .25rem .5rem .25rem .6rem;
+  border: 1px solid var(--pm-border); background: #fff; cursor: pointer;
+  font-size: .8125rem; font-weight: 700; line-height: 1.2; color: var(--pm-ink); white-space: nowrap;
+  transition: border-color .15s, background-color .15s;
+}
+.badge-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.badge-toggle__mark { display: block; height: .9rem; width: auto; flex: none; }
+.badge-toggle .switch__track { width: 2rem; height: 1.125rem; }
+.badge-toggle .switch__dot { width: .75rem; height: .75rem; }
+.badge-toggle:hover { border-color: var(--pm-cyan); background: var(--pm-soft); }
+.badge-toggle:has(input:checked) { border-color: var(--pm-cyan); background: var(--pm-tint); }
+.badge-toggle input:checked ~ .switch__track { background: var(--pm-cyan); border-color: var(--pm-cyan); }
+.badge-toggle input:checked ~ .switch__track .switch__dot { transform: translateX(.875rem); }
+.badge-toggle:has(input:focus-visible) { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: 2px; }
+@media (hover: none) and (pointer: coarse) { .badge-toggle { min-height: 2.75rem; } }
+
 /* --- Uitsnede: zoomen en centreren; verschuiven doe je in de preview --- */
 
 .crop { display: flex; align-items: flex-end; gap: .75rem; }

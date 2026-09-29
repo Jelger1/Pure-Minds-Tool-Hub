@@ -1,40 +1,32 @@
 /* =============================================================================
-   hub.js — bouwt de hub op index.html vanuit js/shared/tools.js: de snelle
-   starts ("Begin direct"), de concepten ("Verder werken"), de toolkaarten per
-   blok (design, techniek) met een filter, en de uitleg bij lokale tools
+   hub.js — het dashboard op index.html, helemaal uit js/shared/tools.js.
+   Twee zones: links "maken" met één kaart per tool (je concept, de formaten of
+   een zoekveld, en "hoe werkt het?"), rechts "checken" met de tools die buiten
+   de hub draaien, elk met één duidelijke knop. Plus de uitleg bij een lokale
+   tool (<dialog>) en de deeplinks #design en #techniek.
    ============================================================================= */
 (function () {
   'use strict';
 
   const { esc, url, store, recentTools, toast } = window.PM;
   const tools = (Array.isArray(window.PM_TOOLS) ? window.PM_TOOLS : []).filter((t) => t && t.id);
-  const categories = window.PM_CATEGORIES || {};
   const groups = Array.isArray(window.PM_GROUPS) && window.PM_GROUPS.length ? window.PM_GROUPS : [{ id: 'design', name: 'Tools' }];
   const live = (t) => t.status !== 'binnenkort';
   const groupOf = (t) => (groups.some((g) => g.id === t.group) ? t.group : groups[0].id);
 
   const $ = (id) => document.getElementById(id);
   const DAY = 864e5;
+  const TOUR_TIME = '2 min';   // zo lang duurt een rondleiding ongeveer
 
-  // Kleine illustraties in de huisstijl: de makers in HTML/CSS, de technische
-  // tools als lijntekening op een licht "blauwdruk"-vlak (zie css/hub.css)
-  const ART = {
-    post: `<span class="art art--post"><span class="art__post"><i class="art__bar"></i><i class="art__label"></i><i class="art__line art__line--w80"></i><i class="art__line art__line--w55"></i><i class="art__logo"></i></span></span>`,
-    doc: `<span class="art art--doc"><span class="art__sheet"><i class="art__bar"></i><i class="art__brand"></i><i class="art__title"></i><i class="art__line"></i><i class="art__line"></i><i class="art__line art__line--w70"></i><i class="art__line"></i><i class="art__line art__line--w55"></i></span></span>`,
-    slides: `<span class="art art--slides"><span class="art__slide art__slide--back"></span><span class="art__slide"><i class="art__bar"></i><i class="art__hex"></i><i class="art__title"></i><i class="art__line art__line--w55"></i></span></span>`,
-    hex: `<span class="art art--hex"><i class="art__big-hex"></i></span>`,
-    // Browservenster met cookiebanner, en de zeshoek met een vinkje
-    consent: `<span class="art art--line"><svg viewBox="0 0 160 100"><rect x="10" y="12" width="112" height="76" fill="#fff" stroke="#303030" stroke-width="2.5"/><path d="M10 24h112" stroke="#303030" stroke-width="2.5"/><circle cx="17" cy="18" r="1.7" fill="#303030"/><circle cx="23" cy="18" r="1.7" fill="#303030"/><circle cx="29" cy="18" r="1.7" fill="#303030"/><rect x="20" y="32" width="44" height="5" fill="#303030"/><rect x="20" y="42" width="66" height="3" fill="#d5dee5"/><rect x="20" y="48" width="54" height="3" fill="#d5dee5"/><rect x="16" y="60" width="100" height="22" fill="#303030"/><rect x="22" y="66" width="42" height="3" fill="#fff" fill-opacity=".85"/><rect x="22" y="72" width="30" height="3" fill="#fff" fill-opacity=".45"/><rect x="84" y="65" width="26" height="12" fill="#1ab9e2"/><path class="art__pop" d="M136 26l18.2 10.5v21L136 68l-18.2-10.5v-21z" fill="#1ab9e2"/><path class="art__pop" d="m128 47 6 6 11-12" fill="none" stroke="#303030" stroke-width="3.2"/></svg></span>`,
-    // Advertentie en landingspagina met dezelfde (cyaan) boodschap, verbonden
-    ads: `<span class="art art--line"><svg viewBox="0 0 160 100"><rect x="6" y="28" width="56" height="44" fill="#fff" stroke="#303030" stroke-width="2.5"/><rect x="12" y="34" width="13" height="7" fill="#303030"/><rect x="12" y="46" width="42" height="5" fill="#1ab9e2"/><rect x="12" y="55" width="36" height="3" fill="#d5dee5"/><rect x="12" y="61" width="28" height="3" fill="#d5dee5"/><path d="M62 50h30" stroke="#303030" stroke-width="2.5" stroke-dasharray="4 3"/><rect x="92" y="10" width="62" height="80" fill="#fff" stroke="#303030" stroke-width="2.5"/><path d="M92 21h62" stroke="#303030" stroke-width="2.5"/><circle cx="98" cy="15.5" r="1.6" fill="#303030"/><circle cx="104" cy="15.5" r="1.6" fill="#303030"/><rect x="100" y="29" width="46" height="5" fill="#1ab9e2"/><rect x="100" y="39" width="38" height="3" fill="#d5dee5"/><rect x="100" y="45" width="42" height="3" fill="#d5dee5"/><rect x="100" y="55" width="46" height="18" fill="#e8f7fc"/><rect x="100" y="78" width="24" height="7" fill="#303030"/><path class="art__pop" d="M77 38l10.4 6v12L77 62l-10.4-6V44z" fill="#1ab9e2"/><path class="art__pop" d="m72 50 3.5 3.5 6.5-7" fill="none" stroke="#303030" stroke-width="2.5"/></svg></span>`,
-    // Staafjes per onderwerp: top 10 (inkt) naast jouw pagina (cyaan), met één gat
-    seo: `<span class="art art--line"><svg viewBox="0 0 160 100"><path d="M8 86h144" stroke="#303030" stroke-width="2.5"/><rect x="14" y="36" width="12" height="50" fill="#303030"/><rect x="28" y="44" width="12" height="42" fill="#1ab9e2"/><rect x="50" y="26" width="12" height="60" fill="#303030"/><rect x="64" y="32" width="12" height="54" fill="#1ab9e2"/><rect x="86" y="40" width="12" height="46" fill="#303030"/><rect x="101.25" y="49.25" width="9.5" height="35.5" fill="none" stroke="#1ab9e2" stroke-width="2.5" stroke-dasharray="3.5 3"/><rect x="122" y="46" width="12" height="40" fill="#303030"/><rect x="136" y="64" width="12" height="22" fill="#1ab9e2"/><g class="art__pop"><circle cx="112" cy="28" r="12" fill="#fff" fill-opacity=".75" stroke="#303030" stroke-width="3"/><path d="m121 37 8 8" stroke="#303030" stroke-width="4"/></g></svg></span>`,
+  const ICON = {
+    arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>',
+    external: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7m-9 0h9v9"/></svg>',
+    download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>',
+    computer: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v11H3zm5 15h8m-4-4v4"/></svg>',
+    search: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.6-4.6M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>',
+    help: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-2.5-11.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 16.5v.5"/></svg>',
+    resume: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4M12 8v4l3 2"/></svg>',
   };
-
-  const ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
-  const EXTERNAL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7m-9 0h9v9"/></svg>';
-  const DOWNLOAD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>';
-  const COMPUTER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v11H3zm5 15h8m-4-4v4"/></svg>';
 
   // Formaat-icoon: een vlakje in de echte verhouding, passend in een vak van w × h rem
   function shape(ratio, w, h, cls = '') {
@@ -43,34 +35,17 @@
     const width = Math.min(w, h * ar);
     return `<span class="shape ${cls}" style="width:${width.toFixed(2)}rem;height:${(width / ar).toFixed(2)}rem" aria-hidden="true"></span>`;
   }
+  const cap = (s) => String(s || '').charAt(0).toUpperCase() + String(s || '').slice(1);
 
-  /* ---------------------------------------------------------------------------
-     Begin direct: per soort de formaten. Eén klik en je zit in de tool met het
-     goede template of soort document; de tool leest dat met PM.startParams().
-     ------------------------------------------------------------------------- */
-
-  function renderStarts() {
-    const withStarts = tools.filter((t) => live(t) && Array.isArray(t.starts) && t.starts.length);
-    if (!withStarts.length) return;
-    $('startList').innerHTML = withStarts.map((tool) => `
-      <div class="starts__group">
-        <h3 class="starts__caption">${esc(categories[tool.category] || tool.short || tool.name)}</h3>
-        <ul class="starts__list">${tool.starts.map((s) => {
-          const query = new URLSearchParams(s.params || {}).toString();
-          return `
-          <li><a class="start" href="${esc(url(tool.href) + (query ? `?${query}` : ''))}">
-            <span class="start__art">${shape(s.ratio, 4.5, 3, [s.stack && 'shape--stack', tool.tone === 'light' && 'shape--light'].filter(Boolean).join(' '))}</span>
-            <span class="start__label">${esc(s.label)}</span>
-            <span class="start__sub">${esc(s.sub || '')}</span>
-          </a></li>`;
-        }).join('')}</ul>
-      </div>`).join('');
-    $('starts').hidden = false;
+  // Kop van een zone: de vraag met een cyaan vraagteken, anders de naam met een cyaan punt
+  function heading(g) {
+    const q = String(g.question || '');
+    if (q.endsWith('?')) return `${esc(q.slice(0, -1))}<span class="dot">?</span>`;
+    return `${esc(q || g.name)}<span class="dot">.</span>`;
   }
 
   /* ---------------------------------------------------------------------------
-     Verder werken: het concept van elke tool die je hier gebruikt hebt, met
-     titel, soort en tijd. Alleen tools waarvan echt iets bewaard is.
+     Wat er in deze browser staat: concepten, gedane rondleidingen, geopende tools
      ------------------------------------------------------------------------- */
 
   const relative = new Intl.RelativeTimeFormat('nl', { numeric: 'auto' });
@@ -82,130 +57,154 @@
     return days >= -1 ? `${relative.format(days, 'day')} om ${clock}` : relative.format(days, 'day');
   }
 
-  function drafts() {
-    const seen = recentTools();
-    return tools
-      .filter((t) => live(t) && t.draft && seen[t.id] && Date.now() - seen[t.id] < 30 * DAY)
-      .map((tool) => {
-        const saved = store.get(tool.draft.key);
-        if (!saved || typeof saved !== 'object') return null;  // alleen geopend, niets gemaakt
-        let info = {};
-        try {
-          info = tool.draft.summary(saved) || {};
-        } catch (err) {
-          info = {};
-        }
-        const title = String(info.title || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
-        return { tool, at: seen[tool.id], title: title || 'Zonder titel', sub: info.sub || '', ratio: info.ratio };
-      })
-      .filter(Boolean)
-      .sort((a, b) => b.at - a.at);
+  // Het concept van een tool, als je hem de afgelopen 30 dagen hier gebruikt hebt en er echt iets bewaard is
+  function draftOf(tool) {
+    const seen = recentTools()[tool.id];
+    if (!live(tool) || !tool.draft || !seen || Date.now() - seen >= 30 * DAY) return null;
+    const saved = store.get(tool.draft.key);
+    if (!saved || typeof saved !== 'object') return null;   // alleen geopend, niets gemaakt
+    let info = {};
+    try {
+      info = tool.draft.summary(saved) || {};
+    } catch (err) {
+      info = {};
+    }
+    const title = String(info.title || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+    return { at: seen, title: title || 'Zonder titel', noun: info.noun || 'ontwerp', ratio: info.ratio };
   }
 
-  function renderRecent() {
-    const list = drafts();
-    if (!list.length) return;
-    $('recentList').innerHTML = list.map((d) => `
-      <li><a class="draft" href="${esc(url(d.tool.href))}">
-        <span class="draft__art">${shape(d.ratio, 3.25, 2.5, d.tool.tone === 'light' ? 'shape--light' : '')}</span>
+  const tourDone = (tool) => {
+    const saved = store.get(`pm-tour-${tool.id}-v1`);
+    return !!(saved && saved.status === 'done');
+  };
+
+  // Nieuw: alleen binnen newUntil én zolang je de tool in deze browser nog niet geopend hebt
+  function isNew(tool) {
+    if (tool.status !== 'nieuw' || (tool.newUntil && Date.now() >= Date.parse(tool.newUntil))) return false;
+    return !recentTools()[tool.id];
+  }
+  // Tools buiten de hub tellen we als geopend bij de klik hier (de tool zelf kan dat niet)
+  function markSeen(id) {
+    store.set('pm-hub-recent-v1', { ...recentTools(), [id]: Date.now() });
+  }
+
+  const tag = (tool) => (!live(tool) ? '<span class="tag tag--soon">binnenkort</span>' : isNew(tool) ? '<span class="tag">nieuw</span>' : '');
+
+  /* ---------------------------------------------------------------------------
+     Maken: per tool één kaart. Bovenaan je concept, dan de formaten (of een
+     zoekveld), onderaan wat je eruit krijgt en "hoe werkt het?".
+     ------------------------------------------------------------------------- */
+
+  function formats(tool) {
+    const list = Array.isArray(tool.starts) && tool.starts.length
+      ? tool.starts.map((s) => {
+        const query = new URLSearchParams(s.params || {}).toString();
+        const cls = [s.stack && 'shape--stack', tool.tone === 'light' && 'shape--light'].filter(Boolean).join(' ');
+        return { href: url(tool.href) + (query ? `?${query}` : ''), label: s.label, sub: s.sub || '', art: shape(s.ratio, 4, 2.9, cls) };
+      })
+      // Een maker zonder formaten: één tegel die de tool opent
+      : [{ href: url(tool.href), label: cap(tool.cta || `open ${tool.name}`), sub: (tool.exports || []).slice(0, 2).join(' · '), art: '<span class="fmt__hex" aria-hidden="true"></span>' }];
+    return `
+      <ul class="fmts" aria-label="Nieuw met de ${esc(tool.name)}">${list.map((f) => `
+        <li><a class="fmt" href="${esc(f.href)}">
+          <span class="fmt__art">${f.art}</span>
+          <span class="fmt__label">${esc(f.label)}</span>
+          <span class="fmt__sub">${esc(f.sub)}</span>
+        </a></li>`).join('')}
+      </ul>`;
+  }
+
+  function searchForm(tool) {
+    const s = tool.search;
+    const label = cap(tool.cta || `zoek in ${tool.name}`);
+    return `
+      <form class="find" role="search" aria-label="${esc(label)}" action="${esc(url(tool.href))}" method="get">
+        <label class="sr-only" for="find-${esc(tool.id)}">${esc(label)}</label>
+        <span class="find__field">${ICON.search}<input class="find__input" type="search" id="find-${esc(tool.id)}" name="${esc(s.param || 'q')}" placeholder="${esc(s.placeholder || '')}" autocomplete="off" enterkeyhint="search"></span>
+        <button type="submit" class="btn btn-outline find__btn">zoek</button>
+      </form>`;
+  }
+
+  function maker(tool) {
+    const soon = !live(tool);
+    const name = soon ? esc(tool.name) : `<a class="maker__link" href="${esc(url(tool.href))}">${esc(tool.name)}</a>`;
+    const d = soon ? null : draftOf(tool);
+    const draft = d ? `
+      <a class="draft" href="${esc(url(tool.href))}">
+        <span class="draft__art">${shape(d.ratio, 2.6, 2, tool.tone === 'light' ? 'shape--light' : '')}</span>
         <span class="draft__text">
+          <span class="draft__kicker">${ICON.resume}verder waar je was</span>
           <span class="draft__title">${esc(d.title)}</span>
-          <span class="draft__meta">${esc(d.tool.name)}${d.sub ? ` · ${esc(d.sub)}` : ''} · ${esc(when(d.at))}</span>
+          <span class="draft__meta">jouw ${esc(d.noun)} · ${esc(when(d.at))}</span>
         </span>
-        <span class="draft__cta" aria-hidden="true">verder${ARROW}</span>
-      </a></li>`).join('');
-    $('recent').hidden = false;
+        <span class="draft__go" aria-hidden="true">${ICON.arrow}</span>
+      </a>
+      <p class="maker__or">of begin iets nieuws</p>` : '';
+
+    const body = soon ? '' : tool.search ? searchForm(tool) : formats(tool);
+    const exports = (tool.exports || []).join(' · ');
+    const help = !soon && tool.tour && !tool.kind && !tourDone(tool)
+      ? `<a class="help-link" href="${esc(url(tool.href))}#rondleiding" title="Rondleiding: ${esc(tool.tour)}">${ICON.help}hoe werkt het?<span class="sr-only"> Rondleiding in de ${esc(tool.name)}: ${esc(tool.tour)},</span> (${TOUR_TIME})</a>`
+      : '';
+    return `
+      <li class="maker${soon ? ' is-soon' : ''}">
+        <div class="maker__head">
+          <h2 class="maker__name">${name}<span class="dot">.</span></h2>${tag(tool)}
+          <p class="maker__desc">${esc(tool.description)}</p>
+        </div>
+        ${draft}
+        ${body}
+        ${exports || help ? `<div class="maker__foot">${exports ? `<span class="maker__exports">${esc(exports)}</span>` : ''}${help}</div>` : ''}
+      </li>`;
   }
 
   /* ---------------------------------------------------------------------------
-     Alle tools: per blok een rij gelijke kaarten. Bij tools in de hub en
-     web-apps zit de link op de naam en rekt hij uit over de hele kaart (zie
-     .tool-card__link::after); een lokale tool heeft twee knoppen: downloaden
-     en de uitleg.
+     Checken: elke tool dezelfde opbouw. Naam, wat hij doet, waar hij draait en
+     wat je krijgt, en één knop met een werkwoord en de plek waar het gebeurt.
      ------------------------------------------------------------------------- */
 
-  const isNew = (t) => t.status === 'nieuw' && (!t.newUntil || Date.now() < Date.parse(t.newUntil));
-
-  // Waar de tool draait, rechtsboven op de omslag: vooraf weten wat een klik doet
-  function kindBadge(tool) {
-    if (tool.kind === 'web') return `<span class="tool-card__kind">${EXTERNAL}web-app</span>`;
-    if (tool.kind === 'lokaal') return `<span class="tool-card__kind">${COMPUTER}lokaal</span>`;
-    return '';
-  }
-
-  function card(tool) {
+  function check(tool) {
     const soon = !live(tool);
-    const name = `${esc(tool.name)}<span class="dot">.</span>`;
-    const status = soon
-      ? '<span class="tool-card__status tool-card__status--soon">binnenkort</span>'
-      : isNew(tool) ? '<span class="tool-card__status"><i class="hex" aria-hidden="true"></i>nieuw</span>' : '';
-    const exports = (tool.exports || []).map((e) => `<li class="pill">${esc(e)}</li>`).join('');
-
-    let title = name;
-    let foot = `<div class="tool-card__foot" aria-hidden="true"><span class="tool-card__cta">in ontwikkeling</span></div>`;
+    const exports = (tool.exports || []).join(' · ');
+    let where = '';
+    let actions = '';
     if (!soon && tool.kind === 'lokaal') {
-      foot = `
-        <div class="tool-card__foot tool-card__foot--split">
-          <a class="tool-card__cta" href="${esc(tool.href)}" data-download="${esc(tool.id)}" aria-label="Download ${esc(tool.name)} (zip)">${esc(tool.cta || 'download')}${DOWNLOAD}</a>
-          ${tool.guide ? `<button type="button" class="btn btn-outline tool-card__help" data-guide="${esc(tool.guide)}" aria-haspopup="dialog">hoe werkt dit?</button>` : ''}
-        </div>`;
+      where = `${ICON.computer}lokaal: downloaden en starten`;
+      actions = `
+        ${tool.guide ? `<button type="button" class="btn btn-outline check__cta" data-guide="${esc(tool.guide)}" aria-haspopup="dialog">hoe start je hem?</button>` : ''}
+        <a class="check__alt" href="${esc(tool.href)}" data-download="${esc(tool.id)}">${ICON.download}direct downloaden${tool.file ? `<span class="check__file">· ${esc(tool.file)}</span>` : ''}</a>`;
     } else if (!soon && tool.kind === 'web') {
-      title = `<a class="tool-card__link" href="${esc(tool.href)}" target="_blank" rel="noopener">${name}<span class="sr-only"> (opent in een nieuw tabblad)</span></a>`;
-      foot = `<div class="tool-card__foot" aria-hidden="true"><span class="tool-card__cta">${esc(tool.cta || 'open de tool')}${EXTERNAL}</span></div>`;
+      where = `${ICON.external}web-app: opent in een nieuw tabblad`;
+      actions = `<a class="btn btn-outline check__cta" href="${esc(tool.href)}" target="_blank" rel="noopener" data-tool="${esc(tool.id)}">open de web-app<span class="sr-only">: ${esc(tool.name)} (nieuw tabblad)</span>${ICON.external}</a>`;
     } else if (!soon) {
-      title = `<a class="tool-card__link" href="${esc(url(tool.href))}">${name}</a>`;
-      foot = `<div class="tool-card__foot" aria-hidden="true"><span class="tool-card__cta">${esc(tool.cta || 'open tool')}${ARROW}</span></div>`;
+      actions = `<a class="btn btn-outline check__cta" href="${esc(url(tool.href))}">open de tool<span class="sr-only">: ${esc(tool.name)}</span>${ICON.arrow}</a>`;
     }
-
-    const badges = status + kindBadge(tool);
-    const cls = ['tool-card', soon && 'is-soon', tool.kind && 'tool-card--ext'].filter(Boolean).join(' ');
-    // Een overgang naar de tool kan alleen binnen de hub
-    const transition = tool.kind ? '' : ` style="view-transition-name: tool-${esc(tool.id)}"`;
     return `
-      <article class="${cls}"${transition}>
-        <div class="tool-card__cover" aria-hidden="true">${ART[tool.art] || ART.hex}</div>
-        <div class="tool-card__body">
-          <h4 class="tool-card__name">${title}</h4>
-          ${badges ? `<div class="tool-card__badges">${badges}</div>` : ''}
-          <p class="tool-card__desc">${esc(tool.description)}</p>
-          ${exports ? `<ul class="tool-card__exports" aria-label="${tool.kind ? 'Je krijgt' : 'Downloaden als'}">${exports}</ul>` : ''}
-        </div>
-        ${foot}
-      </article>`;
+      <li class="check${soon ? ' is-soon' : ''}">
+        <h3 class="check__name">${esc(tool.name)}${tag(tool)}</h3>
+        <p class="check__desc">${esc(tool.description)}</p>
+        <p class="check__meta">${where ? `<span class="check__where">${where}</span>` : ''}${exports ? `<span class="check__gets">je krijgt: ${esc(exports)}</span>` : ''}</p>
+        ${actions ? `<div class="check__actions">${actions}</div>` : ''}
+      </li>`;
   }
 
-  function renderTools() {
-    const blocks = groups
+  function render() {
+    const [first, ...rest] = groups
       .map((g) => ({ ...g, list: tools.filter((t) => groupOf(t) === g.id) }))
       .filter((g) => g.list.length);
-    $('toolGroups').innerHTML = blocks.map((g) => `
-      <section class="tool-group${g.tone === 'dark' ? ' tool-group--dark' : ''}" id="${esc(g.id)}" data-group="${esc(g.id)}" aria-labelledby="group-${esc(g.id)}">
-        <div class="tool-group__head">
-          <h3 class="tool-group__title" id="group-${esc(g.id)}">${esc(g.name)}<span class="dot">.</span></h3>
-          ${g.lead ? `<p class="tool-group__lead">${esc(g.lead)}</p>` : ''}
+    if (!first) return;
+    // De eerste zone (maken) staat al in index.html, met de vraag als h1; zijn id is de deeplink
+    $('makeZone').id = first.id;
+    $('makerList').innerHTML = first.list.map(maker).join('');
+    $('zones').insertAdjacentHTML('beforeend', rest.map((g) => `
+      <section class="zone zone--side${g.tone === 'dark' ? ' zone--dark' : ''}" id="${esc(g.id)}" aria-labelledby="zone-${esc(g.id)}">
+        <div class="zone__head">
+          <h2 class="zone__title zone__title--sm" id="zone-${esc(g.id)}">${heading(g)}</h2>
+          ${g.lead ? `<p class="zone__lead">${esc(g.lead)}</p>` : ''}
         </div>
-        <div class="tool-grid">${g.list.map(card).join('')}</div>
-      </section>`).join('');
-
-    // Filter: alleen zinvol als er meer dan één blok is
-    if (blocks.length < 2) return;
-    const options = [{ id: '', name: 'alles', n: tools.length }, ...blocks.map((g) => ({ id: g.id, name: g.name.toLowerCase(), short: g.short, n: g.list.length }))];
-    $('toolFilter').innerHTML = options.map((o, i) => `
-      <input type="radio" name="toolGroup" id="toolGroup-${esc(o.id || 'alles')}" value="${esc(o.id)}"${i === 0 ? ' checked' : ''}>
-      <label for="toolGroup-${esc(o.id || 'alles')}">${o.short ? `<span class="seg__long">${esc(o.name)}</span><span class="seg__short">${esc(o.short)}</span>` : esc(o.name)} <span class="seg__count">${o.n}</span></label>`).join('');
-    $('toolFilter').hidden = false;
-  }
-
-  // Eén blok tonen, of alles. De keuze staat in het adres (#techniek), zodat
-  // je hem als bladwijzer bewaart of doorstuurt.
-  function showGroup(id, { scroll = false } = {}) {
-    const value = groups.some((g) => g.id === id) ? id : '';
-    document.querySelectorAll('.tool-group').forEach((section) => {
-      section.hidden = Boolean(value) && section.dataset.group !== value;
-    });
-    const radio = document.querySelector(`input[name="toolGroup"][value="${value}"]`);
-    if (radio) radio.checked = true;
-    if (scroll && value) $(value).scrollIntoView({ block: 'start' });
+        <ul class="checks">${g.list.map(check).join('')}</ul>
+      </section>`).join(''));
+    if (rest.length) $('zones').classList.add('has-side');
   }
 
   /* ---------------------------------------------------------------------------
@@ -274,11 +273,18 @@
   function initGuides() {
     for (const dialog of document.querySelectorAll('dialog.guide')) {
       initTabs(dialog);
-      // Downloadknoppen in de uitleg: dezelfde link als op de kaart (één bron: tools.js)
+      // Downloadknoppen in de uitleg: dezelfde link en bestandsinfo als op de kaart (één bron: tools.js)
       for (const link of dialog.querySelectorAll('[data-download]')) {
         const tool = tools.find((t) => t.id === link.dataset.download);
         if (tool) link.href = tool.href;
-        link.addEventListener('click', () => flash(link, 'download gestart'));
+        link.addEventListener('click', () => {
+          if (tool) markSeen(tool.id);
+          flash(link, 'download gestart');
+        });
+      }
+      for (const info of dialog.querySelectorAll('[data-file]')) {
+        const tool = tools.find((t) => t.id === info.dataset.file);
+        if (tool && tool.file) info.textContent = tool.file;
       }
       // Sluiten met het kruisje of met een klik naast het paneel (Esc doet de browser)
       dialog.addEventListener('click', (e) => {
@@ -313,30 +319,45 @@
     });
   }
 
-  $('toolGroups').addEventListener('click', (e) => {
+  // Op het dashboard: uitleg openen, direct downloaden (met een melding die naar
+  // de uitleg wijst), en een web-app openen telt als geopend
+  $('zones').addEventListener('click', (e) => {
     const help = e.target.closest('[data-guide]');
     if (help) {
       openGuide(help.dataset.guide, help);
       return;
     }
-    // Download vanaf de kaart: de volgende stap staat in de uitleg
     const download = e.target.closest('[data-download]');
     const tool = download && tools.find((t) => t.id === download.dataset.download);
-    if (tool && tool.guide) {
-      const help = document.querySelector(`[data-guide="${tool.guide}"]`);
-      toast('Download gestart. Eerste keer? Lees hoe je hem start.', false, { label: 'hoe werkt dit?', run: () => openGuide(tool.guide, help) });
+    if (tool) {
+      markSeen(tool.id);
+      if (tool.guide) {
+        const button = document.querySelector(`#zones [data-guide="${tool.guide}"]`);
+        toast('Download gestart. Eerste keer? Lees hoe je hem start.', false, { label: 'hoe start je hem?', run: () => openGuide(tool.guide, button) });
+      }
+      return;
     }
+    const web = e.target.closest('a[data-tool]');
+    if (web) markSeen(web.dataset.tool);
   });
 
-  $('toolFilter').addEventListener('change', (e) => {
-    showGroup(e.target.value);
-    history.replaceState(null, '', e.target.value ? `#${e.target.value}` : location.pathname + location.search);
-  });
-  window.addEventListener('hashchange', () => showGroup(location.hash.slice(1), { scroll: true }));
+  /* ---------------------------------------------------------------------------
+     Deeplinks: index.html#techniek (of #design) springt naar die zone en licht
+     hem even op. Handig als bladwijzer of om door te sturen.
+     ------------------------------------------------------------------------- */
 
-  renderTools();
-  renderStarts();
-  renderRecent();
+  function showHash() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const zone = groups.some((g) => g.id === id) && $(id);
+    if (!zone) return;
+    zone.scrollIntoView({ block: 'start' });
+    zone.classList.remove('is-flash');
+    void zone.offsetWidth;   // opnieuw afspelen bij een tweede klik
+    zone.classList.add('is-flash');
+  }
+  window.addEventListener('hashchange', showHash);
+
+  render();
   initGuides();
-  showGroup(location.hash.slice(1), { scroll: true });
+  showHash();
 })();
