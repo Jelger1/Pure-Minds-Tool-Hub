@@ -6,7 +6,7 @@
                   de browser een export met lokale afbeeldingen; met deze kopie
                   niet. Via een server of GitHub Pages gebruiken de tools
                   gewoon de bestanden in assets/brand/.
-   pdf-fonts.js   Open Sans als base64, voor de bewerkbare PDF's (jsPDF moet
+   pdf-fonts.js   Pure Minds Sans als base64, voor de bewerkbare PDF's (jsPDF moet
                   de lettertypen zelf insluiten) en om in te sluiten in de
                   Word-bestanden. Wordt pas bij de eerste export geladen, en
                   werkt zo ook vanaf schijf en offline.
@@ -49,18 +49,18 @@ console.log(`brand-data.js geschreven (${Math.round(brand.length / 1024)} KB)`);
 
 // Stijlnaam in jsPDF -> bestand. De namen gebruikt js/shared/core.js (PM.pdfFontStyle).
 const fonts = {
-  normal: 'OpenSans-Regular.ttf',
-  semibold: 'OpenSans-SemiBold.ttf',
-  bold: 'OpenSans-Bold.ttf',
-  extrabold: 'OpenSans-ExtraBold.ttf',
-  italic: 'OpenSans-Italic.ttf',
-  bolditalic: 'OpenSans-BoldItalic.ttf',
+  normal: 'PureMindsSans-Regular.ttf',
+  semibold: 'PureMindsSans-SemiBold.ttf',
+  bold: 'PureMindsSans-Bold.ttf',
+  extrabold: 'PureMindsSans-ExtraBold.ttf',
+  italic: 'PureMindsSans-Italic.ttf',
+  bolditalic: 'PureMindsSans-BoldItalic.ttf',
 };
 
 const pdfFonts = `/* Gegenereerd door scripts/build-brand-data.js. Niet met de hand wijzigen:
-   vervang de lettertypen in assets/brand/fonts/ en draai \`npm run brand\`. */
+   vervang de lettertypen in assets/fonts/ en draai \`npm run brand\`. */
 window.PM_PDF_FONTS = {
-${Object.entries(fonts).map(([style, file]) => `  ${style}: { file: '${file}', data: '${read64(`assets/brand/fonts/${file}`)}' },`).join('\n')}
+${Object.entries(fonts).map(([style, file]) => `  ${style}: { file: '${file}', data: '${read64(`assets/fonts/${file}`)}' },`).join('\n')}
 };
 `;
 fs.writeFileSync(path.join(root, 'js', 'shared', 'pdf-fonts.js'), pdfFonts);

@@ -12,12 +12,12 @@
      offerte   de tabel, de totalen en het blok "voor akkoord" als Word-tabellen
      voet      bedrijfsgegevens en "pagina X van Y" als echte velden, en zo
                gekozen de Emerce 100-badge (SVG, met PNG voor Google Docs)
-     letters   Open Sans wordt ingesloten, zodat het document ook goed oogt op
+     letters   Pure Minds Sans wordt ingesloten, zodat het document ook goed oogt op
                een computer zonder dat lettertype
 
    Maten komen uit css/document.css (px op 794 px paginabreedte): 1 px = 15 twips
    = 0,75 pt. Regelafstanden zijn omgerekend naar Words "meervoud", zodat ze
-   met Open Sans dezelfde regelhoogte geven als in de preview.
+   met Pure Minds Sans dezelfde regelhoogte geven als in de preview.
 
    Het model komt uit js/document/app.js (docxModel): alle teksten al
    opgemaakt (datums, bedragen), de tekst als opgeschoonde HTML.
@@ -29,7 +29,7 @@
 
   const PAGE_W = 794;        // A4 op 96 dpi
   const CONTENT_W = 650;     // 794 - 2 × 72
-  const LINE = 1.362;        // regelhoogte van Open Sans bij "enkel" (em)
+  const LINE = 1.362;        // regelhoogte van Pure Minds Sans bij "enkel" (em)
 
   const INK = '303030';
   const MUTED = '5C6670';
@@ -51,7 +51,7 @@
 
   const meter = document.createElement('canvas').getContext('2d');
   function textWidth(text, px, weight = 400, spacing = 0) {
-    meter.font = `${weight} ${px}px "PM Open Sans", "Open Sans", Arial, sans-serif`;
+    meter.font = `${weight} ${px}px "Pure Minds Sans", "Open Sans", Arial, sans-serif`;
     if ('letterSpacing' in meter) meter.letterSpacing = `${(px * spacing).toFixed(2)}px`;
     return meter.measureText(text).width;
   }
@@ -117,7 +117,7 @@
     // o: { size (px), weight, italic, underline, color, caps, spacing (em), break }
     function run(text, o = {}) {
       const w = o.weight || 400;
-      const font = w >= 800 ? 'Open Sans ExtraBold' : w >= 600 && w < 700 ? 'Open Sans SemiBold' : 'Open Sans';
+      const font = w >= 800 ? 'Pure Minds Sans ExtraBold' : w >= 600 && w < 700 ? 'Pure Minds Sans SemiBold' : 'Pure Minds Sans';
       const size = o.size || 13.5;
       return new TextRun({
         text,
@@ -273,7 +273,7 @@
         if (i) left.push(run(' · ', { size: 9.5, color: MUTED }));
         left.push(run(v, { size: 9.5, color: MUTED, break: !i && one.length ? 1 : undefined }));
       });
-      const pageNo = [hexImage(9, 10.4), new TextRun({ children: [' pagina ', PageNumber.CURRENT, ' van ', PageNumber.TOTAL_PAGES], font: 'Open Sans', bold: true, size: hp(9.5), color: INK })];
+      const pageNo = [hexImage(9, 10.4), new TextRun({ children: [' pagina ', PageNumber.CURRENT, ' van ', PageNumber.TOTAL_PAGES], font: 'Pure Minds Sans', bold: true, size: hp(9.5), color: INK })];
       let right = para(pageNo, { align: AlignmentType.RIGHT, lh: 1.6 });
       let rightW = 150;
       if (badge) {
@@ -386,7 +386,7 @@
 
     numbering.push(
       { reference: 'pm-bullets', levels: [{ level: 0, format: LevelFormat.BULLET, text: '⬢', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: tw(22), hanging: tw(22) } }, run: { color: CYAN, font: 'Segoe UI Symbol', size: 14 } } }] },
-      { reference: 'pm-numbers', levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: tw(22), hanging: tw(22) } }, run: { color: BLUE, bold: true, font: 'Open Sans', size: hp(13.5) } } }] },
+      { reference: 'pm-numbers', levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: tw(22), hanging: tw(22) } }, run: { color: BLUE, bold: true, font: 'Pure Minds Sans', size: hp(13.5) } } }] },
     );
 
     // Inline-opmaak: tekst, vet, cursief, onderstreept en regeleindes
@@ -510,14 +510,14 @@
       description: 'Gemaakt met de Pure Minds Generator Hub',
       styles: {
         default: {
-          document: { run: { font: 'Open Sans', size: hp(13.5), color: INK, language: { value: 'nl-NL' } }, paragraph: { spacing: { line: lineOf(1.65), lineRule: LineRuleType.AUTO } } },
+          document: { run: { font: 'Pure Minds Sans', size: hp(13.5), color: INK, language: { value: 'nl-NL' } }, paragraph: { spacing: { line: lineOf(1.65), lineRule: LineRuleType.AUTO } } },
         },
       },
       numbering: { config: numbering },
       fonts: [
-        { name: 'Open Sans', data: fonts.normal.data },
-        { name: 'Open Sans SemiBold', data: fonts.semibold.data },
-        { name: 'Open Sans ExtraBold', data: fonts.extrabold.data },
+        { name: 'Pure Minds Sans', data: fonts.normal.data },
+        { name: 'Pure Minds Sans SemiBold', data: fonts.semibold.data },
+        { name: 'Pure Minds Sans ExtraBold', data: fonts.extrabold.data },
       ],
       sections: [{
         properties: {

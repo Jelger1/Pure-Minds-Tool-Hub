@@ -42,7 +42,7 @@
     navy: '#10283c',          // donkere ondertoon voor verlopen over foto's
   });
 
-  const FONT = '"PM Open Sans", "Open Sans", Arial, sans-serif';
+  const FONT = '"Pure Minds Sans", "Open Sans", Arial, sans-serif';
 
   /* ---------------------------------------------------------------------------
      Typeschaal: geen vrije puntgroottes, alleen stappen die bij het merk passen

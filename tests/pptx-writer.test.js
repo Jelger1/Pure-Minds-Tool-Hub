@@ -235,9 +235,10 @@ test('bestaande soorten schrijven exact dezelfde XML als voor de ovaal en de lij
     + '<a:noFill/><a:ln w="31750" cap="flat"><a:solidFill><a:srgbClr val="1AB9E2"></a:srgbClr></a:solidFill><a:miter lim="800000"/></a:ln></p:spPr></p:sp>');
   // De rest als vingerafdruk, gemaakt met de schrijver van vóór de nieuwe soorten. Verandert
   // de XML van een bestaande soort bewust, maak de vingerafdruk dan opnieuw.
-  // Bewust veranderd: de regelafstand is lh / 1,2 (zie de test hieronder); de rest is gelijk
+  // Bewust veranderd: de regelafstand is lh / 1,2 (zie de test hieronder) en het lettertype heet
+  // Pure Minds Sans (was Open Sans); de rest is gelijk
   const hash = crypto.createHash('sha256').update(out.join('\n')).digest('hex');
-  assert.equal(hash, '12f511b4d09193759362104dcde153735abc48a2a4c8f6358452955b4c2b4b1b');
+  assert.equal(hash, 'f7f061c6f672df98a4a16cd6fa655cbc49c6fa14ba08e1d5f58f4604756995ea');
 });
 
 test('regelafstand: lh gedeeld door 1,2, want 100% is in PowerPoint 1,2 × het korps', () => {
@@ -249,7 +250,7 @@ test('regelafstand: lh gedeeld door 1,2, want 100% is in PowerPoint 1,2 × het k
   assert.equal(spc(1.45), 120833, 'lopende tekst: 1,45 × 36 px = 52,2 px tussen de regels, net als op het canvas');
   assert.equal(spc(1.08), 90000, 'titel');
   assert.equal(spc(1.2), 100000, 'enkel');
-  assert.equal(spc(1.362), 113500, 'tekstvak van één regel (Open Sans)');
+  assert.equal(spc(1.362), 113500, 'tekstvak van één regel (Pure Minds Sans)');
   assert.ok(!para({}).includes('lnSpc'), 'zonder lh: de standaard van PowerPoint');
   // Volgorde van het schema: regelafstand, dan ruimte ervoor, dan het opsommingsteken
   assert.ok(para({ lh: 1.45, spcBef: 10 }).includes('<a:pPr><a:lnSpc><a:spcPct val="120833"/></a:lnSpc><a:spcBef><a:spcPts val="500"/></a:spcBef><a:buNone/></a:pPr>'));
@@ -658,4 +659,75 @@ test('regulier deck en voorstel: de alinea-afstand zoals voorheen, niet op hele 
     assert.equal(q.spcBef, Math.max(0, room));
   });
   assert.ok(box.paragraphs.slice(2).some((q) => Math.round(q.spcBef * 50) % 100 !== 0), 'geen hele punten');
+});
+
+/* --- contactregels op de afsluiter: zeshoek met een icoon uit het icon pack --- */
+
+test('contactregels: het icoon past bij de regel (e-mail, telefoon, website, anders een persoon)', () => {
+  const icon = S.contactIcon;
+  assert.equal(icon('info@pureminds.nl'), 'mail');
+  assert.equal(icon('[e-mailadres]'), 'mail');
+  assert.equal(icon('E-mail: jan@x.nl'), 'mail');
+  assert.equal(icon('045 - 3690530'), 'phone');
+  assert.equal(icon('+31 (0)45 369 05 30'), 'phone');
+  assert.equal(icon('Tel. 045 3690530'), 'phone');
+  assert.equal(icon('[telefoonnummer]'), 'phone');
+  assert.equal(icon('www.pureminds.nl'), 'web');
+  assert.equal(icon('pureminds.nl'), 'web');
+  assert.equal(icon('https://example.com/contact'), 'web');
+  assert.equal(icon('**pureminds.nl**'), 'web', 'nadruk telt niet mee');
+  assert.equal(icon('[naam] · [functie]'), 'user');
+  assert.equal(icon('Jan Jansen'), 'user');
+  assert.equal(icon('2024'), 'user', 'een kort getal is geen telefoonnummer');
+  // De vier iconen bestaan als pad met alleen M, L, C en Z (PDF-veilig, ook als vector in PowerPoint)
+  for (const name of ['mail', 'phone', 'web', 'user']) {
+    const cmds = K.ICONS[name];
+    assert.ok(cmds.length > 4, name);
+    assert.ok(cmds.every((c) => ({ M: 3, L: 3, C: 7, Z: 1 })[c[0]] === c.length && c.slice(1).every((v) => v >= 0 && v <= 24)), name);
+  }
+});
+
+test('vrije vorm (path): custGeom met moveTo, lnTo, cubicBezTo en close, geschaald naar het vak', () => {
+  const s = xml({ kind: 'path', x: 100, y: 200, w: 48, h: 48, view: 24, cmds: [['M', 0, 0], ['L', 24, 0], ['C', 24, 12, 12, 24, 0, 24], ['Z']], fill: { color: '#303030' }, line: null, name: 'Icoon' });
+  assert.ok(s.includes(`<a:off x="${emu(100)}" y="${emu(200)}"/><a:ext cx="${emu(48)}" cy="${emu(48)}"/>`));
+  assert.ok(s.includes(`<a:path w="${emu(48)}" h="${emu(48)}"><a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="${emu(48)}" y="0"/></a:lnTo><a:cubicBezTo>`));
+  assert.ok(s.includes('<a:close/></a:path>'));
+  assert.ok(s.includes('<a:solidFill><a:srgbClr val="303030">'), 'inkt, geen zwart');
+  assertWellFormed(s, 'vrije vorm');
+});
+
+test('afsluiter: per contactregel een cyaan zeshoek met het icoon in inkt, de tekst zonder ⬢ en ingesprongen', () => {
+  const slide = { layout: 'closing', label: 'contact', title: 'Bedankt', subtitle: 'Vragen?', body: 'www.pureminds.nl\n045 - 3690530\ninfo@pureminds.nl' };
+  const { p, objects, xml: s } = planXml(slide);
+  const hexes = objects.filter((o) => o && o.kind === 'hex' && /^Icoon/.test(o.name));
+  const icons = objects.filter((o) => o && o.kind === 'path');
+  assert.equal(hexes.length, 3);
+  assert.deepEqual(Array.from(icons, (o) => o.name), ['Icoon website', 'Icoon telefoon', 'Icoon e-mail']);
+  hexes.forEach((h) => { assert.equal(JSON.stringify(h.fill), JSON.stringify({ color: K.COLORS.cyan })); assert.equal(h.line, null); });
+  icons.forEach((o) => assert.equal(JSON.stringify(o.fill), JSON.stringify({ color: K.COLORS.ink })));
+  // Op de plek van het canvas: midden op de kap-hoogte van de regel, het icoon midden in de zeshoek
+  const body = p.stack.blocks.find((b) => b.body != null);
+  let top = p.top;
+  for (const b of p.stack.blocks) { if (b === body) break; if (!b.empty) top += b.gap + b.block.height; }
+  top += body.gap;
+  const size = body.block.st.size;
+  body.block.items.forEach((it, i) => {
+    assert.ok(Math.abs(hexes[i].cy - (top + it.y + (K.CAP * size) / 2)) < 1e-6);
+    assert.ok(Math.abs(icons[i].x + icons[i].w / 2 - hexes[i].cx) < 1e-6);
+    assert.ok(hexes[i].cx + (hexes[i].r * K.SQRT3) / 2 < p.x + body.block.indent - size * 0.4, 'lucht tussen zeshoek en tekst');
+  });
+  // De zeshoeken raken elkaar niet
+  for (let i = 1; i < hexes.length; i++) assert.ok(hexes[i].cy - hexes[i].r > hexes[i - 1].cy + hexes[i - 1].r);
+  // Tekst: geen opsommingsteken, wel ingesprongen zoals op het canvas
+  const box = objects.find((o) => o && o.kind === 'text' && o.name === 'Tekst');
+  const paras = box.paragraphs.slice(-3);
+  paras.forEach((q) => { assert.equal(q.bullet, null); assert.equal(q.indent, 0); assert.equal(q.marL, body.block.indent); });
+  assert.ok(!s.includes('⬢'));
+});
+
+test('andere layouts houden het zeshoekje als opsommingsteken', () => {
+  const { objects } = planXml({ layout: 'bullets', label: 'aanpak', title: 'Zo werken we', body: '- Eén\n- Twee' });
+  const box = objects.find((o) => o && o.kind === 'text' && o.paragraphs.length === 3);
+  box.paragraphs.slice(1).forEach((q) => { assert.equal(q.bullet.char, '⬢'); assert.equal(q.indent, q.runs[0].size * 1.15); });
+  assert.ok(!objects.some((o) => o && o.kind === 'path'));
 });

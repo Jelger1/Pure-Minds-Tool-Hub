@@ -216,10 +216,10 @@
   const BUILD = {
     cover: (inp, c) => {
       const datum = oneLine(inp.datum);
-      return { layout: 'title', label: 'voorstel', title: `Voorstel **${c.K}**`, subtitle: inp.traject.trim(), meta: datum ? `Pure Minds · ${datum}` : 'Pure Minds', photoFit: 'logo' };
+      return { layout: 'title', label: 'voorstel', title: `Voorstel **${c.K}**`, subtitle: inp.traject.trim(), meta: datum ? `Pure Minds Marketing Group · ${datum}` : 'Pure Minds Marketing Group', photoFit: 'logo' };
     },
     belofte: () => ({
-      layout: 'kolommen', label: 'pure minds', title: 'Onze belofte', subtitle: TEXT.belofteIntro,
+      layout: 'kolommen', label: 'pure minds marketing group', title: 'Onze belofte', subtitle: TEXT.belofteIntro,
       body: `Onze visie\n${TEXT.visie}\n\nMission statement\n${TEXT.missie}`,
     }),
     situatie: (inp, c) => ({ layout: 'tekst', label: 'uitgangspunt', title: `Huidige situatie **${c.K}**`, body: inp.situatie.trim() || '[beschrijf de huidige situatie]' }),
@@ -262,7 +262,7 @@
     uitvoering: (inp, c) => ({ layout: 'tekst', label: c.fase('uitvoering'), title: 'Uitvoering', body: TEXT.uitvoering(c.K) }),
     meetbaar: () => ({ layout: 'tekst', label: 'meten', title: 'Meetbaar maken van onze inspanningen', body: TEXT.meetbaar }),
     investering: (inp) => ({ layout: 'table', label: 'voorstel', title: 'Investering', table: priceTableOf(inp), subtitle: inp.voetnoot.trim() }),
-    slogan: () => ({ layout: 'quote', label: 'pure minds', style: 'quote', quote: TEXT.slogan, author: '' }),
+    slogan: () => ({ layout: 'quote', label: 'pure minds marketing group', style: 'quote', quote: TEXT.slogan, author: '' }),
   };
 
   // Welke slide een veld van het formulier voedt: de preview springt ernaartoe

@@ -16,7 +16,7 @@ Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 | [Presentation Maker](tools/presentation.html) | 16:9-slides in zeven layouts, waaronder een tabel, plus voorstellen en positioneringen in de vaste opbouw van Pure Minds | bewerkbare PDF, PowerPoint (.pptx, ook voor Google Slides), PNG (Full HD of 4K) |
 | [Icon Finder](tools/icons.html) | 1.690 iconen, de meeste in lijn en vol, te zoeken in het Nederlands of Engels; los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
 
-Alle PDF's hebben **echte tekst** in ingesloten Open Sans, met per gewicht een
+Alle PDF's hebben **echte tekst** in ingesloten Pure Minds Sans, met per gewicht een
 eigen fontnaam (te selecteren en aan te passen in Canva, Acrobat of
 Illustrator), en vormen en het logo als vector. Foto's en een geüploade
 handtekening zijn afbeeldingen; in posts en slides ook elk verloop (één
@@ -51,7 +51,7 @@ tools/
   presentation.html           Presentation Maker
   icons.html                  Icon Finder
 css/
-  global.css                  gedeeld designsysteem (kleuren, Open Sans, kaarten,
+  global.css                  gedeeld designsysteem (kleuren, Pure Minds Sans, kaarten,
                               knoppen, velden, kop met toolwisselaar)
   editor.css                  editor-bouwstenen: appbalk, rail, paneel, podium,
                               werkbalk, [?]-uitleg, rondleiding, sneltoetsen
@@ -74,7 +74,7 @@ js/
   shared/pdf-canvas.js        canvas dat in een PDF tekent: posts en slides als losse lagen (Canva)
   shared/pptx-writer.js       schrijft een .pptx (Office Open XML) zonder bibliotheek
   shared/brand-data.js        ingebedde logo's (gegenereerd: npm run brand)
-  shared/pdf-fonts.js         Open Sans voor PDF en Word (gegenereerd, pas geladen bij export)
+  shared/pdf-fonts.js         Pure Minds Sans voor PDF en Word (gegenereerd, pas geladen bij export)
   hub.js                      dashboard: per tool een kaart met concept, formaten of zoekveld en
                               rondleiding, de technische tools ernaast, en de uitleg bij lokale tools
   insta/templates.js, app.js
@@ -104,7 +104,8 @@ js/
   icons/hex.js                de zeshoek om een icoon, gelijk aan maak-zeshoeken.py
   icons/search.js             zoeken met rangschikking, meervouden en typfouten
   icons/app.js                Icon Finder
-assets/brand/                 Open Sans, logo's, favicon, brandbook
+assets/fonts/                 Pure Minds Sans (het huislettertype), alle sneden
+assets/brand/                 logo's, favicon, brandbook
   emerce/                     Emerce 100-badge 2026, strak uitgesneden (posts, documenten, slides)
 assets/icons/                 Remix-iconen per categorie (bron voor de Icon Finder), met LICENSE
   maak-zeshoeken.py           maakt Zeshoek/<Blauw|Donker|Wit>/ en overzicht.html
@@ -149,7 +150,8 @@ tests/                        unittests van de editor-bouwstenen, de Insta Post 
 Alle kleuren komen uit het brandbook (`assets/brand/PureMinds-Brandbook-v1.svg`):
 Pure Cyaan `#1AB9E2` voor accenten, Pure Magenta `#B61B50` alleen voor de
 hoofdactie, Inkt `#303030` voor tekst en donkere vlakken. Typografie is
-Open Sans (lokaal in `assets/brand/fonts/`). Knoppen hebben rechte hoeken en
+Pure Minds Sans (lokaal in `assets/fonts/`; de vormen van Open Sans onder de
+naam van Pure Minds, zodat Illustrator, Canva en Word het herkennen). Knoppen hebben rechte hoeken en
 kleine letters; koppen krijgen de cyaan punt uit "Pure Minds.".
 
 Posts en slides delen `js/shared/canvas-kit.js`, en dus hetzelfde:
@@ -449,7 +451,7 @@ gebruikt de [editor-bouwstenen](#editor-bouwstenen).
 - **PDF (voor Canva):** voor elke post, net als in de andere makers. Bedoeld
   om verder te bewerken in Canva (ook Illustrator en Acrobat): sleep hem op de
   startpagina van Canva of klik op *Uploaden*. Elk onderdeel is een eigen laag:
-  tekst is echte tekst in ingesloten Open Sans (per regel en stijl één
+  tekst is echte tekst in ingesloten Pure Minds Sans (per regel en stijl één
   tekstobject, met het juiste gewicht), effen vlakken en losse zeshoeken zijn
   vector, het logo, de Emerce 100-badge en een klantlogo in SVG ook (elk één
   vorm). Afbeeldingen zijn elk verloop en het zeshoekpatroon op de achtergrond
@@ -565,7 +567,7 @@ passend in de breedte (nooit groter dan echt), en meer pagina's scrollen.
   (bibliotheek docx): kop met logo en afzender, vervolgkop met de titel, voet
   met "pagina X van Y" als veld, koppen, zeshoek-bullets, genummerde lijsten,
   citaten, de offertetabel en het akkoordblok als tabellen, en de
-  handtekening als afbeelding. Open Sans (regular, semibold, extrabold) zit
+  handtekening als afbeelding. Pure Minds Sans (regular, semibold, extrabold) zit
   in het bestand, zodat het ook klopt zonder dat lettertype.
 
 ## Presentation Maker
@@ -976,7 +978,7 @@ laag importeert en de PDF er precies zo uitziet als de preview:
 
 - **Tekst:** echte tekst, per regel en stijl één object, met de spaties erin.
   De browser meet, net als in de preview, dus regelval en posities zijn gelijk.
-  Elk gewicht heeft een eigen fontnaam (`OpenSans-ExtraBold`, via
+  Elk gewicht heeft een eigen fontnaam (`PureMindsSans-ExtraBold`, via
   `PM.pdfFonts` in `core.js`, dat ook `/StemV` per gewicht goed zet); met één
   naam voor alle gewichten maakte Canva alle tekst even dik en liet het koppen
   weg. Alle makers maken hun PDF met `PM.pdfDocument` en `PM.pdfFinish`.
@@ -993,7 +995,7 @@ laag importeert en de PDF er precies zo uitziet als de preview:
   het logo in Canva één element is (alleen als de browser bevestigt dat het er
   zo precies hetzelfde uitziet). Een SVG die svg2pdf niet aankan, gaat als
   afbeelding mee in plaats van de export te laten mislukken.
-- **Tekens die Open Sans niet heeft** (emoji) worden een kleine PNG, anders
+- **Tekens die Pure Minds Sans niet heeft** (emoji) worden een kleine PNG, anders
   kapt jsPDF de tekst af.
 
 Een afbeelding die op meer pagina's terugkomt (een verloop in een carousel)
@@ -1007,12 +1009,13 @@ tekenopdracht zonder browser.
 ## Word, PowerPoint en Google
 
 - **Word en PowerPoint** openen de .docx en .pptx direct. Op een computer
-  zonder Open Sans vervangt PowerPoint het lettertype; installeer dan de
-  bestanden uit `assets/brand/fonts/` (Word heeft ze al in het bestand).
+  zonder Pure Minds Sans vervangt PowerPoint het lettertype; installeer dan de
+  bestanden uit `assets/fonts/` (Word heeft ze al in het bestand).
 - **Google Docs en Google Slides:** upload het Word- of PowerPoint-bestand in
   Google Drive, open het, en kies *Bestand → Opslaan als Google Documenten*
-  (of *Google Presentaties*). Google heeft Open Sans standaard, dus de
-  opmaak blijft staan. Een knop die het bestand rechtstreeks in Drive zet is
+  (of *Google Presentaties*). Google kent Pure Minds Sans niet en kiest
+  een ander lettertype; kies daar zo nodig Open Sans (dezelfde vormen).
+  Een knop die het bestand rechtstreeks in Drive zet is
   mogelijk, maar vraagt een OAuth-koppeling met de Google Workspace.
 - **Wat anders is dan de PDF:** het slidenummer in PowerPoint toont "3" in
   plaats van "03 / 06" (PowerPoint kent geen veld voor het totaal), en Word

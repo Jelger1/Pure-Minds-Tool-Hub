@@ -45,7 +45,7 @@
   const {
     COLORS, CAP, DESC: K_DESC, SQRT3, flags,
     rgba, setFont, hexPath, paintBackground,
-    runsFrom, layoutText, drawText, parseBody, layoutBody, drawBody, ellipsize,
+    runsFrom, layoutText, drawText, parseBody, layoutBody, drawBody, ellipsize, drawIcon,
     drawLabel, drawDomain, drawLogo, drawBadge, drawPhoto, drawContain, hexEcho, prepare, finish,
   } = global.PMCanvas;
 
@@ -440,6 +440,61 @@
   const asBullets = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean)
     .map((l) => (/^[-•]\s/.test(l) ? l : `- ${l}`)).join('\n');
 
+  /* ---------------------------------------------------------------------------
+     Contactregels op de afsluiter: per regel een cyaan zeshoek met een icoon uit
+     het icon pack dat bij de regel past (zoals de zeshoek-iconen van de Icon
+     Finder), in inkt, net als de sectienummers. De PowerPoint-export zet ze op
+     dezelfde plek (contactMarks).
+     ------------------------------------------------------------------------- */
+
+  // Welk icoon bij een regel hoort: e-mail, telefoon, website, anders een persoon
+  function contactIcon(text) {
+    const t = String(text || '').replace(/\*\*/g, '').trim();
+    if (t.includes('@') || /e-?mail/i.test(t)) return 'mail';
+    if (/^\+?[\d\s\-().]{8,}$/.test(t) || /telefoon|\btel\b/i.test(t)) return 'phone';
+    if (/www\.|https?:\/\/|\.(nl|com|be|eu|org|net|io)\b/i.test(t)) return 'web';
+    return 'user';
+  }
+
+  // Maten als factor van het korps: zeshoek (straal), icoon (vak van 24 × 24, het
+  // icoon zelf is 20/24 daarvan), inspringing (zeshoek plus een half korps lucht)
+  // en wat meer ruimte tussen de regels, zodat de zeshoeken elkaar niet raken
+  const CONTACT = { r: 0.6, icon: 1.25, indent: 0.6 * SQRT3 + 0.5, itemGap: 0.75 };
+
+  // Zeshoek en icoon van één regel; y is de bovenkant van de regel (kap-hoogte)
+  function contactMark(item, x, y, size) {
+    const r = size * CONTACT.r;
+    const cx = x + (r * SQRT3) / 2;
+    const cy = y + (size * CAP) / 2;
+    const box = r * CONTACT.icon;
+    return { cx, cy, r, icon: contactIcon(item.text), box: { x: cx - box / 2, y: cy - box / 2, size: box } };
+  }
+
+  // Alle zeshoeken van een stapel die op (x, top) staat, voor de PowerPoint-export
+  function contactMarks(stack, x, top) {
+    const out = [];
+    let y = top;
+    for (const b of stack.blocks) {
+      if (b.empty) continue;
+      y += b.gap;
+      if (b.body != null && b.block.st.bullet) {
+        for (const it of b.block.items) if (it.bullet) out.push(contactMark(it, x, y + it.y, b.block.st.size));
+      }
+      y += b.block.height;
+    }
+    return out;
+  }
+
+  function drawContactMark(ctx, item, x, y, st) {
+    const m = contactMark(item, x, y, st.size);
+    hexPath(ctx, m.cx, m.cy, m.r);
+    ctx.fillStyle = COLORS.cyan;
+    ctx.fill();
+    drawIcon(ctx, m.icon, m.box.x, m.box.y, m.box.size, COLORS.ink);
+  }
+
+  const CONTACT_ST = { indent: CONTACT.indent, itemGap: CONTACT.itemGap, bullet: drawContactMark };
+
   // Een kopje in een vak: een regel die helemaal vet is (**Verwachte voordelen**)
   const ZONE_HEAD = /^\*\*[^*]+\*\*:?$/;
 
@@ -564,7 +619,8 @@
     closing: (s, deck) => [
       { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(titleSize(124, s)), min: 60 },
       { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(44), min: 24, gap: 36, colors: BODY },
-      { key: 'body', body: asBullets(s.body), st: PARA(34, 600), min: 20, gap: 60, colors: TEXT },
+      // Contactgegevens: per regel een zeshoek met een passend icoon in plaats van een punt
+      { key: 'body', body: asBullets(s.body), st: { ...PARA(34, 600), ...CONTACT_ST }, min: 20, gap: 60, colors: TEXT },
     ],
     // Lopende tekst zoals bij Beeld + tekst: "- " wordt een opsomming, een lege regel geeft lucht
     tekst: (s, deck) => [
@@ -1970,6 +2026,7 @@
 
   global.PMSlides = {
     renderSlide, plan, frame, badgeBox, titleSize, flowColumns, zoneLines, LAYOUTS, GRID, GEOM, W, H,
+    contactIcon, contactMarks,
     defaultTable, normalizeTable, TABLE_LIMITS, TABLE_STYLE,
     palettes: { TEXT, BODY, SOFT, META, LABEL_PAL },
   };

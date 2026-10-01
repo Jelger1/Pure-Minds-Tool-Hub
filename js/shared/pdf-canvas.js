@@ -5,7 +5,7 @@
    PMPdfCanvas biedt precies die opdrachten aan en maakt er losse PDF-objecten
    van, zo dat Canva (en Illustrator of Acrobat) elk onderdeel apart houdt:
 
-     tekst      echte tekst in Open Sans, per regel en stijl één object, met de
+     tekst      echte tekst in Pure Minds Sans, per regel en stijl één object, met de
                 spaties erin. Meten doet de browser, net als in de preview: de
                 regelval, lettergrootte en positie zijn dus exact gelijk
      vormen     vlakken en lijnen in een effen kleur als vector
@@ -18,7 +18,7 @@
                 het logo in Canva één element is (alleen als de browser
                 bevestigt dat het er dan precies hetzelfde uitziet). Een SVG die
                 svg2pdf niet aankan, gaat als afbeelding mee
-     emoji      tekens die Open Sans niet heeft, als kleine afbeelding (jsPDF
+     emoji      tekens die Pure Minds Sans niet heeft, als kleine afbeelding (jsPDF
                 zou de rest van de tekst anders weglaten)
      kleuren    met vier decimalen (PM.pdfColor): merkcyaan blijft #1ab9e2
 
@@ -46,7 +46,7 @@
 (function (global) {
   'use strict';
 
-  const FAMILY = 'OpenSans';   // de familie die PM.pdfFonts registreert
+  const FAMILY = 'PureMindsSans';   // de familie die PM.pdfFonts registreert
 
   const DEFAULTS = {
     fillStyle: '#000000', strokeStyle: '#000000', lineWidth: 1, lineCap: 'butt', lineJoin: 'miter',
@@ -762,7 +762,7 @@
       return this.measureWith(this.font, this.letterSpacing, String(text));
     }
 
-    // Kan Open Sans dit teken? (anders zou jsPDF de rest van de tekst weglaten)
+    // Kan Pure Minds Sans dit teken? (anders zou jsPDF de rest van de tekst weglaten)
     glyphs(style) {
       const entry = this.pdf.internal.getFont(FAMILY, style, { noFallback: true });
       return entry && entry.metadata && entry.metadata.characterToGlyph ? entry.metadata : null;
@@ -779,7 +779,7 @@
       if (this.textAlign === 'center') x -= width / 2;
       else if (this.textAlign === 'right' || this.textAlign === 'end') x -= width;
 
-      // Tekst opknippen in stukken die Open Sans heeft en stukken die niet (emoji).
+      // Tekst opknippen in stukken die Pure Minds Sans heeft en stukken die niet (emoji).
       // Per grafeem: 1️⃣ is een 1 met twee tekens erachter en moet heel blijven
       const meta = this.glyphs(f.style);
       const chars = graphemes(text);
@@ -829,7 +829,7 @@
       this.items.push({ kind: 'text', y: run.y, runs: [run] });
     }
 
-    // Een teken dat Open Sans niet heeft, zoals de browser het tekent (met zijn reservefont)
+    // Een teken dat Pure Minds Sans niet heeft, zoals de browser het tekent (met zijn reservefont)
     addGlyphImage(text, x, y, w, f, color) {
       const pad = f.size * 0.4;
       const css = `rgba(${color.r},${color.g},${color.b},${color.a})`;

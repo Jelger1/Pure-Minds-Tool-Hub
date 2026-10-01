@@ -4,7 +4,7 @@
    Geen screenshot: elke pagina wordt opnieuw opgebouwd in jsPDF, op precies
    de plek waar de browser alles in de preview heeft gezet.
 
-     tekst            echte tekst in ingesloten Open Sans, per regel; te
+     tekst            echte tekst in ingesloten Pure Minds Sans, per regel; te
                       selecteren en aan te passen in Acrobat of Illustrator
      vlakken, lijnen  vectorrechthoeken (achtergronden en randen uit de CSS)
      logo, zeshoeken  SVG, omgezet naar vectoren met svg2pdf.js
@@ -28,7 +28,7 @@
   function ascent(size) {
     if (ascentRatio == null) {
       const probe = document.createElement('div');
-      probe.style.cssText = 'position:absolute;left:-9999px;top:0;font:400 100px "PM Open Sans";line-height:normal;white-space:nowrap';
+      probe.style.cssText = 'position:absolute;left:-9999px;top:0;font:400 100px "Pure Minds Sans";line-height:normal;white-space:nowrap';
       probe.innerHTML = '<span>Hxg</span><i style="display:inline-block;width:1px;height:0;vertical-align:baseline"></i>';
       document.body.appendChild(probe);
       const text = probe.firstChild.getBoundingClientRect();
@@ -94,7 +94,7 @@
 
   function setFont(pdf, cs, size) {
     const italic = cs.fontStyle === 'italic' || cs.fontStyle === 'oblique';
-    pdf.setFont('OpenSans', PM.pdfFontStyle(cs.fontWeight, italic));
+    pdf.setFont('PureMindsSans', PM.pdfFontStyle(cs.fontWeight, italic));
     pdf.setFontSize(size * K);
   }
 

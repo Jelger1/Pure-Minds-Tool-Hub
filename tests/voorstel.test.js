@@ -109,7 +109,7 @@ test('de datum: alleen de standaard als er nog geen datum was', () => {
   // Ongedaan maken gaat via normalizeInput: een lege datum komt niet terug
   const inp = input({ datum: '' });
   assert.equal(P.normalizeInput(JSON.parse(JSON.stringify(inp)), 'oktober 2026').datum, '');
-  assert.equal(P.specFor(inp, 'cover').meta, 'Pure Minds');
+  assert.equal(P.specFor(inp, 'cover').meta, 'Pure Minds Marketing Group');
 });
 
 test('de vakken van het canvas: klantsegment en klanttype, dan zes vakken', () => {
@@ -197,9 +197,9 @@ test('het standaardvoorstel: elf slides in de vaste volgorde', () => {
   const cover = specs[0];
   assert.equal(cover.layout, 'title');
   assert.equal(cover.photoFit, 'logo');
-  assert.equal(cover.meta, 'Pure Minds · september 2026');
+  assert.equal(cover.meta, 'Pure Minds Marketing Group · september 2026');
   assert.equal(cover.subtitle, 'Positionering en merkverhaal');
-  assert.equal(P.specFor(input({ datum: '' }), 'cover').meta, 'Pure Minds');
+  assert.equal(P.specFor(input({ datum: '' }), 'cover').meta, 'Pure Minds Marketing Group');
   const everything = P.build(input({ parts: all() }));
   assert.deepEqual(roles(everything), P.ROLES, 'alles aan: alle vijftien, SEA is geen slide');
   for (const s of everything) assert.ok(LAYOUTS.has(s.layout), `layout ${s.layout}`);

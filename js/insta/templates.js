@@ -8,13 +8,13 @@
    Vaste regels voor álle templates (zie GRID en frame()):
      - marge van 88 px rondom
      - cyaan balk van 12 px bovenaan, zoals op elk artboard in het brandbook
-     - label linksboven: zeshoek-bullet + Open Sans Bold in hoofdletters
+     - label linksboven: zeshoek-bullet + Pure Minds Sans Bold in hoofdletters
      - logo rechtsonder in een inkt-zeshoek, in elk template op dezelfde plek
      - bij de carousel de swipe-indicator linksonder, verticaal gecentreerd
        op het logo; de posts hebben verder geen voetregel
      - optioneel de Emerce 100-badge op die plek: klein, wit, verticaal
        gecentreerd op het logo (in de carousel alleen op de laatste slide)
-     - koppen Open Sans ExtraBold met -2% tracking, tekst Open Sans Regular
+     - koppen Pure Minds Sans ExtraBold met -2% tracking, tekst Pure Minds Sans Regular
      - de zeshoek-duo (foto of vlak + verschoven cyaan lijn) als vormelement
 
    renderPost() geeft ook terug wat waar staat (regions: rechthoeken in

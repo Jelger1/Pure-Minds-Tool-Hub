@@ -213,8 +213,8 @@
     cover: (inp, c) => {
       const datum = oneLine(inp.datum);
       return {
-        layout: 'title', label: 'pure minds', title: `Positionering **${c.K}**`, subtitle: TEXT.intro(c.K),
-        meta: datum ? `Pure Minds · ${datum}` : 'Pure Minds', photoFit: 'cover',
+        layout: 'title', label: 'pure minds marketing group', title: `Positionering **${c.K}**`, subtitle: TEXT.intro(c.K),
+        meta: datum ? `Pure Minds Marketing Group · ${datum}` : 'Pure Minds Marketing Group', photoFit: 'cover',
       };
     },
     agenda: (inp, c) => ({ layout: 'vragen', label: 'inhoud', title: 'Positionering', subtitle: TEXT.agendaIntro, body: agendaOf(c.isOn) }),
@@ -227,7 +227,7 @@
     sectieBmcUitleg: (inp, c) => section('toelichting', 'Business Model Canvas', `Toelichting\n**${c.K}**`),
     sectieVpcUitleg: (inp, c) => section('toelichting', 'Waarde Propositie Canvas', `Toelichting\n**${c.K}**`),
     afsluiter: (inp, c) => ({
-      layout: 'closing', label: 'pure minds', title: 'Van gesprek naar positionering',
+      layout: 'closing', label: 'pure minds marketing group', title: 'Van gesprek naar positionering',
       subtitle: TEXT.afsluiter(c.K, inp.aanbod), body: TEXT.contact, photoFit: 'cover',
     }),
   };

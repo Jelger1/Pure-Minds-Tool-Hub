@@ -35,7 +35,7 @@ function fakeMeasure() {
   };
 }
 
-// jsPDF dat alleen onthoudt wat er gevraagd wordt; Open Sans kent alles onder U+2000
+// jsPDF dat alleen onthoudt wat er gevraagd wordt; Pure Minds Sans kent alles onder U+2000
 function fakePdf() {
   const calls = [];
   const pdf = { calls };
@@ -263,7 +263,7 @@ test('intersect, roundOut en hash', () => {
 
 test('fillText: woorden in dezelfde stijl met een spatie ertussen worden één run, met de spatie', () => {
   const { ctx } = make();
-  ctx.font = '400 40px "PM Open Sans"';
+  ctx.font = '400 40px "Pure Minds Sans"';
   ctx.fillStyle = '#ffffff';
   ctx.fillText('Hallo', 100, 200);      // 5 × 20 = 100 breed, eindigt op 200
   ctx.fillText('wereld', 220, 200);     // spatie van 20
@@ -744,7 +744,7 @@ test('flush: tekst en vectoren in tekenvolgorde, op schaal k, met alfa in een ei
   const { pdf, ctx } = make();
   ctx.fillStyle = '#1ab9e2';
   ctx.fillRect(0, 0, 1080, 12);
-  ctx.font = '800 72px "PM Open Sans"';
+  ctx.font = '800 72px "Pure Minds Sans"';
   ctx.letterSpacing = '2px';
   ctx.fillStyle = '#ffffff';
   ctx.fillText('Titel', 60, 300);
@@ -775,7 +775,7 @@ test('flush: tekst en vectoren in tekenvolgorde, op schaal k, met alfa in een ei
   // Kleur als tekst met 4 decimalen, anders rondt jsPDF merkcyaan af naar #1abae3
   assert.deepEqual(pdf.calls.slice(0, 7).map((c) => c.slice(1)), [['0.1029', '0.7265', '0.8873'], [0, 0], [810, 0], [810, 9], [0, 9], [], []]);
   // Tekst: echte tekst op x·k, y·k in de juiste snede, grootte en spatiëring op schaal
-  assert.deepEqual(call('setFont'), ['OpenSans', 'extrabold']);
+  assert.deepEqual(call('setFont'), ['PureMindsSans', 'extrabold']);
   assert.deepEqual(call('setFontSize'), [54]);
   assert.deepEqual(call('setCharSpace'), [1.5]);
   assert.deepEqual(call('setCharSpace', 1), [0], 'daarna weer terug op 0');

@@ -19,12 +19,12 @@
      PM.bindDrop(...)      slepen van een bestand op een zone
      PM.saveBlob(...)      bestand downloaden
      PM.libs               jsPDF, svg2pdf, JSZip en docx, pas geladen bij de eerste export
-     PM.pdfFonts(pdf)      Open Sans insluiten in een PDF (echte, bewerkbare tekst)
+     PM.pdfFonts(pdf)      Pure Minds Sans insluiten in een PDF (echte, bewerkbare tekst)
      PM.pdfDocument(opts)  een nieuwe PDF zoals alle makers hem maken; PM.pdfFinish(pdf, meta) -> Blob
-     PM.fontFiles()        Open Sans als bytes per snede (voor Word en PowerPoint)
+     PM.fontFiles()        Pure Minds Sans als bytes per snede (voor Word en PowerPoint)
      PM.brandImage(key)    logo als Image, met ingebedde kopie bij file://
      PM.brandSvg(key)      logo als SVG-tekst (vector in PDF's)
-     PM.fontsReady         belofte die klaar is als Open Sans geladen is
+     PM.fontsReady         belofte die klaar is als Pure Minds Sans geladen is
    ============================================================================= */
 (function (global) {
   'use strict';
@@ -516,7 +516,7 @@
       integrity: 'sha384-7hc/mtl4lyRUMzYFqHxwNbYZwh27MESE5AWa2nEuVChLn8bCQcrn18OgGv9uHgzz',
       ready: () => global.jspdf && global.jspdf.jsPDF && global.jspdf.jsPDF.API.svg && global.jspdf.jsPDF,
     },
-    // Open Sans voor in PDF, Word en PowerPoint (gegenereerd door scripts/build-brand-data.js)
+    // Pure Minds Sans voor in PDF, Word en PowerPoint (gegenereerd door scripts/build-brand-data.js)
     fonts: {
       src: () => url('js/shared/pdf-fonts.js'),
       ready: () => global.PM_PDF_FONTS,
@@ -566,7 +566,7 @@
     docx: () => loadLib('docx'),
   };
 
-  // Open Sans als bytes per snede, om in te sluiten in Word en PowerPoint
+  // Pure Minds Sans als bytes per snede, om in te sluiten in Word en PowerPoint
   const fontBytes = {};
   async function fontFiles() {
     const fonts = await loadLib('fonts');
@@ -576,7 +576,7 @@
     return fontBytes;
   }
 
-  // Welke Open Sans-snede jsPDF gebruikt; volgt de keuze die de browser maakt
+  // Welke Pure Minds Sans-snede jsPDF gebruikt; volgt de keuze die de browser maakt
   function pdfFontStyle(weight, italic) {
     const w = parseInt(weight, 10) || 400;
     if (italic) return w >= 600 ? 'bolditalic' : 'italic';
@@ -587,12 +587,12 @@
   }
 
   /**
-   * Open Sans in een jsPDF-document insluiten, alleen de snedes die nodig zijn,
+   * Pure Minds Sans in een jsPDF-document insluiten, alleen de snedes die nodig zijn,
    * zo dat elk programma (ook Canva) het gewicht van de tekst herkent:
    *   - jsPDF schrijft de familienaam als fontnaam, voor elke snede dezelfde
-   *     ("OpenSans"). Canva maakte daardoor alle tekst even dik en liet koppen
+   *     ("PureMindsSans"). Canva maakte daardoor alle tekst even dik en liet koppen
    *     weg. Tijdens het wegschrijven krijgt elke snede zijn PostScript-naam
-   *     ("OpenSans-ExtraBold"); daarna weer de familienaam, zodat setFont blijft werken.
+   *     ("PureMindsSans-ExtraBold"); daarna weer de familienaam, zodat setFont blijft werken.
    *   - jsPDF schrijft /StemV 0, en PDFium (waar veel importers op bouwen) leidt
    *     het gewicht alleen daaruit af: StemV = gewicht/5 (onder 700) of
    *     (gewicht-140)/4 geeft daar precies 400/600/700/800. De CapHeight staat
@@ -605,9 +605,9 @@
       const font = fonts[style];
       if (!font) continue;
       pdf.addFileToVFS(font.file, font.data);
-      pdf.addFont(font.file, 'OpenSans', style);
+      pdf.addFont(font.file, 'PureMindsSans', style);
       names.push([style, font.file.replace(/\.ttf$/i, '')]);
-      const md = pdf.internal.getFont('OpenSans', style).metadata;
+      const md = pdf.internal.getFont('PureMindsSans', style).metadata;
       if (md && md.os2 && md.os2.exists) {
         const w = md.os2.weightClass || 400;
         md.stemV = w < 700 ? Math.round(w / 5) : Math.round((w - 140) / 4);
@@ -615,17 +615,17 @@
       }
     }
     const rename = (toPostScript) => names.forEach(([style, ps]) => {
-      const entry = pdf.internal.getFont('OpenSans', style);
-      if (entry) entry.fontName = toPostScript ? ps : 'OpenSans';
+      const entry = pdf.internal.getFont('PureMindsSans', style);
+      if (entry) entry.fontName = toPostScript ? ps : 'PureMindsSans';
     });
     pdf.internal.events.subscribe('buildDocument', () => rename(true));
     pdf.internal.events.subscribe('postPutResources', () => rename(false));
-    return 'OpenSans';
+    return 'PureMindsSans';
   }
 
   /**
    * Een nieuwe PDF zoals alle makers hem maken: in pt, gecomprimeerd, met
-   * Open Sans, en als PDF 1.4 (doorzichtigheid bestaat pas sinds 1.4; jsPDF
+   * Pure Minds Sans, en als PDF 1.4 (doorzichtigheid bestaat pas sinds 1.4; jsPDF
    * schrijft 1.3). Afronden met pdfFinish.
    */
   async function pdfDocument({ format, orientation = 'portrait' }) {
@@ -657,7 +657,7 @@
      ------------------------------------------------------------------------- */
 
   const fontsReady = document.fonts
-    ? Promise.all([300, 400, 600, 700, 800].map((w) => document.fonts.load(`${w} 40px "PM Open Sans"`))).then(() => document.fonts.ready).catch(() => null)
+    ? Promise.all([300, 400, 600, 700, 800].map((w) => document.fonts.load(`${w} 40px "Pure Minds Sans"`))).then(() => document.fonts.ready).catch(() => null)
     : Promise.resolve();
 
   const debounce = (fn, ms) => {

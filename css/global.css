@@ -10,13 +10,16 @@
  * (A4-briefpapier, slides) hoort ook daar, niet in dit bestand.
  */
 
-@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-Light.ttf") format("truetype"); font-weight: 300; font-display: swap; }
-@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-ExtraBold.ttf") format("truetype"); font-weight: 800; font-display: swap; }
-@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-Italic.ttf") format("truetype"); font-weight: 300 500; font-style: italic; font-display: swap; }
-@font-face { font-family: "PM Open Sans"; src: url("../assets/brand/fonts/OpenSans-BoldItalic.ttf") format("truetype"); font-weight: 600 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Light.ttf") format("truetype"); font-weight: 300; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-ExtraBold.ttf") format("truetype"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-LightItalic.ttf") format("truetype"); font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Italic.ttf") format("truetype"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-SemiBoldItalic.ttf") format("truetype"); font-weight: 600; font-style: italic; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-BoldItalic.ttf") format("truetype"); font-weight: 700; font-style: italic; font-display: swap; }
+@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-ExtraBoldItalic.ttf") format("truetype"); font-weight: 800; font-style: italic; font-display: swap; }
 
 :root {
   --pm-cyan: #1ab9e2;
@@ -34,7 +37,7 @@
   --pm-canvas: #edf3f7;
   --pm-zebra: #f7fafc;
   --pm-track: #eef2f5;
-  --font: "PM Open Sans", "Open Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+  --font: "Pure Minds Sans", "Open Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
 }
 
 /* --- Basis --- */

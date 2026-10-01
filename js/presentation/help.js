@@ -222,7 +222,7 @@
     },
     'powerpoint': {
       title: 'PowerPoint',
-      text: 'Om verder te bewerken in PowerPoint of Google Slides, met echte tekstvakken. Mist je computer Open Sans, dan kiest PowerPoint een ander lettertype. Voor Google Slides: upload in Drive en kies Bestand → Opslaan als Google Presentaties.',
+      text: 'Om verder te bewerken in PowerPoint of Google Slides, met echte tekstvakken. Mist je computer Pure Minds Sans, dan kiest PowerPoint een ander lettertype. Voor Google Slides: upload in Drive en kies Bestand → Opslaan als Google Presentaties.',
     },
     'als-afbeelding': {
       title: 'Als afbeelding',

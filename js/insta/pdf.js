@@ -3,7 +3,7 @@
    -----------------------------------------------------------------------------
    Dezelfde renderfunctie als de preview tekent via PMPdfCanvas in de PDF
    (js/shared/pdf-canvas.js). Elk onderdeel blijft een los object: tekst als
-   tekst in Open Sans, vormen en het logo als vector, verlopen en foto's als
+   tekst in Pure Minds Sans, vormen en het logo als vector, verlopen en foto's als
    losse afbeeldingen. Zo importeert Canva de post laag voor laag en ziet hij
    er in de PDF precies zo uit als in de preview.
 

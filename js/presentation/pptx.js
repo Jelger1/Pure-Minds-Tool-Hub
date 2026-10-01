@@ -29,8 +29,8 @@
                 rechtsonder (links van het slidenummer als dat aan staat),
                 als scherpe afbeelding
 
-   Lettertype: Open Sans (op de computer geïnstalleerd, of anders vervangt
-   PowerPoint het). Google Slides heeft Open Sans standaard.
+   Lettertype: Pure Minds Sans (op de computer geïnstalleerd, of anders vervangt
+   PowerPoint het; de bestanden staan in assets/fonts/).
    ============================================================================= */
 (function (global) {
   'use strict';
@@ -42,7 +42,7 @@
   const { W, H, GRID, GEOM } = S;
   const { TEXT, BODY, SOFT, LABEL_PAL } = S.palettes;
 
-  const LINE = 1.362;        // regelhoogte van Open Sans (em): de hoogte van een tekstvak van één regel
+  const LINE = 1.362;        // regelhoogte van Pure Minds Sans (em): de hoogte van een tekstvak van één regel
   const PPT_SINGLE = 1.2;    // regelafstand 100% in PowerPoint: 1,2 × het korps (zoals pptx-writer.js)
   const PPT_DESC = 0.26;     // PowerPoint: ruimte onder de basislijn van een regel (em), zie pptLine
   // Regelafstand waarbij één regel met zijn hoofdletters precies midden in een vorm staat
@@ -150,10 +150,15 @@
           // plus een half korps per lege regel
           const gap = i === 0 ? b.gap : st.size * ((st.itemGap != null ? st.itemGap : 0.5) + 0.5 * line.blank);
           const item = b.block.items && b.block.items[i];
+          // Inspringen zoals layoutBody (st.indent). Een eigen teken (st.bullet, de zeshoeken
+          // met een icoon op de afsluiter) staat als vorm ernaast: de alinea alleen inspringen
+          const indent = b.block.indent != null ? b.block.indent : st.size * 1.15;
+          const own = line.bullet && !!st.bullet;
           add({
             runs: toRuns(runsFrom(line.text), st, colors),
-            bullet: line.bullet ? BULLET : null,
-            indent: line.bullet ? st.size * 1.15 : 0,
+            bullet: line.bullet && !own ? BULLET : null,
+            indent: line.bullet && !own ? indent : 0,
+            marL: own ? indent : 0,
           }, st, gap, item ? item.block.lines.length : 1);
         });
       } else {
@@ -207,6 +212,16 @@
   }
 
   const hex = (cx, cy, r, fill, stroke, name, text) => ({ kind: 'hex', cx, cy, r, fill, line: stroke, name, text });
+
+  // Contactregels op de afsluiter: per regel de cyaan zeshoek met het icoon in inkt, als
+  // vectorvormen op dezelfde plek als op het canvas (contactMarks in templates.js)
+  const ICON_NAME = { mail: 'e-mail', phone: 'telefoon', web: 'website', user: 'persoon' };
+  function contactObjects(p) {
+    return S.contactMarks(p.stack, p.x, p.top).flatMap((m) => [
+      hex(m.cx, m.cy, m.r, { color: COLORS.cyan }, null, `Icoon ${ICON_NAME[m.icon]}-zeshoek`),
+      { kind: 'path', x: m.box.x, y: m.box.y, w: m.box.size, h: m.box.size, view: 24, cmds: K.ICONS[m.icon], fill: { color: COLORS.ink }, line: null, name: `Icoon ${ICON_NAME[m.icon]}` },
+    ]);
+  }
 
   // De tabel uit het plan als echte PowerPoint-tabel. PowerPoint rekent de tekst
   // van een cel hoger dan het canvas (van kap-hoogte tot onderkant): dat gaat van
@@ -546,6 +561,7 @@
 
     if (p.layout === 'title' || p.layout === 'closing') {
       objects.push(...heroObjects(env, photo), ...label(fr, s.label, p.labelW), stackBox(fr, p));
+      if (p.layout === 'closing') objects.push(...contactObjects(p));
     } else if (p.layout === 'section') {
       const { cx, cy, r } = p.hex;
       const num = String(env.sectionNumber || 1).padStart(2, '0');

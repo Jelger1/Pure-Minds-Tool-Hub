@@ -120,7 +120,7 @@ test('de opbouw: 22 slides in de vaste volgorde, met layout, label en titel', ()
   const specs = P.build(input({ klant: 'Eurosit' }));
   const K = '**Eurosit**';
   const expected = [
-    ['cover', 'title', 'pure minds', `Positionering ${K}`],
+    ['cover', 'title', 'pure minds marketing group', `Positionering ${K}`],
     ['agenda', 'vragen', 'inhoud', 'Positionering'],
     ['sectieBmc', 'section', 'business model canvas', 'Business Model Canvas'],
     ['bmc', 'bmc', 'business model canvas', ''],
@@ -141,7 +141,7 @@ test('de opbouw: 22 slides in de vaste volgorde, met layout, label en titel', ()
     ['vpcVoordelen', 'toelichting', 'klantprofiel', 'Voordelen'],
     ['vpcPijnen', 'toelichting', 'klantprofiel', 'Pijnpunten'],
     ['vpcTaken', 'toelichting', 'klantprofiel', 'Klanttaken'],
-    ['afsluiter', 'closing', 'pure minds', 'Van gesprek naar positionering'],
+    ['afsluiter', 'closing', 'pure minds marketing group', 'Van gesprek naar positionering'],
   ];
   assert.deepEqual(specs.map((s) => [s.role, s.layout, s.label, s.title]), expected);
   assert.deepEqual(roles(specs), P.ROLES);
@@ -158,8 +158,8 @@ test('de opbouw: 22 slides in de vaste volgorde, met layout, label en titel', ()
   // Titelslide: foto in de zeshoek, Pure Minds en de datum onderaan
   const cover = specs[0];
   assert.equal(cover.photoFit, 'cover');
-  assert.equal(cover.meta, 'Pure Minds · oktober 2026');
-  assert.equal(spec(input({ datum: '  ' }), 'cover').meta, 'Pure Minds');
+  assert.equal(cover.meta, 'Pure Minds Marketing Group · oktober 2026');
+  assert.equal(spec(input({ datum: '  ' }), 'cover').meta, 'Pure Minds Marketing Group');
   assert.equal(spec(input({ klant: '  **EEZZ** ' }), 'cover').title, 'Positionering **EEZZ**', 'één regel, zonder eigen nadruk');
   const last = specs[specs.length - 1];
   assert.equal(last.photoFit, 'cover');
@@ -191,9 +191,9 @@ test('vaste teksten staan er letterlijk in', () => {
   assert.ok(spec(input(), 'afsluiter').subtitle.includes('liggen voor [klantnaam].\n\n'), 'zonder naam de invulplek, met een punt');
   assert.equal(slot('diensten').body, 'www.pureminds.nl\n045 - 3690530\ninfo@pureminds.nl');
   assert.ok(Object.isFrozen(P.TEXT) && Object.isFrozen(P.TEXT.uitleg) && Object.isFrozen(P.TEXT.agenda));
-  // Geen slordigheden uit de referenties, geen bronvermelding, een krulapostrof
+  // Geen slordigheden uit de referenties (wel Pure Minds Marketing Group, met hoofdletters), geen bronvermelding, een krulapostrof
   const json = JSON.stringify(P.build(input({ klant: 'Eurosit' })));
-  for (const fout of ['Overzicht Waarde Propositie Canvas Overzicht', '2.Servicegericht', 'Group', 'group', 'Info@', 'Aan de rechterzijde', 'canvas overzicht', 'Canvas overzicht']) assert.ok(!json.includes(fout), fout);
+  for (const fout of ['Overzicht Waarde Propositie Canvas Overzicht', '2.Servicegericht', 'Pure Minds Marketing group', 'Pure Minds marketing', 'Info@', 'Aan de rechterzijde', 'canvas overzicht', 'Canvas overzicht']) assert.ok(!json.includes(fout), fout);
   assert.ok(!/strategyzer/i.test(json));
   assert.ok(!/[a-z]'s\b/i.test(json), 'risico’s met een krulapostrof');
 });

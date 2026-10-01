@@ -23,6 +23,9 @@
      { kind: 'line', x1, y1, x2, y2, line, head, tail, name }   rechte lijn van
            (x1, y1) naar (x2, y2); head / tail: pijlpunt aan begin / eind, als
            'triangle' of { type: 'triangle', w, len } (w, len: 'sm' | 'med' | 'lg')
+     { kind: 'path', x, y, w, h, view, cmds, fill, line, name }   vrije vorm (zoals een
+           icoon): cmds [['M', x, y], ['L', x, y], ['C', x1, y1, x2, y2, x, y], ['Z']]
+           in een vak van view × view, geschaald naar w × h; als vector bewerkbaar
      { kind: 'pic', x, y, w, h, image, crop, name }       crop: { l, t, r, b } als fractie
      { kind: 'text', x, y, w, h, anchor, wrap, autofit, paragraphs, name }
      { kind: 'sldnum', x, y, w, h, align, run }           slidenummer (veld)
@@ -88,14 +91,14 @@
     return `<a:srgbClr val="${c.hex}">${a < 1 ? `<a:alpha val="${Math.round(a * 100000)}"/>` : ''}</a:srgbClr>`;
   }
 
-  // Welke Open Sans-snede PowerPoint gebruikt: sneden buiten regular/bold zijn
+  // Welke Pure Minds Sans-snede PowerPoint gebruikt: sneden buiten regular/bold zijn
   // op Windows en Mac aparte lettertypefamilies
   function face(weight) {
     const w = parseInt(weight, 10) || 400;
-    if (w >= 800) return { typeface: 'Open Sans ExtraBold', bold: false };
-    if (w >= 700) return { typeface: 'Open Sans', bold: true };
-    if (w >= 600) return { typeface: 'Open Sans SemiBold', bold: false };
-    return { typeface: 'Open Sans', bold: false };
+    if (w >= 800) return { typeface: 'Pure Minds Sans ExtraBold', bold: false };
+    if (w >= 700) return { typeface: 'Pure Minds Sans', bold: true };
+    if (w >= 600) return { typeface: 'Pure Minds Sans SemiBold', bold: false };
+    return { typeface: 'Pure Minds Sans', bold: false };
   }
 
   class PMPptxWriter {
@@ -199,6 +202,21 @@
       return `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/><a:pathLst><a:path w="${cx}" h="${cy}">${path}<a:close/></a:path></a:pathLst></a:custGeom>`;
     }
 
+    // Vrije vorm: alle deelpaden in één pad, zodat de gaten (de lijnen van een icoon) open blijven
+    pathGeom(o) {
+      const cx = this.px(o.w);
+      const cy = this.px(o.h);
+      const view = o.view || 24;
+      const pt = (x, y) => `<a:pt x="${Math.round((x / view) * cx)}" y="${Math.round((y / view) * cy)}"/>`;
+      const path = o.cmds.map((c) => {
+        if (c[0] === 'M') return `<a:moveTo>${pt(c[1], c[2])}</a:moveTo>`;
+        if (c[0] === 'L') return `<a:lnTo>${pt(c[1], c[2])}</a:lnTo>`;
+        if (c[0] === 'C') return `<a:cubicBezTo>${pt(c[1], c[2])}${pt(c[3], c[4])}${pt(c[5], c[6])}</a:cubicBezTo>`;
+        return '<a:close/>';
+      }).join('');
+      return `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/><a:pathLst><a:path w="${cx}" h="${cy}">${path}</a:path></a:pathLst></a:custGeom>`;
+    }
+
     rPr(r) {
       const f = face(r.weight);
       const size = Math.round(r.size * 50);                       // px -> honderdsten van een punt
@@ -273,6 +291,8 @@
           const h = o.r * 2;
           return this.spXml(part, { ...o, x: o.cx - w / 2, y: o.cy - o.r, w, h }, this.hexGeom(w, h));
         }
+        case 'path':
+          return this.spXml(part, o, this.pathGeom(o));
         case 'ellipse':
           return this.spXml(part, { ...o, x: o.cx - o.rx, y: o.cy - o.ry, w: o.rx * 2, h: o.ry * 2 }, '<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom>');
         case 'line': {
@@ -375,7 +395,7 @@
       const ln = (w) => `<a:ln w="${w}" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/></a:ln>`;
       return `${XML}<a:theme xmlns:a="${NS_A}" name="Pure Minds"><a:themeElements>`
         + `<a:clrScheme name="Pure Minds">${colors}</a:clrScheme>`
-        + `<a:fontScheme name="Pure Minds"><a:majorFont>${font('Open Sans ExtraBold')}</a:majorFont><a:minorFont>${font('Open Sans')}</a:minorFont></a:fontScheme>`
+        + `<a:fontScheme name="Pure Minds"><a:majorFont>${font('Pure Minds Sans ExtraBold')}</a:majorFont><a:minorFont>${font('Pure Minds Sans')}</a:minorFont></a:fontScheme>`
         + `<a:fmtScheme name="Pure Minds"><a:fillStyleLst>${fill}${fill}${fill}</a:fillStyleLst><a:lnStyleLst>${ln(6350)}${ln(12700)}${ln(19050)}</a:lnStyleLst>`
         + '<a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst>'
         + `<a:bgFillStyleLst>${fill}${fill}${fill}</a:bgFillStyleLst></a:fmtScheme>`

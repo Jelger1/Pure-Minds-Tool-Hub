@@ -22,7 +22,7 @@
 
   function example(date = '') {
     return [
-      { layout: 'title', label: 'pure minds', title: 'Groeien met **online marketing**', subtitle: 'Strategie en plan voor het komende jaar', meta: `Pure Minds · ${date}` },
+      { layout: 'title', label: 'pure minds marketing group', title: 'Groeien met **online marketing**', subtitle: 'Strategie en plan voor het komende jaar', meta: `Pure Minds Marketing Group · ${date}` },
       { layout: 'section', label: 'hoofdstuk', title: 'Waar staan we nu', subtitle: 'Een eerlijke blik op de huidige resultaten' },
       { layout: 'bullets', label: 'analyse', title: 'Wat we zien in de data', body: 'Het meeste verkeer komt via betaalde zoekcampagnes\nDe landingspagina’s converteren onder het gemiddelde\nMobiel groeit het hardst, maar converteert het slechtst\nRemarketing wordt nog niet ingezet' },
       { layout: 'split', label: 'aanpak', title: 'Van klik naar klant', body: 'We brengen advertentie en landingspagina samen in één verhaal.\n- heldere belofte boven de vouw\n- één duidelijke actie per pagina\n- testen, meten en bijsturen' },

@@ -3,7 +3,7 @@
    -----------------------------------------------------------------------------
    Gebruikt door de Insta Post Maker (js/insta/templates.js) en de Presentation
    Maker (js/presentation/templates.js). Alles wat het merk bepaalt zit hier op
-   één plek: kleuren, Open Sans, de puntige zeshoek (net als het logo), het
+   één plek: kleuren, Pure Minds Sans, de puntige zeshoek (net als het logo), het
    zeshoekpatroon, tekstopmaak met **nadruk** en de cyaan punt, foto's in een
    vak of zeshoek, het label met zeshoek-bullet, de voetregel en het logo.
 
@@ -30,8 +30,8 @@
     navy: '#10283c',     // donkere ondertoon voor verlopen over foto's
   };
 
-  const FONT_FAMILY = '"PM Open Sans", "Open Sans", Arial, sans-serif';
-  const CAP = 0.714;   // cap-hoogte van Open Sans als fractie van de korpsgrootte
+  const FONT_FAMILY = '"Pure Minds Sans", "Open Sans", Arial, sans-serif';
+  const CAP = 0.714;   // cap-hoogte van Pure Minds Sans als fractie van de korpsgrootte
   const DESC = 0.24;   // ruimte onder de laatste basislijn
   const SQRT3 = Math.sqrt(3);
 
@@ -287,7 +287,9 @@
    * opsommingspunt met een cyaan zeshoekje; een lege regel geeft extra lucht.
    */
   function layoutBody(ctx, text, maxW, st) {
-    const indent = st.size * 1.15;
+    // st.indent: inspringing van de punten als factor van het korps (standaard 1,15);
+    // een groter teken dan het zeshoekje (zoals een icoon) heeft meer ruimte nodig
+    const indent = st.size * (st.indent != null ? st.indent : 1.15);
     // st.itemGap: ruimte tussen de punten als factor van het korps (standaard 0.5)
     const gap = st.size * (st.itemGap != null ? st.itemGap : 0.5);
     const items = [];
@@ -295,7 +297,7 @@
     for (const line of parseBody(text)) {
       const block = layoutText(ctx, runsFrom(line.text), maxW - (line.bullet ? indent : 0), st);
       const y = items.length ? height + gap + line.blank * st.size * 0.5 : 0;
-      items.push({ block, bullet: line.bullet, y });
+      items.push({ block, bullet: line.bullet, y, text: line.text });
       height = y + block.height;
     }
     return { items, height, st, indent };
@@ -304,7 +306,9 @@
   function drawBody(ctx, body, x, top, colors) {
     const { st } = body;
     for (const item of body.items) {
-      if (item.bullet) {
+      // st.bullet(ctx, item, x, y, st): een eigen teken in plaats van het zeshoekje
+      if (item.bullet && st.bullet) st.bullet(ctx, item, x, top + item.y, st);
+      else if (item.bullet) {
         const cap = st.size * CAP;
         hexPath(ctx, x + st.size * 0.3, top + item.y + cap / 2, st.size * 0.22);
         ctx.fillStyle = COLORS.cyan;
@@ -312,6 +316,43 @@
       }
       drawText(ctx, item.block, x + (item.bullet ? body.indent : 0), top + item.y, colors);
     }
+  }
+
+  /* ---------------------------------------------------------------------------
+     Iconen uit het icon pack (Remix, 24 × 24), als pad: alleen absolute M, L, C
+     en Z, zodat ze zonder translate of scale te tekenen zijn en de PDF-export
+     ze als vectors overneemt. Omgezet uit assets/icons (de -line-varianten).
+     ------------------------------------------------------------------------- */
+
+  const ICON_SRC = {
+    mail: 'M3 3L21 3C21.55 3 22 3.45 22 4L22 20C22 20.55 21.55 21 21 21L3 21C2.45 21 2 20.55 2 20L2 4C2 3.45 2.45 3 3 3ZM20 7.24L12.07 14.34L4 7.22L4 19L20 19L20 7.24ZM4.51 5L12.06 11.66L19.5 5L4.51 5Z',
+    phone: 'M9.37 10.68C10.3 12.33 11.67 13.7 13.32 14.63L14.2 13.4C14.5 12.98 15.05 12.86 15.5 13.1C16.9 13.87 18.46 14.34 20.08 14.46C20.6 14.5 21 14.94 21 15.46L21 19.92C21 20.44 20.61 20.87 20.1 20.92C19.57 20.97 19.04 21 18.5 21C9.94 21 3 14.06 3 5.5C3 4.96 3.03 4.43 3.08 3.9C3.13 3.39 3.56 3 4.08 3L8.54 3C9.06 3 9.5 3.4 9.54 3.92C9.66 5.54 10.13 7.1 10.9 8.5C11.14 8.95 11.02 9.5 10.6 9.8L9.37 10.68ZM6.84 10.03L8.74 8.67C8.21 7.51 7.84 6.27 7.65 5L5.01 5C5 5.17 5 5.33 5 5.5C5 12.96 11.04 19 18.5 19C18.67 19 18.83 19 19 18.99L19 16.35C17.73 16.16 16.49 15.79 15.33 15.26L13.97 17.16C13.43 16.94 12.9 16.69 12.39 16.41L12.33 16.37C10.37 15.26 8.74 13.63 7.63 11.67L7.59 11.61C7.31 11.1 7.06 10.57 6.84 10.03Z',
+    web: 'M12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22ZM9.71 19.67C8.75 17.63 8.16 15.37 8.03 13L4.06 13C4.46 16.18 6.72 18.77 9.71 19.67ZM10.03 13C10.18 15.44 10.88 17.73 12 19.75C13.12 17.73 13.82 15.44 13.97 13L10.03 13ZM19.94 13L15.97 13C15.84 15.37 15.25 17.63 14.29 19.67C17.28 18.77 19.54 16.18 19.94 13ZM4.06 11L8.03 11C8.16 8.63 8.75 6.37 9.71 4.33C6.72 5.23 4.46 7.82 4.06 11ZM10.03 11L13.97 11C13.82 8.56 13.12 6.27 12 4.25C10.88 6.27 10.18 8.56 10.03 11ZM14.29 4.33C15.25 6.37 15.84 8.63 15.97 11L19.94 11C19.54 7.82 17.28 5.23 14.29 4.33Z',
+    user: 'M4 22C4 17.58 7.58 14 12 14C16.42 14 20 17.58 20 22L18 22C18 18.69 15.31 16 12 16C8.69 16 6 18.69 6 22L4 22ZM12 13C8.69 13 6 10.32 6 7C6 3.69 8.69 1 12 1C15.32 1 18 3.69 18 7C18 10.32 15.32 13 12 13ZM12 11C14.21 11 16 9.21 16 7C16 4.79 14.21 3 12 3C9.79 3 8 4.79 8 7C8 9.21 9.79 11 12 11Z',
+  };
+
+  // Per icoon de opdrachten: [['M', x, y], ['L', x, y], ['C', x1, y1, x2, y2, x, y], ['Z']]
+  const ICONS = {};
+  Object.keys(ICON_SRC).forEach((name) => {
+    ICONS[name] = Array.from(ICON_SRC[name].matchAll(/([MLCZ])([^MLCZ]*)/g), (m) => [m[1], ...m[2].trim().split(/\s+/).filter(Boolean).map(Number)]);
+  });
+
+  // Icoon met zijn vak van 24 × 24 op (x, y), size breed en hoog, gevuld in één kleur
+  function drawIcon(ctx, name, x, y, size, color) {
+    const cmds = ICONS[name];
+    if (!cmds) return;
+    const k = size / 24;
+    const X = (v) => x + v * k;
+    const Y = (v) => y + v * k;
+    ctx.beginPath();
+    for (const c of cmds) {
+      if (c[0] === 'M') ctx.moveTo(X(c[1]), Y(c[2]));
+      else if (c[0] === 'L') ctx.lineTo(X(c[1]), Y(c[2]));
+      else if (c[0] === 'C') ctx.bezierCurveTo(X(c[1]), Y(c[2]), X(c[3]), Y(c[4]), X(c[5]), Y(c[6]));
+      else ctx.closePath();
+    }
+    ctx.fillStyle = color;
+    ctx.fill();
   }
 
   function ellipsize(ctx, text, maxW) {
@@ -508,7 +549,7 @@
     COLORS, FONT_FAMILY, CAP, DESC, SQRT3, flags,
     clamp, rgba, setFont, addHex, hexPath, hexPattern, paintBackground,
     runsFrom, layoutText, fitText, drawText, parseBody, layoutBody, drawBody, ellipsize,
-    drawLabel, drawDomain, drawLogo, drawBadge, drawArrow, planCta,
+    ICONS, drawIcon, drawLabel, drawDomain, drawLogo, drawBadge, drawArrow, planCta,
     drawPhoto, drawContain, hexEcho, prepare, finish,
   };
 })(window);
