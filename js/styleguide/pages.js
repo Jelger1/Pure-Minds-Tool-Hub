@@ -15,7 +15,11 @@
    Lagen: elk blok zit in een laag (Achtergrond, Vormen, Tekst, Logo, Beeld).
    Op het scherm doet dat niets; in de PDF worden het lagen (OCG).
 
-     PMStyleguide.W, H, LAYERS
+   Kleuren: de huiskleuren uit brand-tokens.js, plus een vaste set neutrale
+   grijzen voor lijnen en vlakjes (NEUTRALS). Een witte vorm krijgt nooit een
+   rand: hij staat op Inkt, op een gekleurd of op een licht vlak (CANVAS).
+
+     PMStyleguide.W, H, LAYERS, CANVAS, NEUTRALS
      PMStyleguide.pages              [{ id, chapter, title, dark, index }]
      PMStyleguide.draw(ctx, i, env)  pagina i tekenen
      PMStyleguide.render(canvas, i, env, scale)   op een canvas, op schaal
@@ -50,15 +54,27 @@
   const CYAN = hex('cyaan');
   const MAGENTA = hex('magenta');
   const MUTED = hex('grijs');
-  // Niet-merkkleuren voor lijnen en vlakjes, gelijk aan css/global.css
-  const LINE = '#E1E7EC';
-  const CANVAS = '#EDF3F7';
-  const TINT = '#E8F7FC';
+  // Niet-merkkleuren, alle effen grijs of blauwgrijs: lijnen, vlakjes en de lege fotovlakken.
+  // De test (tests/styleguide.test.js) laat in de PDF alleen deze en de huiskleuren toe.
+  // Lijnen en lichte vlakken zijn gelijk aan css/global.css
+  const LINE = '#E1E7EC';          // lijn op wit (--pm-line)
+  const CANVAS = '#EDF3F7';        // licht vlak (--pm-canvas): het logo op licht, het voorbeeld van 60/30/10
+  const TINT = '#E8F7FC';          // cyaan tint (--pm-tint)
+  const TRACK = '#C5CED6';         // schuifbalk, tekstbalkjes en fout-voorbeelden op licht
+  const EDGE = '#8A949E';          // de rand om een witte zeshoek, alleen als fout-voorbeeld
   // Op Inkt: wit op 75% (tekst) en 6% (zeshoekpatroon), als effen kleur gemengd
   const DIM = '#CACACA';
   const PATTERN = '#3C3C3C';
   const TILE = '#3B3B3B';          // iets lichter vlak op Inkt (tegels)
+  const RULE_DARK = '#4A4A4A';     // lijn op Inkt
+  const BAR_DARK = '#6A6A6A';      // tekstbalkjes en fotovlak in een donker ontwerp in het klein
+  const DEEP = '#262626';          // het donkere vlak van een post of slide in het klein
   const PHOTO = '#3A4652';         // het lege fotovlak uit de makers (canvas-kit)
+  const PHOTO_DARK = '#262D35';    // de donkere onderkant van een foto, onder tekst op beeld
+  const PHOTO_LINE = '#4C5A67';    // hulplijnen op een foto
+  const PHOTO_SUBJECT = '#6F7E8B'; // het onderwerp op een foto
+  const PHOTO_ICON = '#7D8A96';    // het beeldicoon op een fotovlak
+  const NEUTRALS = [LINE, CANVAS, TINT, TRACK, EDGE, DIM, PATTERN, TILE, RULE_DARK, BAR_DARK, DEEP, PHOTO, PHOTO_DARK, PHOTO_LINE, PHOTO_SUBJECT, PHOTO_ICON];
 
   const { CAP, SQRT3 } = K;
 
@@ -81,7 +97,7 @@
    * (van de bovenkant van de hoofdletters tot onder de laatste regel).
    */
   // "€ 1.500,-" blijft op één regel: een vaste spatie na het euroteken
-  const keep = (str) => String(str).replace(/€ (?=\d)/g, '€ ');
+  const keep = (str) => String(str).replace(/€ (?=\d)/g, '€\u00A0');
 
   function plan(ctx, str, maxW, st) {
     return K.layoutText(ctx, K.runsFrom(keep(str), { dot: !!st.dot }), maxW, {
@@ -207,16 +223,14 @@
       ctx.fillRect(x, y, w, h);
     });
     const s = Math.min(48, h * 0.22);
-    looseIcon(ctx, 'image', corner === 'right' ? x + w - s - 16 : x + 14, corner === 'right' ? y + 16 : y + h - s - 14, s, '#7D8A96');
+    looseIcon(ctx, 'image', corner === 'right' ? x + w - s - 16 : x + 14, corner === 'right' ? y + 16 : y + h - s - 14, s, PHOTO_ICON);
   }
 
   /* ---------------------------------------------------------------------------
      Pagina: achtergrond, kop, voet en logo
      ------------------------------------------------------------------------- */
 
-  const pal = (dark) => (dark
-    ? { bg: INK, text: WHITE, sub: DIM, em: CYAN, label: WHITE, line: '#4A4A4A' }
-    : { bg: WHITE, text: INK, sub: MUTED, em: INK, label: INK, line: LINE });
+  const pal = (dark) => (dark ? { text: WHITE, sub: DIM, label: WHITE } : { text: INK, sub: MUTED, label: INK });
 
   function background(ctx, P) {
     layer(ctx, 'Achtergrond', () => {
@@ -367,7 +381,7 @@
       const y = y0 + i * rowH;
       layer(ctx, 'Vormen', () => {
         rule(ctx, MX, y, CW);
-        rule(ctx, MX, y + 64, colA, '#C5CED6', 3);
+        rule(ctx, MX, y + 64, colA, TRACK, 3);
         K.hexPath(ctx, MX + colA * s.pos, y + 65.5, 14);
         ctx.fillStyle = CYAN;
         ctx.fill();
@@ -436,6 +450,7 @@
     const lx = zx + X;
     const ly = zy + X;
     layer(ctx, 'Vormen', () => {
+      // De vrije zone in cyaan tint met een cyaan rand; het vak van het logo wit, zonder rand (de tint eromheen begrenst het)
       ctx.fillStyle = TINT;
       ctx.fillRect(zx, zy, zone.w, zone.h);
       ctx.fillStyle = WHITE;
@@ -443,8 +458,6 @@
       ctx.strokeStyle = CYAN;
       ctx.lineWidth = 2;
       ctx.strokeRect(zx, zy, zone.w, zone.h);
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(lx, ly, lw, lh);
       // X op elke kant: een cyaan zeshoekje in het midden van de vrije strook
       [[lx + lw / 2, zy + X / 2], [lx + lw / 2, ly + lh + X / 2], [zx + X / 2, ly + lh / 2], [lx + lw + X / 2, ly + lh / 2]].forEach(([cx, cy]) => {
         K.hexPath(ctx, cx, cy, 20);
@@ -503,15 +516,8 @@
     const gap = 32;
     const tw = (W - MX - gx - 2 * gap) / 3;
     const th = 236;
-    const tiles = [
-      { id: 'achtergrond', title: C.logo.donts[0].title, text: C.logo.donts[0].text },
-      { id: 'vervormen', title: C.logo.donts[1].title, text: C.logo.donts[1].text },
-      { id: 'eroverheen', title: C.logo.donts[2].title, text: C.logo.donts[2].text },
-      { id: 'kleur', title: 'Geen andere kleur', text: 'Alleen wit of Inkt, ook niet in cyaan.' },
-      { id: 'kader', title: 'Geen kader om het logo', text: 'Ook niet op een drukke foto.' },
-      { id: 'kantelen', title: 'Niet kantelen', text: 'Het logo staat altijd recht.' },
-    ];
-    tiles.forEach((t, i) => {
+    // Elk voorbeeld tekent zijn fout zelf (op id); de teksten staan in content.js
+    C.logo.donts.forEach((t, i) => {
       const x = gx + (i % 3) * (tw + gap);
       const y = top + Math.floor(i / 3) * (th + 136);
       layer(ctx, 'Vormen', () => {
@@ -587,7 +593,13 @@
             else ctx.moveTo(px, py);
           }
           ctx.closePath();
-          ctx.fillStyle = '#C5CED6';
+          ctx.fillStyle = TRACK;
+          ctx.fill();
+        }
+        if (i === 2) {
+          // Effen cyaan, zoals het hoort. Een verloop of een blauwe zeshoek tekenen we niet, ook niet als fout
+          K.hexPath(ctx, ex + 50, rowTop + 50, 46);
+          ctx.fillStyle = CYAN;
           ctx.fill();
         }
         if (i === 3) {
@@ -595,7 +607,7 @@
           K.hexPath(ctx, ex + 50, rowTop + 50, 40);
           ctx.fillStyle = WHITE;
           ctx.fill();
-          ctx.strokeStyle = '#8A949E';
+          ctx.strokeStyle = EDGE;
           ctx.lineWidth = 3;
           ctx.stroke();
           ctx.fillStyle = INK;
@@ -614,7 +626,6 @@
         hexIcon(ctx, 'lightbulb', ex + 196, rowTop + 18, 64, 'wit');
       }
       if (i === 0) mark(ctx, false, ex + 222, rowTop + 64, 34);
-      if (i === 2) mark(ctx, false, ex + 30, rowTop + 22, 56);
       if (i === 3) mark(ctx, false, ex + 76, rowTop + 64, 34);
       let h = 0;
       layer(ctx, 'Tekst', () => {
@@ -645,14 +656,14 @@
           ctx.fillStyle = PHOTO;
           ctx.fill();
         });
-        looseIcon(ctx, 'image', cx - 18, cy - 18, 36, '#9AA6B1');
+        looseIcon(ctx, 'image', cx - 18, cy - 18, 36, PHOTO_ICON);
       } else if (u.id === 'holder') {
         hexIcon(ctx, 'line-chart', x, vy, 128, 'cyaan');
       } else if (u.id === 'pattern') {
         layer(ctx, 'Vormen', () => {
           ctx.fillStyle = INK;
           ctx.fillRect(x, vy, gw, 140);
-          pattern(ctx, x + 8, vy + 4, gw - 16, 132, { r: 22, whole: true, lw: 1.5, color: '#4A4A4A' });
+          pattern(ctx, x + 8, vy + 4, gw - 16, 132, { r: 22, whole: true, lw: 1.5, color: RULE_DARK });
         });
       }
       layer(ctx, 'Tekst', () => {
@@ -719,6 +730,7 @@
     ];
   }
 
+  // Zonder rand: het witte deel staat altijd op een licht vlak (de pagina en het paneel tekenen dat eronder)
   function ratio(ctx, x, y, w, mode, h = 56) {
     let cx = x;
     const parts = ratioParts(mode);
@@ -729,15 +741,19 @@
         ctx.fillRect(cx, y, pw, h);
         cx += pw;
       });
-      ctx.strokeStyle = mode === 'donker' ? INK : '#C5CED6';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(x, y, w, h);
     });
     cx = x;
     layer(ctx, 'Tekst', () => {
       parts.forEach((p) => {
         const pw = (w * p.p) / 100;
-        line(ctx, `${p.p}%`, cx + 14, y + h / 2 + 8, { size: Math.round(h * 0.42), weight: 800, color: M.readable(p.hex) });
+        // Het getal past altijd in zijn deel; in een smal deel (10% in het paneel) wordt het kleiner
+        const label = `${p.p}%`;
+        const pad = Math.min(14, pw * 0.12);
+        let size = Math.round(h * 0.42);
+        font(ctx, 800, size);
+        const tw = ctx.measureText(label).width;
+        if (tw > pw - 2 * pad) size = Math.max(9, Math.floor((size * (pw - 2 * pad)) / tw));
+        line(ctx, label, cx + pad, y + h / 2 + (size * CAP) / 2, { size, weight: 800, color: M.readable(p.hex) });
         cx += pw;
       });
     });
@@ -756,7 +772,7 @@
     });
   }
 
-  // Een compositie in de verhouding: vlak, cyaan blok met zeshoeken, magenta knop
+  // Een compositie in de verhouding: vlak, cyaan blok met zeshoek, magenta knop. Zonder rand, net als de balk
   function composition(ctx, x, y, w, h, mode) {
     const dark = mode === 'donker';
     layer(ctx, 'Vormen', () => {
@@ -768,38 +784,44 @@
       // tekstregels als balkjes
       ctx.fillStyle = dark ? WHITE : INK;
       ctx.fillRect(x + w * 0.07, y + h * 0.2, w * 0.42, h * 0.07);
-      ctx.fillStyle = dark ? '#6A6A6A' : '#C5CED6';
+      ctx.fillStyle = dark ? BAR_DARK : TRACK;
       [0.36, 0.45, 0.54].forEach((f, i) => ctx.fillRect(x + w * 0.07, y + h * f, w * (i === 2 ? 0.3 : 0.46), h * 0.035));
       ctx.fillStyle = MAGENTA;
       ctx.fillRect(x + w * 0.07, y + h * 0.7, w * 0.22, h * 0.12);
       K.hexPath(ctx, x + w * 0.81, y + h * 0.35, h * 0.16);
       ctx.fillStyle = dark ? INK : WHITE;
       ctx.fill();
-      if (!dark) {
-        ctx.strokeStyle = '#C5CED6';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(x, y, w, h);
-      }
     });
   }
 
   function kleurToepassen(ctx, P) {
     const top = head(ctx, P, 'Kleur', '60/30/10 en contrast.') + 50;
     const lw = 700;
+    let th = 0;
     layer(ctx, 'Tekst', () => {
       label(ctx, 'De 60/30/10-regel', MX, top, { color: INK });
-      text(ctx, C.colors.ratio, MX, top + 44, lw, { size: 20, lh: 1.5, color: INK });
+      th = text(ctx, C.colors.ratio, MX, top + 44, lw, { size: 20, lh: 1.5, color: INK });
     });
-    let y = top + 170;
+    // De voorbeelden op een licht vlak: zo blijven het witte deel en de lichte compositie
+    // zichtbaar op de witte pagina, zonder rand om een witte vorm
+    const pad = 28;
+    const iw = lw - 2 * pad;
+    const cw = (iw - 28) / 2;
+    const ch = cw * 0.5625;
+    const by = top + 44 + th + 28;
+    layer(ctx, 'Vormen', () => {
+      ctx.fillStyle = CANVAS;
+      ctx.fillRect(MX, by, lw, pad + 294 + ch + pad);
+    });
+    let y = by + pad + 14;
     ['licht', 'donker'].forEach((mode) => {
-      layer(ctx, 'Tekst', () => line(ctx, mode === 'licht' ? 'Lichte compositie' : 'Donkere compositie', MX, y, { size: 18, weight: 700, color: INK }));
-      ratio(ctx, MX, y + 16, lw, mode, 52);
-      ratioNames(ctx, MX, y + 96, lw, mode, MUTED);
+      layer(ctx, 'Tekst', () => line(ctx, mode === 'licht' ? 'Lichte compositie' : 'Donkere compositie', MX + pad, y, { size: 18, weight: 700, color: INK }));
+      ratio(ctx, MX + pad, y + 16, iw, mode, 52);
+      ratioNames(ctx, MX + pad, y + 96, iw, mode, MUTED);
       y += 140;
     });
-    const cw = (lw - 30) / 2;
-    composition(ctx, MX, y, cw, cw * 0.5625, 'licht');
-    composition(ctx, MX + cw + 30, y, cw, cw * 0.5625, 'donker');
+    composition(ctx, MX + pad, y, cw, ch, 'licht');
+    composition(ctx, MX + pad + cw + 28, y, cw, ch, 'donker');
 
     // Rechts: de contrasttabel, uitgerekend met model.js
     const x = 900;
@@ -814,15 +836,12 @@
       const ry = top + 90 + i * rh;
       const n = M.contrast(hex(fg), hex(bg));
       const v = M.verdict(n);
+      // Het staaltje in de achtergrondkleur; wit is de pagina zelf (geen rand om een witte vorm)
       layer(ctx, 'Vormen', () => {
         rule(ctx, x, ry, w, LINE, 1.5);
+        if (bg === 'wit') return;
         ctx.fillStyle = hex(bg);
         ctx.fillRect(x, ry + 9, 60, 38);
-        if (bg === 'wit') {
-          ctx.strokeStyle = '#C5CED6';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(x, ry + 9, 60, 38);
-        }
       });
       layer(ctx, 'Tekst', () => {
         line(ctx, 'Aa', x + 30, ry + 36, { size: 20, weight: 800, color: hex(fg), align: 'center' });
@@ -883,13 +902,13 @@
     photoFrame(ctx, x, y, w, h);
     if (f.id === 'compositie') {
       layer(ctx, 'Vormen', () => {
-        ctx.fillStyle = '#4C5A67';
+        ctx.fillStyle = PHOTO_LINE;
         [1, 2].forEach((k) => {
           ctx.fillRect(x + (w * k) / 3 - 1, y, 2, h);
           ctx.fillRect(x, y + (h * k) / 3 - 1, w, 2);
         });
         K.hexPath(ctx, x + (w * 2) / 3, y + h * 0.55, h * 0.22);
-        ctx.fillStyle = '#6F7E8B';
+        ctx.fillStyle = PHOTO_SUBJECT;
         ctx.fill();
       });
       layer(ctx, 'Tekst', () => {
@@ -897,8 +916,10 @@
         line(ctx, 'de kop', x + 28, y + h * 0.42 + 28, { size: 22, weight: 800, color: WHITE });
       });
     } else if (f.id === 'tekst') {
+      // De donkere onderkant van de foto (in een echt ontwerp een verloop van Inkt): een tint
+      // donkerder dan de pagina, zodat het kader op deze donkere pagina heel blijft
       layer(ctx, 'Vormen', () => {
-        ctx.fillStyle = INK;
+        ctx.fillStyle = PHOTO_DARK;
         ctx.fillRect(x, y + h * 0.5, w, h * 0.5);
       });
       layer(ctx, 'Tekst', () => {
@@ -1002,7 +1023,7 @@
   function miniDesign(ctx, x, y, w, h, kind) {
     const dark = kind !== 'document';
     layer(ctx, 'Vormen', () => {
-      ctx.fillStyle = dark ? '#262626' : WHITE;
+      ctx.fillStyle = dark ? DEEP : WHITE;
       ctx.fillRect(x, y, w, h);
       if (kind === 'foto' || kind === 'tekst') {
         ctx.fillStyle = PHOTO;
@@ -1011,13 +1032,15 @@
       ctx.fillStyle = CYAN;
       ctx.fillRect(x, y, w, Math.max(3, h * 0.025));
       const u = w / 10;
+      // Een slide heeft rechts een fotovlak (6 tot 9): de kop en de regels blijven links ervan
+      const slide = kind === 'slide';
       if (kind !== 'foto') {
         ctx.fillStyle = dark ? WHITE : INK;
-        ctx.fillRect(x + u, y + h * (kind === 'tekst' ? 0.68 : 0.22), u * 6, h * 0.05);
-        ctx.fillStyle = dark ? '#6A6A6A' : '#C5CED6';
+        ctx.fillRect(x + u, y + h * (kind === 'tekst' ? 0.68 : 0.22), u * (slide ? 4.4 : 6), h * 0.05);
+        ctx.fillStyle = dark ? BAR_DARK : TRACK;
         [0.33, 0.4, 0.47].forEach((f, i) => {
           if (kind === 'tekst') return;
-          ctx.fillRect(x + u, y + h * f, u * (i === 2 ? 4 : 7), h * 0.022);
+          ctx.fillRect(x + u, y + h * f, u * (i === 2 ? (slide ? 2.6 : 4) : (slide ? 4.4 : 7)), h * 0.022);
         });
       }
       if (kind === 'blog' || kind === 'carousel') {
@@ -1029,7 +1052,7 @@
         ctx.fillRect(x + u, y + h * 0.6, u * 4, h * 0.08);
       }
       if (kind === 'slide') {
-        ctx.fillStyle = '#6A6A6A';
+        ctx.fillStyle = BAR_DARK;
         ctx.fillRect(x + u * 6, y + h * 0.22, u * 3, h * 0.5);
       }
       // De plek van het logo: een lijn-zeshoekje rechtsonder (rechtsboven op het briefpapier)
@@ -1072,7 +1095,7 @@
     // De Emerce 100-badge: wit op donker, zwart op licht
     const by = y + vh + 250;
     layer(ctx, 'Vormen', () => {
-      rule(ctx, MX, by - 34, 1290, '#4A4A4A', 2);
+      rule(ctx, MX, by - 34, 1290, RULE_DARK, 2);
       ctx.fillStyle = WHITE;
       ctx.fillRect(MX + 300, by, 290, 150);
     });
@@ -1093,13 +1116,15 @@
     layer(ctx, 'Tekst', () => {
       text(ctx, C.company, MX, 150 + h + 70, CW, { size: 48, weight: 800, track: -0.01, lh: 1.1, color: WHITE, dot: true, align: 'center' });
       line(ctx, C.slogan, W / 2, 150 + h + 170, { size: 26, color: DIM, align: 'center', italic: true });
-      let x = W / 2 - 92;
+      // pureminds.nl in het midden, met de cyaan punt
+      font(ctx, 700, 30, 0.02);
+      let x = (W - ctx.measureText('pureminds.nl').width) / 2;
       [['pureminds', WHITE], ['.', CYAN], ['nl', WHITE]].forEach(([part, color]) => {
         x += line(ctx, part, x, 150 + h + 230, { size: 30, weight: 700, color, track: 0.02 });
       });
     });
     const y = 820;
-    layer(ctx, 'Vormen', () => rule(ctx, MX, y - 30, CW, '#4A4A4A', 2));
+    layer(ctx, 'Vormen', () => rule(ctx, MX, y - 30, CW, RULE_DARK, 2));
     layer(ctx, 'Tekst', () => {
       label(ctx, 'Colofon', MX, y, { color: WHITE });
       let yy = y + 40;
@@ -1108,8 +1133,8 @@
       });
       label(ctx, 'Nieuw in 2.1', 860, y, { color: WHITE });
       const half = Math.ceil(C.colophon.news.length / 2);
-      bullets(ctx, C.colophon.news.slice(0, half), 860, y + 40, 330, { size: 16, lh: 1.4, color: WHITE, gap: 0.35 });
-      bullets(ctx, C.colophon.news.slice(half), 1230, y + 40, 350, { size: 16, lh: 1.4, color: WHITE, gap: 0.35 });
+      bullets(ctx, C.colophon.news.slice(0, half), 860, y + 40, 390, { size: 16, lh: 1.4, color: WHITE, gap: 0.35 });
+      bullets(ctx, C.colophon.news.slice(half), 1270, y + 40, W - MX - 1270, { size: 16, lh: 1.4, color: WHITE, gap: 0.35 });
     });
   }
 
@@ -1184,6 +1209,6 @@
   }
 
   global.PMStyleguide = {
-    W, H, LAYERS, MM, pages: PAGES, chapters: C.chapters, draw, render, overlay, ratio, ratioParts, composition,
+    W, H, LAYERS, MM, CANVAS, NEUTRALS, pages: PAGES, chapters: C.chapters, draw, render, overlay, ratio, ratioParts, composition,
   };
 })(window);

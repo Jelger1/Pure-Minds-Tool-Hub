@@ -48,20 +48,22 @@
         <span class="appbar__sub" id="docSub">17 pagina's &middot; A4 liggend</span>
       </div>
       <span class="appbar__sep appbar__sep--name" aria-hidden="true"></span>
-      <!-- Zoeken door alle teksten; een resultaat springt naar zijn pagina -->
-      <div class="sg-search" id="search" role="search" data-tour="zoeken">
-        <svg class="ri sg-search__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z"/></svg>
-        <label class="sr-only" for="sgQuery">Zoek in het brandbook</label>
-        <input class="sg-search__input" id="sgQuery" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search"
-          placeholder="zoek: magenta, clear space, je of u…" role="combobox" aria-expanded="false" aria-controls="sgResults" aria-autocomplete="list">
-        <kbd class="sg-search__kbd for-mouse" aria-hidden="true">/</kbd>
-        <button type="button" class="sg-search__close" id="searchClose" aria-label="Zoeken sluiten"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"/></svg></button>
-        <div class="sg-results" id="sgResults" role="listbox" aria-label="Gevonden in het brandbook" hidden></div>
+      <!-- Zoeken door alle teksten; een resultaat springt naar zijn pagina. Op een telefoon
+           staat het veld achter de knop en ligt het open over de hele appbalk -->
+      <div class="sg-find" id="find" data-tour="zoeken">
+        <button type="button" class="appbar__btn sg-search-open" id="searchOpen" aria-label="Zoek in het brandbook" aria-controls="search" aria-expanded="false"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z"/></svg></button>
+        <div class="sg-search" id="search" role="search">
+          <svg class="ri sg-search__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z"/></svg>
+          <label class="sr-only" for="sgQuery">Zoek in het brandbook</label>
+          <input class="sg-search__input" id="sgQuery" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search"
+            placeholder="zoek: magenta, clear space, je of u…" role="combobox" aria-expanded="false" aria-controls="sgResults" aria-autocomplete="list">
+          <kbd class="sg-search__kbd for-mouse" aria-hidden="true">/</kbd>
+          <button type="button" class="sg-search__close" id="searchClose" aria-label="Zoeken sluiten"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"/></svg></button>
+          <div class="sg-results" id="sgResults" role="listbox" aria-label="Gevonden in het brandbook" hidden></div>
+        </div>
       </div>
     </div>
     <div class="appbar__right">
-      <!-- Smal: zoeken achter een knop -->
-      <button type="button" class="appbar__btn sg-search-open" id="searchOpen" aria-label="Zoek in het brandbook" aria-controls="search"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z"/></svg></button>
       <div class="menu">
         <button type="button" class="appbar__btn" data-help-menu aria-haspopup="menu" aria-controls="helpMenu" title="Rondleiding en sneltoetsen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM11 15H13V17H11V15ZM13 13.3551V14H11V12.5C11 11.9477 11.4477 11.5 12 11.5C12.8284 11.5 13.5 10.8284 13.5 10C13.5 9.17157 12.8284 8.5 12 8.5C11.2723 8.5 10.6656 9.01823 10.5288 9.70577L8.56731 9.31346C8.88637 7.70919 10.302 6.5 12 6.5C13.933 6.5 15.5 8.067 15.5 10C15.5 11.5855 14.4457 12.9248 13 13.3551Z"/></svg><span class="appbar__txt">hulp</span></button>
         <div class="menu__list" id="helpMenu" role="menu" aria-label="Hulp">
@@ -193,7 +195,7 @@
         <p class="panel__lead">Eén lettertype voor alles: Pure Minds Sans, met Open Sans als vangnet. <button type="button" class="help" data-help="typeschaal"></button></p>
         <div class="sg-code">
           <code id="fontStack"></code>
-          <button type="button" class="btn btn-quiet btn-xs" data-copy-font>kopieer</button>
+          <button type="button" class="btn btn-quiet btn-xs" data-copy-font aria-label="kopieer het lettertype als css">kopieer</button>
         </div>
         <ul class="sg-scale" id="typeScale"></ul>
         <p class="field-hint">De lettertypebestanden staan in assets/fonts/ (Light tot ExtraBold, met cursief). Medium 500 is geschrapt.</p>

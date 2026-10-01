@@ -205,7 +205,7 @@ test('pages.js tekent elke pagina uit content.js, met alleen tekenwerk dat de PD
    Rekenwerk (model.js)
    ------------------------------------------------------------------------- */
 
-test('contrast: de tabel uit het bouwplan', () => {
+test('contrast: de tabel op de pagina 60/30/10 en contrast', () => {
   const expected = {
     'Wit op Inkt': '13,2 : 1', 'Pure Cyaan op Inkt': '5,7 : 1', 'Inkt op Pure Cyaan': '5,7 : 1', 'Wit op Pure Magenta': '6,4 : 1',
     'Wit op Blauw': '5,3 : 1', 'Wit op Pure Cyaan': '2,3 : 1', 'Pure Cyaan op wit': '2,3 : 1', 'Wit op Oranje': '2,5 : 1',
@@ -397,6 +397,143 @@ test('PMPdfCanvas: lagen als gemarkeerde inhoud, en alleen als je erom vraagt', 
   ctx.endLayer();   // niets open: geen losse EMC
   await ctx.flush();
   assert.equal(pdf.calls.filter((c) => c[1] === 'EMC').length, 3);
+});
+
+/* ---------------------------------------------------------------------------
+   De PDF zonder browser: elke pagina door PMPdfCanvas met een nep-jsPDF.
+   Alleen PureMindsSans-*, geen afbeeldingen, uitknippaden of verlopen (die
+   worden in PMPdfCanvas een afbeelding), alleen huiskleuren en de vaste
+   neutralen, alles in een laag, en onder de 1.400 elementen van Canva.
+   Meten gebeurt hier met een vaste tekenbreedte: de regelval wijkt iets af van
+   de browser, de telling dus ook (in de browser: zo'n 1.100).
+   ------------------------------------------------------------------------- */
+
+function pagesInNode() {
+  const sandbox = { console };
+  sandbox.window = sandbox;
+  Object.assign(sandbox, { PM_BRAND_TOKENS: T, PM_BRAND_CONTENT: C, PMStyleguideModel: M, PMSvgPath: P, PMHex: require('../js/icons/hex.js') });
+  vm.createContext(sandbox);
+  vm.runInContext(read('js/shared/canvas-kit.js'), sandbox);
+  vm.runInContext(read('js/styleguide/pages.js'), sandbox);
+  return sandbox.PMStyleguide;
+}
+
+async function pdfInNode() {
+  const core = read('js/shared/core.js');
+  const fromCore = (name) => new Function(`${new RegExp(`function ${name}\\([\\s\\S]*?\\n {2}\\}\\r?\\n`).exec(core)[0]}\nreturn ${name};`)();
+  globalThis.PM = { pdfFontStyle: fromCore('pdfFontStyle'), pdfColor: fromCore('pdfColor'), fileProtocolError: () => new Error('x') };
+  const { PMPdfCanvas } = require('../js/shared/pdf-canvas.js');
+  // De snedekeuze van de export zelf (Light krijgt een eigen snede)
+  const fontStyle = new Function('PM', `return ${/const fontStyle = (\(weight, italic\) => [^;]+);/.exec(read('js/styleguide/export.js'))[1]};`)(globalThis.PM);
+  const S = pagesInNode();
+  const env = {
+    logo: P.parseSvg(read('assets/brand/logo/PureMinds-zeshoek-logo-wit.svg')),
+    badgeWhite: P.parseSvg(read('assets/brand/emerce/e100-2026-liggend-wit.svg')),
+    badgeBlack: P.parseSvg(read('assets/brand/emerce/e100-2026-liggend-zwart.svg')),
+  };
+  const measure = {
+    font: '10px sans-serif',
+    letterSpacing: '0px',
+    measureText(t) {
+      const size = Number((/([\d.]+)px/.exec(this.font) || [0, 10])[1]);
+      return { width: Array.from(String(t)).length * (size * 0.55 + (parseFloat(this.letterSpacing) || 0)) };
+    },
+  };
+  const pages = [];
+  for (let i = 0; i < S.pages.length; i++) {
+    const calls = [];
+    const pdf = { calls };
+    for (const n of ['moveTo', 'lineTo', 'curveTo', 'close', 'fill', 'fillEvenOdd', 'stroke', 'setFillColor', 'setDrawColor', 'setLineWidth', 'setLineCap', 'setLineJoin', 'setLineMiterLimit', 'setFont', 'setFontSize', 'setCharSpace', 'setTextColor', 'text', 'addImage', 'saveGraphicsState', 'restoreGraphicsState', 'setGState']) {
+      pdf[n] = (...a) => calls.push([n, ...a]);
+    }
+    pdf.internal = { getFont: () => ({ metadata: { characterToGlyph: () => 1 } }), write: (s) => calls.push(['write', s]) };
+    const ctx = new PMPdfCanvas(pdf, { width: S.W, height: S.H, pageWidth: 841.89, measure, fontStyle });
+    S.draw(ctx, i, env);
+    pages.push({ id: S.pages[i].id, stats: await ctx.flush(), calls });
+  }
+  return { S, env, pages, limit: PMPdfCanvas.CANVA_LIMIT };
+}
+
+test('de PDF: alleen Pure Minds Sans, vectoren in huiskleuren, alles in een laag, onder de 1.400 elementen', async () => {
+  const { S, env, pages, limit } = await pdfInNode();
+  assert.equal(pages.length, C.pages.length);
+  // Snedes: elke stijl is een bestand PureMindsSans-*.ttf (in de PDF de PostScript-naam)
+  const files = Object.fromEntries(Array.from(read('scripts/build-brand-data.js').matchAll(/^ {2}(\w+): '(PureMindsSans-[\w]+)\.ttf',$/gm), (m) => [m[1], m[2]]));
+  const used = new Set();
+  // Kleuren: de huiskleuren, de neutralen van pages.js en de kleuren van de officiële badges
+  const hexOf = (rgb) => `#${rgb.map((v) => Math.floor(Number(v) * 255).toString(16).padStart(2, '0')).join('')}`.toUpperCase();
+  const allowed = new Set([...T.allColors().map((c) => c.hex), ...S.NEUTRALS, ...[env.badgeWhite, env.badgeBlack].flatMap((b) => b.shapes.map((s) => s.fill))].map((c) => c.toUpperCase()));
+  const seen = new Set();
+  let total = 0;
+  for (const p of pages) {
+    const { text, vector, raster, image, svg } = p.stats;
+    assert.equal(raster + image + svg, 0, `${p.id}: geen afbeeldingen (ook geen verloop of uitsnede)`);
+    total += text + vector;
+    let open = null;
+    for (const [op, ...a] of p.calls) {
+      if (op === 'write') {
+        const m = /^\/OC \/(\w+) BDC$/.exec(a[0]);
+        if (m) {
+          assert.equal(open, null, `${p.id}: lagen niet genest`);
+          assert.ok(S.LAYERS.includes(m[1]), `${p.id}: laag ${m[1]}`);
+          open = m[1];
+        } else {
+          assert.equal(a[0], 'EMC');
+          assert.notEqual(open, null, `${p.id}: EMC zonder laag`);
+          open = null;
+        }
+      }
+      if (['fill', 'fillEvenOdd', 'stroke', 'text'].includes(op)) assert.ok(open, `${p.id}: ${op} buiten een laag`);
+      if (op === 'setFont') {
+        assert.equal(a[0], 'PureMindsSans');
+        assert.ok(files[a[1]], `${p.id}: snede ${a[1]}`);
+        used.add(files[a[1]]);
+      }
+      if (['setFillColor', 'setDrawColor', 'setTextColor'].includes(op)) {
+        // Vier decimalen: afkappen en afronden geven allebei de oorspronkelijke waarde (exact, ook in Canva)
+        const rounded = `#${a.map((v) => Math.round(Number(v) * 255).toString(16).padStart(2, '0')).join('')}`.toUpperCase();
+        assert.equal(hexOf(a), rounded, `${p.id}: kleur ${a.join(' ')} exact`);
+        assert.ok(allowed.has(rounded), `${p.id}: kleur ${rounded} hoort niet bij de huisstijl`);
+        seen.add(rounded);
+      }
+    }
+    assert.equal(open, null, `${p.id}: laatste laag dicht`);
+  }
+  assert.ok([...used].every((f) => f.startsWith('PureMindsSans-')));
+  assert.ok(used.has('PureMindsSans-Light') && used.has('PureMindsSans-ExtraBold'), [...used].join());
+  for (const c of T.colors.primary) assert.ok(seen.has(c.hex), `${c.name} staat in de PDF`);
+  assert.ok(total < limit, `${total} elementen (Canva: ${limit})`);
+  assert.ok(total > 800, `${total} elementen: de pagina's zijn getekend`);
+});
+
+test('de PDF: de teksten uit content.js staan er als echte tekst in', async () => {
+  const { pages } = await pdfInNode();
+  // \s telt ook de vaste spatie mee (€ 1.500,- blijft in de PDF op één regel)
+  const norm = (t) => String(t).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+  // Stukken op dezelfde basislijn horen bij elkaar (PMPdfCanvas zet de spatie er zelf in), een nieuwe regel krijgt een spatie
+  const all = norm(pages.map((p) => p.calls.filter((c) => c[0] === 'text')
+    .map((c, i, list) => (i && list[i - 1][3] === c[3] ? '' : ' ') + c[1]).join('')).join(' '));
+  const want = [
+    C.company, C.slogan, C.mission, C.vision, C.tone.intro, C.colors.intro, C.colors.secondaryRule, C.colors.ratio, C.colors.contrastNote,
+    C.logo.intro, C.logo.clearSpace, C.hexagon.intro, C.type.intro, C.imagery.intro, C.icons.intro, C.usage.intro, C.usage.badge.intro,
+    ...C.values.flatMap((v) => [v.name, v.text, v.sound]), ...C.tone.rules, ...C.tone.examples.flatMap((e) => [e.wel, e.niet]),
+    ...C.tone.scales.flatMap((s) => [s.where, s.practice]), ...C.logo.donts.flatMap((d) => [d.title, d.text]), ...C.logo.added.map((a) => a.text),
+    ...C.logo.minimum.map((m) => m.why), ...C.hexagon.rules.map((r) => r.text), ...C.hexagon.uses.map((u) => u.text), ...C.type.notes,
+    ...C.imagery.sections.flatMap((s) => s.items), ...C.icons.rules, ...C.usage.makers.map((m) => m.text), ...C.usage.badge.rules,
+    ...C.colophon.lines, ...C.colophon.news, ...T.allColors().filter((c) => !['wit', 'grijs'].includes(c.id)).map((c) => c.hex),
+  ];
+  const missing = want.map(norm).filter((s) => !all.includes(s));
+  assert.deepEqual(missing, []);
+});
+
+test('de neutralen van de pagina’s zijn grijs of blauwgrijs, geen eigen accentkleur', () => {
+  const { NEUTRALS } = pagesInNode();
+  assert.ok(NEUTRALS.length >= 10);
+  for (const c of NEUTRALS) {
+    const [r, g, b] = M.rgbOf(c);
+    assert.ok(Math.max(r, g, b) - Math.min(r, g, b) <= 32, `${c} is neutraal`);
+    assert.ok(!T.allColors().some((t) => t.hex === c.toUpperCase()), `${c} is geen huiskleur`);
+  }
 });
 
 test('pdf-lib laadt zoals de andere bibliotheken: vaste versie en SRI-hash', () => {

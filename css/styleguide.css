@@ -5,8 +5,9 @@
  * canvas getekend: js/styleguide/pages.js.
  */
 
-/* --- Zoeken in de appbalk: een veld met resultaten eronder --- */
+/* --- Zoeken in de appbalk: een veld met resultaten eronder (op een telefoon achter een knop) --- */
 
+.sg-find { display: flex; align-items: center; min-width: 0; }
 .sg-search { position: relative; display: flex; align-items: center; flex: 1 1 auto; width: 24rem; max-width: 30vw; min-width: 12rem; }
 .sg-search__icon { position: absolute; left: .7rem; width: 1.05rem; height: 1.05rem; color: var(--pm-muted); pointer-events: none; }
 .sg-search__input {
@@ -128,7 +129,7 @@
 /* Logo: variant en voorbeeld */
 .sg-chip { display: inline-block; width: .8rem; height: .92rem; flex: none; clip-path: var(--hex); }
 .sg-chip--ink { background: var(--pm-ink); }
-.sg-chip--white { background: #fff; box-shadow: inset 0 0 0 1px var(--pm-border); background: var(--pm-canvas); }
+.sg-chip--white { background: var(--pm-border); }   /* de lichte ondergrond, net zichtbaar op de witte knop */
 .seg label i { color: var(--pm-muted); }
 .sg-logo { margin-top: .5rem; border: 1px solid var(--pm-line); }
 .sg-logo canvas { display: block; width: 100%; height: auto; aspect-ratio: 1 / .56; }
@@ -255,20 +256,18 @@
 }
 
 @media (max-width: 639px) {
-  /* Zoeken achter een knop; open ligt het veld over de hele appbalk */
+  /* Zoeken achter een knop; open ligt het veld over de hele appbalk (.sg-find zelf, zodat
+     de rondleiding de hele balk uitlicht) */
   .sg-search { display: none; }
   .sg-search-open { display: inline-flex; }
-  .sg-search.is-open {
-    display: flex; position: absolute; inset: 0; z-index: 61; width: auto; max-width: none;
-    padding: 0 .5rem; background: #fff;
-  }
-  .sg-search.is-open .sg-search__icon { left: 1.2rem; }
-  .sg-search.is-open .sg-search__close {
+  .sg-find.is-open { position: absolute; inset: 0; z-index: 61; padding: 0 .5rem; background: #fff; }
+  .sg-find.is-open .sg-search-open { display: none; }
+  .sg-find.is-open .sg-search { display: flex; width: auto; max-width: none; min-width: 0; }
+  .sg-find.is-open .sg-search__close {
     display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; margin-left: .25rem;
     border: 0; background: none; color: var(--pm-muted);
   }
-  .sg-search.is-open .sg-search__close svg { width: 1.25rem; height: 1.25rem; }
-  .sg-results { left: .5rem; right: .5rem; }
+  .sg-find.is-open .sg-search__close svg { width: 1.25rem; height: 1.25rem; }
   .split > .btn-primary:first-child [data-label] { font-size: .8125rem; }
   .stage__head { display: none; }
   .sg-thumb canvas { width: 4.25rem; }

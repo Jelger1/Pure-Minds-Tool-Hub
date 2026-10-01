@@ -81,6 +81,9 @@
         { id: 'achtergrond', title: 'Geen achtergrond achter het logo', text: 'Zet het logo direct op de foto of het vlak, zonder eigen kader of vlak erachter.' },
         { id: 'vervormen', title: 'Logo niet vervormen', text: 'Altijd in de eigen verhouding schalen; niet uitrekken, kantelen of spiegelen.' },
         { id: 'eroverheen', title: 'Niets over het logo heen', text: 'Ook geen zeshoekjes, badges of tekst in de clear space.' },
+        { id: 'kleur', title: 'Geen andere kleur', text: 'Alleen wit of Inkt, ook niet in cyaan.' },
+        { id: 'kader', title: 'Geen kader om het logo', text: 'Ook niet op een drukke foto.' },
+        { id: 'kantelen', title: 'Niet kantelen', text: 'Het logo staat altijd recht.' },
       ],
       added: [
         { title: 'Kleur', text: 'Alleen wit of Inkt. Geen cyaan, magenta, verloop of schaduw op het logo.' },
@@ -113,7 +116,7 @@
       secondaryRule: 'Alleen voor grafieken, datavisualisatie en het onderscheiden van categorieën. Nooit als achtergrond van een hele pagina en nooit voor het logo of een zeshoek.',
       ratio: '60% wit en neutraal (inclusief Inkt), 30% Pure Cyaan en 10% magenta en accenten. Een lichte en een donkere compositie passen dezelfde verhouding toe.',
       ratioParts: { neutral: 'Wit en neutraal', neutralDark: 'Inkt en neutraal', cyaan: 'Pure Cyaan', accent: 'Magenta en accenten' },
-      // [tekstkleur, achtergrond, naam] uit de tabel in het bouwplan; de waarden rekent model.js uit
+      // [tekstkleur, achtergrond, naam]: de combinaties in de contrasttabel; de waarden rekent model.js uit
       contrast: [
         ['wit', 'inkt', 'Wit op Inkt'],
         ['cyaan', 'inkt', 'Pure Cyaan op Inkt'],

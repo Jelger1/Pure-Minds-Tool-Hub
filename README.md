@@ -975,8 +975,9 @@ de 60/30/10-regel en beeldtaal. Medium 500 is geschrapt (geen fontbestand).
 
 - **Indeling:** zoals de andere makers. De rail heeft zeven hoofdstukken
   (Merk, Logo, Kleur, Type, Beeld, Iconen, Gebruik); een hoofdstuk kiezen
-  scrolt naar zijn eerste pagina en opent zijn paneel. Scrol je zelf naar een
-  ander hoofdstuk, dan volgt het paneel (breed scherm). Het podium toont de
+  scrolt naar zijn eerste pagina en opent zijn paneel. Blader je zelf naar een
+  ander hoofdstuk (scrollen, miniaturen, `Page Up` en `Page Down`), dan volgt
+  het paneel (breed scherm, als er een paneel open staat). Het podium toont de
   17 pagina's (A4 liggend) onder elkaar, met miniaturen eronder. Op een
   telefoon is de rail een tabbalk en het paneel een blad van onderen.
 - **Panelen:** teksten kopiëren (naam, slogan, missie, visie); het logo in wit
@@ -986,9 +987,10 @@ de 60/30/10-regel en beeldtaal. Medium 500 is geschrapt (geen fontbestand).
   de 60/30/10-regel licht en donker; de typeschaal als CSS; een fotocheck;
   de icoonvarianten met een zoekveld naar de Icon Finder; de makers en de
   Emerce 100-badge.
-- **Zoeken** (`/`) doorzoekt alle teksten en springt naar de pagina.
-  Vanaf het dashboard opent `tools/styleguide.html?q=magenta` meteen de
-  resultaten.
+- **Zoeken** (`/`) doorzoekt alle teksten en springt naar de pagina. Op een
+  telefoon staat het veld achter het vergrootglas links in de appbalk en ligt
+  het open over de hele balk. Vanaf het dashboard opent
+  `tools/styleguide.html?q=magenta` meteen de resultaten.
 - **Eén bron:** kleuren, typeschaal en logo-regels staan in
   `brand-tokens.js` (gelijk aan `css/global.css` en `PM.brand`; de test
   bewaakt dat), de teksten in `content.js`. Het podium en de PDF tekenen met
@@ -1006,13 +1008,22 @@ de 60/30/10-regel en beeldtaal. Medium 500 is geschrapt (geen fontbestand).
 - **De PDF:** echte tekst in Pure Minds Sans (elk gewicht een eigen
   PostScript-naam, ook `PureMindsSans-Light`), vormen, logo, badge en iconen
   als vector-paden (geen afbeeldingen, geen uitknippaden, geen verlopen),
-  kleuren exact, A4 liggend (841,89 × 595,28 pt). Daarna zet pdf-lib er vijf
+  kleuren exact: alleen de huiskleuren en een vaste set neutrale grijzen voor
+  lijnen en vlakjes (`NEUTRALS` in `pages.js`). Een witte vorm krijgt nooit
+  een rand; hij staat op Inkt, op een kleur of op een licht vlak. A4 liggend
+  (841,89 × 595,28 pt). Daarna zet pdf-lib er vijf
   **lagen** in (optionele inhoudsgroepen: Achtergrond, Vormen, Tekst, Logo,
   Beeld), plus titel, onderwerp en auteur. `PMPdfCanvas` markeert de blokken
   daarvoor (`beginLayer`/`endLayer`, zie `js/shared/pdf-canvas.js`); de andere
   makers gebruiken dat niet en hun PDF's blijven gelijk. Het hele brandbook
   is zo'n 1.100 elementen, onder de 1.400 van Canva; wordt het ooit meer, dan
   komen er delen van hele hoofdstukken in een zip.
+- **Controle:** `npm test` tekent elke pagina zonder browser door
+  `PMPdfCanvas` en bewaakt wat hierboven staat: alleen `PureMindsSans-*`,
+  geen afbeeldingen, uitknippaden of verlopen, alleen toegestane kleuren
+  (exact), alles in een laag, onder de 1.400 elementen, en alle teksten uit
+  `content.js` als echte tekst. Eén keer per release: de PDF in Canva slepen
+  en openen in Illustrator.
 - **Canva en Illustrator:** Canva opent elk tekstvak en elke vorm los (zet
   Pure Minds Sans in de Brand Kit, anders kiest Canva een vervanger).
   Illustrator opent de tekst bewerkbaar; de lagen van een PDF die niet uit

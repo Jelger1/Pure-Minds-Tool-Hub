@@ -246,7 +246,7 @@
   }
 
   function colorJson(tokens, content) {
-    const one = (c, group) => ({ id: c.id, name: c.name, group, hex: c.hex.toUpperCase(), rgb: c.rgb, cmyk: c.cmyk, role: c.role, cssVar: c.css ? `--pm-${c.css === 'ink' ? 'ink' : c.css}` : null });
+    const one = (c, group) => ({ id: c.id, name: c.name, group, hex: c.hex.toUpperCase(), rgb: c.rgb, cmyk: c.cmyk, role: c.role, cssVar: c.css ? `--pm-${c.css}` : null });
     return {
       name: `${tokens.company} kleuren`,
       version: tokens.version,

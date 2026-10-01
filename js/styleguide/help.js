@@ -44,11 +44,11 @@
     },
     'clear-space': {
       title: 'Clear space',
-      text: 'Rond het logo blijft aan alle kanten een kwart van de logobreedte vrij: geen tekst, rand of vorm. Zet hem aan om de zone op elke pagina te zien.',
+      text: 'Rond het logo blijft aan alle kanten een kwart van de logobreedte vrij: geen tekst, rand of vorm. Met de schakelaar zie je die zone om elk logo op de pagina’s.',
     },
     'minimum': {
       title: 'Minimum formaat',
-      text: 'Het logo is minstens 80 px breed op een scherm en 20 mm in print. Kleiner leest "marketing group" niet meer. Voor een favicon gebruik je favicon.png.',
+      text: 'Het logo is minstens 80 px breed op een scherm en 20 mm in print; kleiner is “marketing group” niet meer leesbaar. Voor een favicon gebruik je favicon.png. De rekenhulp geeft de clear space bij jouw breedte.',
     },
     'logo-bestanden': {
       title: 'Welk bestand?',
@@ -115,13 +115,13 @@
     {
       id: 'zoeken', target: 'zoeken',
       title: 'Zoek in het brandbook',
-      text: 'Typ bijvoorbeeld magenta, clear space of je of u. Een resultaat brengt je naar de juiste pagina.',
+      text: 'Typ bijvoorbeeld magenta, clear space of je of u. Een resultaat brengt je naar de juiste pagina. Op een telefoon tik je eerst op het vergrootglas.',
       doe: { event: 'input', min: 3, hint: 'Typ een zoekwoord' },
     },
     {
       id: 'export', target: 'export',
       title: 'Exporteer het brandbook',
-      text: 'exporteer brandbook maakt één bewerkbare PDF voor Canva en Illustrator. Het pijltje heeft een PDF per hoofdstuk, het logo-pakket en de kleuren voor Adobe.',
+      text: 'Klik op exporteer brandbook: één bewerkbare PDF voor Canva en Illustrator. Het pijltje ernaast heeft een PDF per hoofdstuk, het logo-pakket en de kleuren voor Adobe.',
     },
     {
       id: 'klaar',
@@ -132,10 +132,12 @@
 
   keys: [
     ['/', 'zoeken in het brandbook'],
-    ['Esc', 'zoekveld leegmaken of paneel sluiten'],
+    ['↑ ↓', 'in de zoekresultaten: vorige of volgende (Enter opent de pagina)'],
+    ['Esc', 'zoekveld leegmaken'],
     ['Page Up / Page Down', 'vorige of volgende pagina'],
     ['Home / End', 'eerste of laatste pagina'],
-    ['Ctrl + S', 'het brandbook exporteren als pdf'],
-    ['?', 'dit overzicht'],
+    ['← →', 'in de strook met miniaturen: vorige of volgende pagina'],
+    ['Ctrl + S', 'het brandbook als pdf exporteren'],
+    ['?', 'sneltoetsen tonen'],
   ],
 };

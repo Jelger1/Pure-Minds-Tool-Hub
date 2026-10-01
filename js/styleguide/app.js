@@ -3,9 +3,9 @@
    -----------------------------------------------------------------------------
    Het podium toont de brandbook-pagina's onder elkaar, getekend door
    js/styleguide/pages.js (dezelfde functies als de PDF). Een hoofdstuk kiezen
-   in de rail scrolt naar zijn eerste pagina en opent zijn paneel; scrol je zelf
-   naar een ander hoofdstuk, dan volgt het paneel (alleen op een breed scherm,
-   en alleen als er een paneel open staat).
+   in de rail scrolt naar zijn eerste pagina en opent zijn paneel; blader je
+   zelf naar een ander hoofdstuk (scrollen, miniaturen, Page Up/Down), dan volgt
+   het paneel (alleen op een breed scherm, en alleen als er een paneel open staat).
 
    Panelen: teksten en kleurwaarden kopiëren, logo's downloaden, de clear space
    tonen, contrast checken, de 60/30/10-regel, de typeschaal als CSS, een
@@ -48,7 +48,7 @@
       fg: pick(s.fg, COLOR_IDS, 'wit'),
       bg: pick(s.bg, COLOR_IDS, 'inkt'),
       logoW: Number.isFinite(Number(s.logoW)) && Number(s.logoW) > 0 ? Math.round(Number(s.logoW)) : 116,
-      checks: Array.isArray(s.checks) ? s.checks.filter((n) => Number.isInteger(n)) : [],
+      checks: Array.isArray(s.checks) ? [...new Set(s.checks.filter((n) => Number.isInteger(n) && n >= 0 && n < C.imagery.checks.length))] : [],
       page: Number.isInteger(s.page) ? Math.max(0, Math.min(S.pages.length - 1, s.page)) : 0,
     };
   }
@@ -76,6 +76,8 @@
     query: $('#sgQuery'),
     results: $('#sgResults'),
     search: $('#search'),
+    find: $('#find'),               // veld plus de zoekknop voor een telefoon
+    searchOpen: $('#searchOpen'),
   };
 
   /* ---------------------------------------------------------------------------
@@ -146,7 +148,17 @@
   /* --- Welke pagina is in beeld --- */
 
   let current = -1;
-  let jumping = 0;   // tijdstip tot wanneer het scrollen door een sprong komt (geen paneel wisselen)
+  let jump = null;          // een sprong die nog onderweg is: { top, until }
+  let following = false;    // het paneel volgt de pagina: dan niet naar het begin van dat hoofdstuk springen
+
+  // Het paneel volgt het hoofdstuk dat in beeld komt: alleen op een breed scherm en als er een
+  // paneel open staat (force: ook als er geen open staat, zoals na een zoekresultaat)
+  function follow(chapter, { force = false } = {}) {
+    if (shell.isNarrow || shell.current === chapter || (!shell.current && !force)) return;
+    following = true;
+    shell.open(chapter);
+    following = false;
+  }
 
   function setCurrent(i, { fromScroll = false } = {}) {
     if (i === current) return;
@@ -158,7 +170,11 @@
     el.pagePill.textContent = `pagina ${i + 1} van ${S.pages.length}`;
     el.chapterPill.textContent = chapterName(ch);
     $('#pdfChapterSum').textContent = `${chapterName(ch)}: ${S.pages.filter((p) => p.chapter === ch).length === 1 ? '1 pagina' : `${S.pages.filter((p) => p.chapter === ch).length} pagina's`}`;
-    thumbs.forEach((b, k) => b.setAttribute('aria-selected', String(k === i)));
+    // Eén miniatuur in de tabvolgorde (de gekozen), de pijltjes doen de rest
+    thumbs.forEach((b, k) => {
+      b.setAttribute('aria-selected', String(k === i));
+      b.tabIndex = k === i ? 0 : -1;
+    });
     const t = thumbs[i];
     const s = el.strip;
     if (t.offsetLeft < s.scrollLeft + 8 || t.offsetLeft + t.offsetWidth > s.scrollLeft + s.clientWidth - 8) {
@@ -166,33 +182,48 @@
     }
     $$('.rail__item').forEach((r) => r.classList.toggle('is-here', r.dataset.section === ch));
     $$('.sg-pagelist a').forEach((a) => a.toggleAttribute('aria-current', Number(a.dataset.index) === i));
-    // Zelf gescrold naar een ander hoofdstuk: het paneel volgt (breed scherm, paneel open)
-    if (fromScroll && prevChapter !== ch && Date.now() > jumping && shell.current && !shell.isNarrow) shell.open(ch);
+    // Zelf gescrold naar een ander hoofdstuk: het paneel volgt (goTo laat het paneel zelf volgen)
+    if (fromScroll && prevChapter !== ch) follow(ch);
   }
 
+  // De pagina in beeld: de laatste waarvan de bovenkant boven 40% van het podium staat (op een
+  // hoog scherm, met meer pagina's tegelijk in beeld: boven een halve pagina). Helemaal
+  // onderaan altijd de laatste: op een hoog scherm komt die anders nooit zo ver
   function pageInView() {
     const box = el.pages;
-    const mid = box.scrollTop + box.clientHeight * 0.4;
+    if (box.scrollTop > 0 && box.scrollTop + box.clientHeight >= box.scrollHeight - 2) return figs.length - 1;
+    const mid = box.scrollTop + Math.min(box.clientHeight * 0.4, figs[0].offsetHeight * 0.5);
     let best = 0;
     figs.forEach((f, i) => { if (f.offsetTop <= mid) best = i; });
     return best;
   }
 
+  // Tijdens een sprong blijft de gekozen pagina de huidige, ook als hij niet helemaal bovenaan
+  // kan komen (de laatste pagina's); de sprong is klaar als hij er is, of als je zelf scrolt
   let ticking = false;
   el.pages.addEventListener('scroll', () => {
+    if (jump) {
+      if (Math.abs(el.pages.scrollTop - jump.top) < 2 || Date.now() > jump.until) jump = null;
+      return;
+    }
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => {
       ticking = false;
-      setCurrent(pageInView(), { fromScroll: true });
+      if (!jump) setCurrent(pageInView(), { fromScroll: true });
     });
   }, { passive: true });
+  ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach((type) => el.pages.addEventListener(type, () => { jump = null; }, { passive: true }));
 
+  // Naar pagina i: miniatuur, paginalijst, zoeken, sneltoetsen. Het paneel volgt, net als bij scrollen
   function goTo(i, { flash = false, smooth = true } = {}) {
     const fig = figs[Math.max(0, Math.min(figs.length - 1, i))];
-    jumping = Date.now() + 900;
-    el.pages.scrollTo({ top: fig.offsetTop - 16, behavior: smooth && !reduced() ? 'smooth' : 'auto' });
+    const box = el.pages;
+    const top = Math.max(0, Math.min(fig.offsetTop - 16, box.scrollHeight - box.clientHeight));
+    jump = Math.abs(box.scrollTop - top) < 2 ? null : { top, until: Date.now() + 2500 };
+    box.scrollTo({ top, behavior: smooth && !reduced() ? 'smooth' : 'auto' });
     setCurrent(Number(fig.dataset.index));
+    follow(chapterOf(Number(fig.dataset.index)));
     if (flash) {
       fig.classList.remove('is-flash');
       void fig.offsetWidth;
@@ -204,10 +235,20 @@
     const b = e.target.closest('.sg-thumb');
     if (b) goTo(Number(b.dataset.index));
   });
+  // Pijltjes, Home en End in de strook, zoals in de Presentation Maker
+  el.strip.addEventListener('keydown', (e) => {
+    if (!e.target.closest('.sg-thumb') || e.altKey || e.ctrlKey || e.metaKey) return;
+    const last = S.pages.length - 1;
+    const to = { ArrowRight: current + 1, ArrowDown: current + 1, ArrowLeft: current - 1, ArrowUp: current - 1, Home: 0, End: last }[e.key];
+    if (to == null) return;
+    e.preventDefault();
+    goTo(Math.max(0, Math.min(last, to)));
+    thumbs[current].focus({ preventScroll: true });
+  });
 
   // Een hoofdstuk kiezen in de rail: naar zijn eerste pagina (tenzij die al in beeld is)
   shell.onChange(({ id, open }) => {
-    if (!open || !id || Date.now() < jumping) return;
+    if (!open || !id || following) return;
     if (current >= 0 && chapterOf(current) === id) return;
     goTo(firstOf(id));
   });
@@ -273,7 +314,7 @@
   ];
   $('#brandTexts').innerHTML = TEXTS.map(([name, text], i) => `
     <div class="sg-text">
-      <div class="sg-text__head"><span class="sg-text__name">${esc(name)}</span><button type="button" class="btn btn-quiet btn-xs" data-copy-text="${i}">kopieer</button></div>
+      <div class="sg-text__head"><span class="sg-text__name">${esc(name)}</span><button type="button" class="btn btn-quiet btn-xs" data-copy-text="${i}" aria-label="kopieer ${esc(name.toLowerCase())}">kopieer</button></div>
       <p class="sg-text__body">${esc(text)}</p>
     </div>`).join('');
   $('#brandTexts').addEventListener('click', (e) => {
@@ -295,7 +336,7 @@
     logoCanvas.height = h;
     const ctx = logoCanvas.getContext('2d');
     const dark = state.variant === 'wit';
-    ctx.fillStyle = dark ? T.color('inkt').hex : '#EDF3F7';
+    ctx.fillStyle = dark ? T.color('inkt').hex : S.CANVAS;
     ctx.fillRect(0, 0, w, h);
     const lh = h * 0.62;
     const lw = lh * T.logo.aspect;
@@ -364,7 +405,7 @@
           <div class="sg-swatch__info">
             <b>${esc(c.name)}</b><i>${esc(c.role)}</i>
             <div class="sg-swatch__vals">
-              ${['hex', 'rgb', 'cmyk'].map((k) => `<button type="button" class="sg-val" data-color="${c.id}" data-kind="${k}" aria-label="${k.toUpperCase()} van ${esc(c.name)} kopiëren: ${esc(M.copyValue(c, k))}"><span>${k.toUpperCase()}</span>${esc(M.copyValue(c, k))}</button>`).join('')}
+              ${['hex', 'rgb', 'cmyk'].map((k) => `<button type="button" class="sg-val" data-color="${c.id}" data-kind="${k}" aria-label="${k.toUpperCase()} ${esc(M.copyValue(c, k))} van ${esc(c.name)} kopiëren"><span>${k.toUpperCase()}</span>${esc(M.copyValue(c, k))}</button>`).join('')}
             </div>
           </div>
         </div>`).join('')}
@@ -412,21 +453,24 @@
   fg.addEventListener('change', renderContrast);
   bg.addEventListener('change', renderContrast);
 
-  // 60/30/10: dezelfde balk en compositie als op de pagina, op een eigen canvas
+  // 60/30/10: dezelfde balk en compositie als op de pagina, op een eigen canvas. Op een licht
+  // vlak, net als op de pagina: zo valt het witte deel niet weg en krijgt wit geen rand
   const ratioCanvas = $('#ratioCanvas');
   function renderRatio() {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const cssW = ratioCanvas.clientWidth || 300;
     const w = 600;   // ontwerpmaat van het paneelcanvas
     const h = 420;
+    const pad = 20;
     const scale = (cssW * dpr) / w;
     ratioCanvas.width = Math.round(w * scale);
     ratioCanvas.height = Math.round(h * scale);
     const ctx = ratioCanvas.getContext('2d');
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-    S.ratio(ctx, 0, 0, w, state.ratio, 64);
-    S.composition(ctx, 0, 96, w, 320, state.ratio);
+    ctx.fillStyle = S.CANVAS;
+    ctx.fillRect(0, 0, w, h);
+    S.ratio(ctx, pad, pad, w - 2 * pad, state.ratio, 60);
+    S.composition(ctx, pad, pad + 84, w - 2 * pad, h - 3 * pad - 64, state.ratio);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     $('#ratioLegend').innerHTML = S.ratioParts(state.ratio).map((p) => `<li><span class="sg-legend__chip${p.hex.toUpperCase() === '#FFFFFF' ? ' is-white' : ''}" style="background:${p.hex}"></span><b>${p.p}%</b> ${esc(p.name)}</li>`).join('');
   }
@@ -457,7 +501,7 @@
       <span class="sg-scale__sample" style="font-weight:${t.weight};font-size:${Math.min(t.size, 40)}px;line-height:1.15;letter-spacing:${t.track}em;${t.upper ? 'text-transform:uppercase;' : ''}${t.color ? `color:${t.color};` : ''}">${esc(t.name)}</span>
       <span class="sg-scale__spec">${wName} ${t.weight} · ${t.size}/${t.line}${t.track ? ` · ${t.track > 0 ? '+' : '−'}${Math.abs(t.track * 100)}%` : ''}</span>
       <span class="sg-scale__use">${esc(C.type.usage[t.id])}${t.size > 40 ? ' · hier verkleind' : ''}</span>
-      <button type="button" class="btn btn-quiet btn-xs" data-copy-css="${i}">kopieer css</button>
+      <button type="button" class="btn btn-quiet btn-xs" data-copy-css="${i}" aria-label="kopieer css van ${esc(t.name)}">kopieer css</button>
     </li>`;
   }).join('');
   $('#typeScale').addEventListener('click', (e) => {
@@ -596,6 +640,7 @@
   function showResults(open) {
     el.results.hidden = !open;
     el.query.setAttribute('aria-expanded', String(open));
+    if (!open) el.query.removeAttribute('aria-activedescendant');
   }
 
   function renderResults() {
@@ -613,13 +658,19 @@
           ${h.snippet ? `<span class="sg-result__snip">${esc(h.snippet)}</span>` : ''}
         </button>`).join('')
       : `<p class="sg-results__none">Niets gevonden voor “${esc(q)}”. Probeer bijvoorbeeld logo, cyaan of foto.</p>`;
-    el.query.setAttribute('aria-activedescendant', active >= 0 ? `sg-hit-${active}` : '');
+    activeDescendant();
     showResults(true);
+  }
+
+  // Het gekozen resultaat voor schermlezers; zonder resultaat geen verwijzing
+  function activeDescendant() {
+    if (active >= 0) el.query.setAttribute('aria-activedescendant', `sg-hit-${active}`);
+    else el.query.removeAttribute('aria-activedescendant');
   }
 
   function markActive() {
     $$('.sg-result', el.results).forEach((b, i) => b.setAttribute('aria-selected', String(i === active)));
-    el.query.setAttribute('aria-activedescendant', active >= 0 ? `sg-hit-${active}` : '');
+    activeDescendant();
     const b = $(`#sg-hit-${active}`);
     if (b) b.scrollIntoView({ block: 'nearest' });
   }
@@ -629,8 +680,8 @@
     if (!h) return;
     showResults(false);
     closeSearch();
-    if (!shell.isNarrow) shell.open(h.chapter);
     goTo(h.index, { flash: true });
+    follow(h.chapter, { force: true });
     PM.announce(`Pagina ${h.index + 1}: ${h.title}`);
   }
 
@@ -651,6 +702,8 @@
         el.query.value = '';
         showResults(false);
       } else closeSearch();
+    } else if (e.key === 'Tab') {
+      showResults(false);   // met Tab verder: de lijst gaat dicht, zoals bij een keuzelijst
     }
   });
   el.results.addEventListener('mousedown', (e) => e.preventDefault());   // de focus blijft in het zoekveld
@@ -662,21 +715,31 @@
     if (!el.search.contains(e.target)) showResults(false);
   });
 
-  // Smal scherm: zoeken legt zich over de appbalk
+  // Telefoon: zoeken staat achter een knop en legt zich open over de hele appbalk
+  const fieldHidden = () => !el.query.offsetParent;
   function openSearch() {
-    el.search.classList.add('is-open');
+    el.find.classList.add('is-open');
+    el.searchOpen.setAttribute('aria-expanded', 'true');
     el.query.focus();
   }
   function closeSearch() {
-    if (!el.search.classList.contains('is-open')) return;
-    el.search.classList.remove('is-open');
+    if (!el.find.classList.contains('is-open')) return;
+    el.find.classList.remove('is-open');
+    el.searchOpen.setAttribute('aria-expanded', 'false');
     showResults(false);
   }
-  $('#searchOpen').addEventListener('click', openSearch);
+  el.searchOpen.addEventListener('click', openSearch);
   $('#searchClose').addEventListener('click', () => {
     el.query.value = '';
     closeSearch();
-    $('#searchOpen').focus();
+    el.searchOpen.focus();
+  });
+  // De rondleiding gaat verder: de zoeklijst (en op een telefoon het open zoekveld) dicht,
+  // anders ligt hij over de knop die de volgende stap aanwijst
+  document.addEventListener('pm:tour', (e) => {
+    if (e.detail && e.detail.tool === 'styleguide' && e.detail.step === 'zoeken') return;
+    showResults(false);
+    closeSearch();
   });
 
   /* ---------------------------------------------------------------------------
@@ -694,7 +757,7 @@
     if (typing || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
     if (e.key === '/') {
       e.preventDefault();
-      if (getComputedStyle(el.query).display === 'none' || !el.query.offsetParent) openSearch();
+      if (fieldHidden()) openSearch();
       else el.query.focus();
     } else if (e.key === 'PageDown' || e.key === 'PageUp') {
       e.preventDefault();
@@ -734,10 +797,10 @@
     }));
     // Vanaf het dashboard: ?q=magenta zoekt meteen
     if (params.q) {
-      if (shell.isNarrow) openSearch();
+      if (fieldHidden()) openSearch();
       el.query.value = params.q;
       renderResults();
-      if (!shell.isNarrow) el.query.focus();
+      el.query.focus();
     }
   });
 
