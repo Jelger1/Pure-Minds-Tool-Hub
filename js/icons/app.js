@@ -4,21 +4,22 @@
    Zoeken en bladeren door de Remix-iconen (js/icons/icon-data.js). Het zoeken
    zelf doet PMIconSearch (search.js), met Nederlandse en Engelse woorden; de
    zeshoek komt van PMHex (hex.js), precies zoals maak-zeshoeken.py hem maakt.
-   Stijl, vorm en kleur gelden voor het hele raster: wat je ziet, download je.
+   Alleen de lijnstijl (de volle stijl is weg). Vorm en kleur gelden voor het
+   hele raster: wat je ziet, download je.
 
    Toestand:
      - zoekterm, categorie en gekozen icoon staan in het adres
        (?q=mail&cat=Arrows&icoon=mail): verversen of een gedeelde link laat
        hetzelfde zien;
-     - stijl, vorm, kleur, bestandstype, formaat, achtergrond van de preview en
-       de laatst gebruikte iconen staan in localStorage (pm-icons-v1).
+     - vorm, kleur, bestandstype, formaat, achtergrond van de preview en de
+       laatst gebruikte iconen staan in localStorage (pm-icons-v1).
 
    Intern is een icoon altijd zijn plek in PM_ICON_DATA.icons: een naam kan in
    twee categorieën voorkomen. Naar buiten (adres, "laatst gebruikt") gaat de
    naam, bij zo'n dubbele naam met de categorie ervoor: Editor/ai-generate-2.
 
-   Snelheid: een tegel wordt één keer per stijl en vorm gebouwd en daarna
-   hergebruikt. Kleuren zijn CSS-variabelen op #app (--ico, --hex-fill), dus een
+   Snelheid: een tegel wordt één keer per vorm gebouwd (en apart voor de witte
+   zeshoek met uitgesneden icoon) en daarna hergebruikt. Kleuren zijn CSS-variabelen op #app (--ico, --hex-fill), dus een
    andere kleur tekent niets opnieuw. Categorieblokken buiten beeld slaat de browser over
    (content-visibility in css/icons.css).
    ============================================================================= */
@@ -63,16 +64,15 @@
     { id: 'wit', name: 'Wit', color: WHITE },
     { id: 'eigen', name: 'Eigen kleur' },
   ];
-  // In de zeshoek: altijd effen, zonder rand. Cyaan met wit icoon is de huisvariant
-  // (PMHex.presets.blauw, de map Zeshoek/Blauw); donker en wit zijn de andere twee
-  // van maak-zeshoeken.py. Daarbij cyaan met een inkt icoon en magenta.
+  // In de zeshoek: altijd effen, zonder rand. Dezelfde vier als PMHex.presets en de
+  // mappen in assets/icons/Zeshoek; cyaan met wit icoon is de huisvariant. Wit is een
+  // witte zeshoek met het icoon eruit gesneden (knockout): de achtergrond schijnt erdoor.
   // label = de naam naast de stalen, als die anders is dan de id.
   const HEX_COLORS = [
     { id: 'cyaan', name: 'Cyaan, wit icoon', fill: '#1ab9e2', color: WHITE },
-    { id: 'cyaan-inkt', name: 'Cyaan, inktkleurig icoon', label: 'cyaan · inkt', fill: '#1ab9e2', color: INK },
-    { id: 'donker', name: 'Donker', fill: INK, color: WHITE },
-    { id: 'magenta', name: 'Magenta', fill: '#b61b50', color: WHITE },
-    { id: 'wit', name: 'Wit', fill: WHITE, color: INK },
+    { id: 'donker', name: 'Donker, wit icoon', fill: INK, color: WHITE },
+    { id: 'magenta', name: 'Magenta, wit icoon', fill: '#b61b50', color: WHITE },
+    { id: 'wit', name: 'Wit, doorzichtig icoon', label: 'wit · doorzichtig', slug: 'wit-doorzichtig', fill: WHITE, knockout: true },
     { id: 'eigen', name: 'Eigen kleur' },
   ];
 
@@ -107,7 +107,8 @@
 
   const keyOf = (i) => (byName.get(ICONS[i][0]).length > 1 ? `${CATS[ICONS[i][1]]}/${ICONS[i][0]}` : ICONS[i][0]);
 
-  // Sleutel uit het adres of de opslag terug naar een icoon; -1 als hij niet (meer) bestaat
+  // Sleutel uit het adres of de opslag terug naar een icoon; -1 als hij niet (meer) bestaat.
+  // Een oude "home-fill" (de volle stijl is weg) geeft het lijnicoon.
   function indexOf(key) {
     if (typeof key !== 'string' || !key) return -1;
     const slash = key.lastIndexOf('/');
@@ -124,14 +125,18 @@
     return i;
   }
 
-  // Het pad in de gekozen stijl; heeft een icoon die stijl niet, dan de andere
+  // Het pad en het achtervoegsel van het bronbestand: home-line.svg, of bold.svg
+  // voor een icoon in één stijl
   function variant(i) {
     const ic = ICONS[i];
-    if (ic.length < 4) return { d: ic[2], suffix: '', style: null, both: false };
-    let style = state.style;
-    if (!ic[style === 'line' ? 2 : 3]) style = style === 'line' ? 'fill' : 'line';
-    return { d: style === 'line' ? ic[2] : ic[3], suffix: `-${style}`, style, both: !!(ic[2] && ic[3]) };
+    return { d: ic[2], suffix: ic[3] ? '-line' : '' };
   }
+
+  // Het pad om uit de witte zeshoek te snijden: bij een paar iconen met overlappende
+  // delen een samengevoegd pad (evenodd zou de overlap anders weglaten)
+  const KNOCKOUT = DATA.knockout || {};
+  const cutPath = (i) => KNOCKOUT[`${CATS[ICONS[i][1]]}/${ICONS[i][0]}`] || ICONS[i][2];
+  const pathFor = (i, L) => (L.knockout ? cutPath(i) : variant(i).d);
 
   function placed(d) {
     try {
@@ -149,15 +154,15 @@
   const saved = PM.store.get(STORAGE_KEY, {}) || {};
   const isColor = (v) => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
   const pick = (list, v, fallback) => (list.includes(v) ? v : fallback);
-  // Opslag van vóór v2: de zeshoek "blauw" (wit icoon) is nu cyaan, de oude "cyaan" (inkt icoon) cyaan-inkt
-  const HEX_RENAMED = { blauw: 'cyaan', cyaan: 'cyaan-inkt' };
+  // Oude opslag: "blauw" (vóór v2) is cyaan; cyaan met een inkt icoon bestaat niet meer, dat
+  // wordt de huisvariant. (Een oude "cyaan" van vóór v2 had een inkt icoon: ook cyaan.)
+  const HEX_RENAMED = { blauw: 'cyaan', 'cyaan-inkt': 'cyaan' };
 
   const state = {
-    style: pick(['line', 'fill'], saved.style, 'line'),
     shape: pick(['none', 'hex'], saved.shape, 'none'),
     looseColor: pick(LOOSE_COLORS.map((c) => c.id), saved.looseColor, 'inkt'),
     looseCustom: isColor(saved.looseCustom) ? saved.looseCustom.toLowerCase() : '#009670',
-    hexColor: pick(HEX_COLORS.map((c) => c.id), saved.v >= 2 ? saved.hexColor : HEX_RENAMED[saved.hexColor] || saved.hexColor, 'cyaan'),
+    hexColor: pick(HEX_COLORS.map((c) => c.id), HEX_RENAMED[saved.hexColor] || saved.hexColor, 'cyaan'),
     hexCustom: isColor(saved.hexCustom) ? saved.hexCustom.toLowerCase() : '#009670',
     format: pick(['svg', 'png'], saved.format, 'svg'),
     size: pick(SIZES, saved.size, 512),
@@ -177,9 +182,9 @@
   const openedWithIcon = state.selected >= 0;
 
   const save = PM.debounce(() => {
-    const { style, shape, looseColor, looseCustom, hexColor, hexCustom, format, size, recent } = state;
+    const { shape, looseColor, looseCustom, hexColor, hexCustom, format, size, recent } = state;
     const stage = stageAuto ? 'licht' : state.stage;
-    PM.store.set(STORAGE_KEY, { v: 2, style, shape, looseColor, looseCustom, hexColor, hexCustom, format, size, stage, recent });
+    PM.store.set(STORAGE_KEY, { v: 3, shape, looseColor, looseCustom, hexColor, hexCustom, format, size, stage, recent });
   }, 250);
 
   // Zoekterm, categorie en keuze in het adres; niet bij elke toets (Safari begrenst replaceState)
@@ -240,8 +245,6 @@
     dFile: $('#dFile'),
     dCopyName: $('#dCopyName'),
     dWords: $('#dWords'),
-    dStyleWrap: $('#dStyleWrap'),
-    dSingle: $('#dSingle'),
     dDims: $('#dDims'),
     sizeRow: $('#sizeRow'),
     dUse: $('#dUse'),
@@ -282,26 +285,27 @@
   const tooLight = (color) => contrast(color, WHITE) < 1.6;
 
   /**
-   * De huidige keuze als { shape, fill, color, slug, dark }. fill is altijd één
-   * kleur (geen verloop, geen rand); slug komt in de bestandsnaam.
+   * De huidige keuze als { shape, fill, color, knockout, slug, dark }. fill is altijd
+   * één kleur (geen verloop, geen rand); knockout: het icoon is uit de zeshoek
+   * gesneden (color telt dan niet); slug komt in de bestandsnaam.
    */
   function looks() {
     if (state.shape === 'hex') {
       const c = HEX_COLORS.find((x) => x.id === state.hexColor) || HEX_COLORS[0];
       const own = c.id === 'eigen';
       const fill = own ? state.hexCustom : c.fill;
-      const slug = own ? `zeshoek-eigen-${fill.slice(1)}` : `zeshoek-${c.id}`;
-      return { shape: 'hex', fill, color: own ? textOn(fill) : c.color, slug, dark: tooLight(fill) };
+      const slug = own ? `zeshoek-eigen-${fill.slice(1)}` : `zeshoek-${c.slug || c.id}`;
+      return { shape: 'hex', fill, color: own ? textOn(fill) : c.color || fill, knockout: !!c.knockout, slug, dark: tooLight(fill) };
     }
     const c = LOOSE_COLORS.find((x) => x.id === state.looseColor) || LOOSE_COLORS[0];
     const color = c.id === 'eigen' ? state.looseCustom : c.color;
     const slug = c.id === 'inkt' ? '' : c.id === 'eigen' ? `eigen-${color.slice(1)}` : c.id;
-    return { shape: 'none', fill: null, color, slug, dark: tooLight(color) };
+    return { shape: 'none', fill: null, color, knockout: false, slug, dark: tooLight(color) };
   }
 
   function svgOpts(L, id, height) {
     const opts = L.shape === 'hex'
-      ? { shape: 'hex', fill: L.fill, color: L.color, id }
+      ? { shape: 'hex', fill: L.fill, color: L.color, knockout: L.knockout, id }
       : { shape: 'none', color: L.color };
     if (height) opts.height = height;
     return opts;
@@ -326,15 +330,20 @@
 
   // De zeshoek zelf is voor elk icoon gelijk: één keer in <defs>, de tegels verwijzen ernaar
   const HEX_GEO = (() => {
-    const svg = HEX.svg(ICONS[0][2] || ICONS[0][3], { shape: 'hex', fill: INK });
+    const svg = HEX.svg(ICONS[0][2], { shape: 'hex', fill: INK });
     const viewBox = (svg.match(/viewBox="([^"]+)"/) || [])[1] || `0 0 ${HEX.num(HEX.WIDTH)} ${HEX.HEIGHT}`;
     return { viewBox, body: (svg.match(/ d="([^"]*)"/) || [])[1] || '' };
   })();
   el.defHex.setAttribute('d', HEX_GEO.body);
 
-  // Klein icoon in de kleur en vorm van nu (tegel, stijlknop); kleur via CSS
+  // Klein icoon in de kleur en vorm van nu (tegel, stijlknop); kleur via CSS.
+  // Uitgesneden: zeshoek en icoon als één pad met evenodd, net als in de download.
   function artSvg(i, cls = '') {
     const v = variant(i);
+    if (state.shape === 'hex' && looks().knockout) {
+      return `<svg class="${cls} is-hex" viewBox="${HEX_GEO.viewBox}" aria-hidden="true" focusable="false">` +
+        `<path class="ti-hex" fill-rule="evenodd" d="${HEX_GEO.body}${placed(cutPath(i))}"/></svg>`;
+    }
     if (state.shape === 'hex') {
       return `<svg class="${cls} is-hex" viewBox="${HEX_GEO.viewBox}" aria-hidden="true" focusable="false">` +
         `<use class="ti-hex" href="#pmi-hex"/><path class="ti-ico" d="${placed(v.d)}"/></svg>`;
@@ -535,7 +544,7 @@
      Raster
      ------------------------------------------------------------------------- */
 
-  const tileCache = new Map();   // icoon -> tegel, voor de huidige stijl en vorm
+  const tileCache = new Map();   // icoon -> tegel, voor de huidige vorm (en wel of niet uitgesneden)
   let tileKey = '';
   let nav = [];                  // tegels per blok, in schermvolgorde (pijltjestoetsen)
   let roving = null;             // de ene tegel die Tab bereikt
@@ -548,8 +557,10 @@
       `${artSvg(i, 'tile__svg')}<span class="tile__name">${name}</span></button>`;
   }
 
+  const currentTileKey = () => `${state.shape}|${state.shape === 'hex' && looks().knockout}`;
+
   function tilesFor(ids) {
-    const key = `${state.style}|${state.shape}`;
+    const key = currentTileKey();
     if (key !== tileKey) {
       tileCache.clear();
       tileKey = key;
@@ -607,7 +618,7 @@
   }
 
   /* De tegels van de blokken in beeld komen meteen, de rest in stukjes van
-     hoogstens 8 ms per frame: typen en wisselen van stijl blijven vlot, ook als
+     hoogstens 8 ms per frame: typen en wisselen van vorm blijven vlot, ook als
      1.690 zeshoeken voor het eerst worden uitgerekend. */
   let pending = [];
   let fillFrame = 0;
@@ -707,7 +718,7 @@
       return box;
     }
     const sample = indexOf('search-eye') >= 0 ? indexOf('search-eye') : indexOf('search');
-    const art = sample >= 0 ? HEX.svg(ICONS[sample][2] || ICONS[sample][3], { shape: 'hex', fill: '#e8f7fc', color: '#1b71a8', id: 'pmi-empty' }) : '';
+    const art = sample >= 0 ? HEX.svg(ICONS[sample][2], { shape: 'hex', fill: '#e8f7fc', color: '#1b71a8', id: 'pmi-empty' }) : '';
     box.innerHTML = `<div class="empty__art" aria-hidden="true">${art}</div>` +
       `<p class="empty__title">Niets gevonden voor &lsquo;${q}&rsquo;.</p>` +
       '<p class="empty__text">Probeer een ander woord, of het Engelse woord ervoor. Of begin met een van deze:</p>' +
@@ -960,7 +971,7 @@
   }
 
   /* ---------------------------------------------------------------------------
-     Stijl, vorm en kleur
+     Vorm en kleur
      ------------------------------------------------------------------------- */
 
   function buildSwatches() {
@@ -978,7 +989,8 @@
           `<span class="swatch__hex" aria-hidden="true">${dot}</span></label>`;
       }
       sw = hex ? c.fill : c.color;
-      if (hex) dot = `<span class="swatch__ico" style="--sw-ico: ${c.color}"></span>`;
+      // Uitgesneden icoon: een geblokt stipje, het teken voor doorzichtig
+      if (hex) dot = c.knockout ? '<span class="swatch__ico swatch__ico--knockout"></span>' : `<span class="swatch__ico" style="--sw-ico: ${c.color}"></span>`;
       if (tooLight(sw)) edge = '--sw-edge: var(--pm-muted);';   // wit: met een rand, anders zie je hem niet
       const checked = c.id === current ? ' checked' : '';
       return `<label class="swatch" title="${c.name}" style="--sw: ${sw}; ${edge}">` +
@@ -989,7 +1001,7 @@
   }
 
   const colorId = () => (state.shape === 'hex' ? state.hexColor : state.looseColor);
-  // Naam van de gekozen kleur zoals hij naast de stalen staat ("cyaan · inkt")
+  // Naam van de gekozen kleur zoals hij naast de stalen staat ("wit · doorzichtig")
   const colorLabel = () => {
     const c = (state.shape === 'hex' ? HEX_COLORS : LOOSE_COLORS).find((x) => x.id === colorId());
     return c ? c.label || c.id : colorId();
@@ -1016,28 +1028,22 @@
   }
 
   function syncStyleControls() {
-    $$('input[name="style"]').forEach((r) => { r.checked = r.value === state.style; });
     $$('input[name="shape"]').forEach((r) => { r.checked = r.value === state.shape; });
     const shapeName = state.shape === 'hex' ? 'zeshoek' : 'los';
-    el.styleSummary.textContent = `${state.style === 'line' ? 'lijn' : 'vol'} · ${shapeName} · ${colorLabel().replace(' · ', '/')}`;
+    el.styleSummary.textContent = `${shapeName} · ${colorLabel().replace(' · ', '/')}`;
     const sample = indexOf('palette') >= 0 ? indexOf('palette') : 0;
     el.styleArt.innerHTML = artSvg(sample);
   }
 
-  // Na elke wijziging van stijl, vorm of kleur
+  // Na elke wijziging van vorm of kleur. Kleuren volgen via CSS; alleen van en naar
+  // de uitgesneden witte zeshoek moeten de tegels opnieuw (dat is een ander pad).
   function looksChanged({ tiles = false } = {}) {
     applyLooks();
-    if (tiles) render();
+    if (tiles || currentTileKey() !== tileKey) render();
     syncStyleControls();
     renderDetail();
     save();
   }
-
-  $$('input[name="style"]').forEach((r) => r.addEventListener('change', () => {
-    if (!r.checked) return;
-    state.style = r.value;
-    looksChanged({ tiles: true });
-  }));
 
   $$('input[name="shape"]').forEach((r) => r.addEventListener('change', () => {
     if (!r.checked) return;
@@ -1080,7 +1086,7 @@
     colorFrame = requestAnimationFrame(() => looksChanged());
   });
 
-  // Mobiel: stijl, vorm en kleur achter de knop "stijl"
+  // Mobiel: vorm en kleur achter de knop "stijl"
   el.styleToggle.addEventListener('click', () => {
     const open = el.styleToggle.getAttribute('aria-expanded') !== 'true';
     el.styleToggle.setAttribute('aria-expanded', String(open));
@@ -1098,9 +1104,10 @@
     if (i < 0) return;
     const v = variant(i);
     const L = looks();
-    el.dArt.innerHTML = HEX.svg(v.d, svgOpts(L, 'pmi-preview'));
-    el.dArtM.innerHTML = HEX.svg(v.d, svgOpts(L, 'pmi-preview-m'));
-    el.dArtS.innerHTML = HEX.svg(v.d, svgOpts(L, 'pmi-preview-s'));
+    const d = pathFor(i, L);
+    el.dArt.innerHTML = HEX.svg(d, svgOpts(L, 'pmi-preview'));
+    el.dArtM.innerHTML = HEX.svg(d, svgOpts(L, 'pmi-preview-m'));
+    el.dArtS.innerHTML = HEX.svg(d, svgOpts(L, 'pmi-preview-s'));
     el.dArt.classList.toggle('is-loose', L.shape !== 'hex');
     el.dName.innerHTML = `${PM.esc(cap(readable(i)))}<span class="dot">.</span>`;
     el.dFile.textContent = ICONS[i][0] + v.suffix;
@@ -1111,9 +1118,6 @@
     const words = [...new Set(nl.split(/\s+/).filter(Boolean))].slice(0, 5);
     el.dWords.hidden = !words.length;
     el.dWords.innerHTML = words.length ? `In het Nederlands: ${words.map((w) => `<b>${PM.esc(w)}</b>`).join(', ')}` : '';
-    el.dStyleWrap.hidden = !v.both;
-    el.dSingle.hidden = v.both;
-    $$('input[name="dstyle"]').forEach((r) => { r.checked = r.value === v.style; });
     syncStage();
     syncExport();
   }
@@ -1145,11 +1149,6 @@
       '<span class="for-mouse"> <kbd>Ctrl</kbd> + <kbd>S</kbd> downloadt direct.</span>';
   }
 
-  $$('input[name="dstyle"]').forEach((r) => r.addEventListener('change', () => {
-    if (!r.checked) return;
-    state.style = r.value;
-    looksChanged({ tiles: true });
-  }));
   $$('input[name="stage"]').forEach((r) => r.addEventListener('change', () => {
     if (!r.checked) return;
     state.stage = r.value;
@@ -1185,7 +1184,8 @@
      Bestanden: SVG en PNG
      ------------------------------------------------------------------------- */
 
-  // home-line.svg, home-line-cyaan.svg, home-fill-zeshoek-donker-512px.png, home-line-eigen-1a2b3c.svg
+  // home-line.svg, home-line-cyaan.svg, home-line-zeshoek-donker-512px.png,
+  // home-line-zeshoek-wit-doorzichtig.svg, home-line-eigen-1a2b3c.svg
   function fileBase(i, L = looks()) {
     return [ICONS[i][0] + variant(i).suffix, L.slug].filter(Boolean).join('-');
   }
@@ -1193,19 +1193,20 @@
   function makeSvg(i) {
     const L = looks();
     const base = fileBase(i, L);
-    const text = HEX.svg(variant(i).d, svgOpts(L, HEX.gradientId(base)));
+    const text = HEX.svg(pathFor(i, L), svgOpts(L, HEX.gradientId(base)));
     return { text, name: `${base}.svg`, blob: new Blob([text], { type: 'image/svg+xml' }) };
   }
 
   /**
    * PNG zonder kwaliteitsverlies: de SVG krijgt zelf al de exportmaat (height),
    * wordt als afbeelding geladen en op een canvas van precies die maat getekend.
-   * Nooit klein tekenen en opschalen. Achtergrond transparant.
+   * Nooit klein tekenen en opschalen. Achtergrond transparant, en bij de witte
+   * zeshoek ook het uitgesneden icoon.
    */
   async function makePng(i, size = state.size) {
     const L = looks();
     const base = fileBase(i, L);
-    const text = HEX.svg(variant(i).d, svgOpts(L, HEX.gradientId(base), size));
+    const text = HEX.svg(pathFor(i, L), svgOpts(L, HEX.gradientId(base), size));
     const { w, h } = outSize(L, size);
     const canvas = document.createElement('canvas');
     canvas.width = w;
@@ -1415,7 +1416,7 @@
 
   // Voorbeeld in de lege detailkaart
   const sampleIcon = indexOf('search') >= 0 ? indexOf('search') : 0;
-  el.emptyArt.innerHTML = HEX.svg(ICONS[sampleIcon][2] || ICONS[sampleIcon][3], { shape: 'hex', fill: HEX_COLORS[0].fill, color: WHITE, id: 'pmi-sample' });
+  el.emptyArt.innerHTML = HEX.svg(ICONS[sampleIcon][2], { shape: 'hex', fill: HEX_COLORS[0].fill, color: WHITE, id: 'pmi-sample' });
 
   el.q.value = state.query;
   buildSwatches();

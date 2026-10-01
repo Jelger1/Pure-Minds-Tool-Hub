@@ -328,8 +328,9 @@
     kolommen: { gap: 96, head: 32, headGap: 40, text: 34, top: 72 },
     vragen: { r: 30, numberSize: 30, textGap: 28, colGap: 96, rowGap: 32, top: 48, outroGap: 48, text: 32, outro: 30 },
     vpc: {
-      // Zo groot als tussen label en voetregel past; onderkant boven pureminds.nl en de badge
-      S: 664, gap: 150, top: 190, captionSize: 24, captionGap: 14, outline: 5, inner: 3,
+      // Zonder voetregel (zie BARE): zo groot als tussen de marges past. Beide vormen samen
+      // precies de inhoudsbreedte (2 × 772 + 120 = 1664), de onderkant op de ondermarge
+      S: 772, gap: 120, top: H - GRID.v - 772, captionSize: 24, captionGap: 14, outline: 5, inner: 3,
       innerStroke: 'rgba(255,255,255,.35)', hubR: 40, arrow: { lw: 4, head: 16 },
       head: 26, item: 22, uitleg: 20, headMin: 18, itemMin: 16, lh: 1.3,
       // Tekstvakken: [x1, y1, x2, y2] als fractie van de zijde (vierkant, vanaf linksboven)
@@ -354,13 +355,14 @@
         pad: 12, edge: 16, hub: 54, minW: 150, step: 8,
       },
     },
-    // Business model canvas: vijf kolommen tussen het label en het logo. Kolom 1 is één
+    // Business model canvas: vijf kolommen tussen het label en de ondermarge (geen voetregel,
+    // zie BARE; bottom telt vanaf H - GRID.v). Kolom 1 is één
     // paneel met Key Partners en daaronder (na een lijn) Key Resources; kolom 4 heeft
     // Klantrelaties en Kanalen, verdeeld naar hun inhoud (tussen splitMin en splitMax).
     // Vlakke panelen met een cyaan balk bovenaan, geen rand. Zo hoog en breed dat een vol
-    // canvas als dat van Eurosit op 14 px past met twee regels over (kolom 4: samen)
+    // canvas als dat van Eurosit of EEZZ op 16 px past (punten; koppen 19 px)
     bmc: {
-      top: 30, bottom: 28, gap: 16, splitMin: 0.35, splitMax: 0.65,
+      top: 30, bottom: 0, gap: 16, splitMin: 0.35, splitMax: 0.65,
       pad: 16, padTop: 14, padBottom: 10, bar: 4,
       fill: TABLE_STYLE.zebra, ruleColor: TABLE_STYLE.rule, ruleW: 2, ruleAbove: 24, ruleBelow: 14,
       head: 24, headMin: 16, headGap: 10, item: 20, itemMin: 14, uitleg: 18, lh: 1.25, itemGap: 0.2,
@@ -442,8 +444,8 @@
 
   /* ---------------------------------------------------------------------------
      Contactregels op de afsluiter: per regel een cyaan zeshoek met een icoon uit
-     het icon pack dat bij de regel past (zoals de zeshoek-iconen van de Icon
-     Finder), in inkt, net als de sectienummers. De PowerPoint-export zet ze op
+     het icon pack dat bij de regel past (de zeshoek van de Icon Finder), met
+     het icoon in inkt, net als de sectienummers. De PowerPoint-export zet ze op
      dezelfde plek (contactMarks).
      ------------------------------------------------------------------------- */
 
@@ -1456,7 +1458,7 @@
   function planBmc(ctx, fr, s) {
     const G = GEOM.bmc;
     const gridTop = Math.round(fr.labelTop + fr.labelSize * CAP + G.top);
-    const gridBottom = Math.round(fr.logo.y - G.bottom);
+    const gridBottom = Math.round(fr.h - fr.v - G.bottom);
     const Hg = gridBottom - gridTop;
     const colW = (fr.contentW - 4 * G.gap) / 5;
     const colX = (i) => fr.m + i * (colW + G.gap);
@@ -1960,6 +1962,13 @@
      Publieke functie
      ------------------------------------------------------------------------- */
 
+  // Canvassen zonder voetregel: bij het business model canvas en de waardepropositie
+  // vallen pureminds.nl, het slidenummer, de Emerce-badge en het logo weg (ze staan
+  // allemaal in de voetregel), zodat de vormen tot de ondermarge lopen en er meer
+  // tekst in past. Achtergrond, cyaan balk en label blijven. pptx.js: eigen layout
+  const BARE = new Set(['bmc', 'vpc']);
+  const bare = (slide) => !!slide && BARE.has(slide.layout);
+
   // Slidenummer rechts in de voetregel, bijv. "03 / 12"
   const numberText = (deck, index) => `${String(index + 1).padStart(2, '0')} / ${String(deck.slides.length).padStart(2, '0')}`;
 
@@ -1976,6 +1985,7 @@
    */
   function badgeBox(ctx, fr, deck, index) {
     if (!deck || !deck.badge) return null;
+    if (Array.isArray(deck.slides) && bare(deck.slides[index])) return null;
     const f = fr || frame();
     let right = f.logo.x - 44;
     if (deck.showNumbers !== false && Array.isArray(deck.slides)) {
@@ -2008,24 +2018,27 @@
     const info = RENDER[p.layout](ctx, fr, slide, env || {}, deck, p) || {};
     ctx.restore();
 
-    // Voetregel en slidenummer, de badge, dan het logo en de cyaan balk
-    drawDomain(ctx, info.footerFrame || fr, '#ffffff');
-    if (deck.showNumbers !== false) {
-      const label = numberText(deck, index);
-      setFont(ctx, 700, GRID.footerSize, 0.04);
-      ctx.fillStyle = SOFT;
-      const tw = ctx.measureText(label).width;
-      ctx.fillText(label, fr.logo.x - 44 - tw, fr.footerY + (GRID.footerSize * CAP) / 2);
+    // Voetregel en slidenummer, de badge, dan het logo en de cyaan balk (de balk ook
+    // zonder voetregel, zie BARE)
+    if (!bare(p)) {
+      drawDomain(ctx, info.footerFrame || fr, '#ffffff');
+      if (deck.showNumbers !== false) {
+        const label = numberText(deck, index);
+        setFont(ctx, 700, GRID.footerSize, 0.04);
+        ctx.fillStyle = SOFT;
+        const tw = ctx.measureText(label).width;
+        ctx.fillText(label, fr.logo.x - 44 - tw, fr.footerY + (GRID.footerSize * CAP) / 2);
+      }
+      // Uit (of het beeld nog niet geladen): niets extra's, dezelfde pixels als zonder badge
+      if (deck.badge && env && env.badge) drawBadge(ctx, { badge: badgeBox(ctx, fr, deck, index) }, env.badge);
+      drawLogo(ctx, fr, env && env.logo);
     }
-    // Uit (of het beeld nog niet geladen): niets extra's, dezelfde pixels als zonder badge
-    if (deck.badge && env && env.badge) drawBadge(ctx, { badge: badgeBox(ctx, fr, deck, index) }, env.badge);
-    drawLogo(ctx, fr, env && env.logo);
     finish(ctx, W, GRID.bar);
     return { photo: info.photo || null, overflow: flags.overflow, overflowKeys, regions: regions.slice(), width: W, height: H };
   }
 
   global.PMSlides = {
-    renderSlide, plan, frame, badgeBox, titleSize, flowColumns, zoneLines, LAYOUTS, GRID, GEOM, W, H,
+    renderSlide, plan, frame, badgeBox, bare, titleSize, flowColumns, zoneLines, LAYOUTS, GRID, GEOM, W, H,
     contactIcon, contactMarks,
     defaultTable, normalizeTable, TABLE_LIMITS, TABLE_STYLE,
     palettes: { TEXT, BODY, SOFT, META, LABEL_PAL },

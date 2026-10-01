@@ -5,22 +5,21 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { plan, pdfPage } = require('../js/insta/export.js');
 
-const SQUARE = { w: 1080, h: 1080 };
 const PORTRAIT = { w: 1080, h: 1350 };
 const STORY = { w: 1080, h: 1920 };
 
 test('een losse post: PNG of JPG op de exportmaat', () => {
-  assert.deepEqual(plan({ fmt: SQUARE }), { kind: 'png', type: 'png', pages: 1, linkedin: false, summary: '1 PNG · 1080 × 1080 px', note: 'Instagram: PNG op de maat van het kanaal.' });
+  assert.deepEqual(plan({ fmt: PORTRAIT }), { kind: 'png', type: 'png', pages: 1, linkedin: false, summary: '1 PNG · 1080 × 1350 px', note: 'Instagram: PNG op de maat van het kanaal.' });
   assert.equal(plan({ fmt: STORY, width: 1200, type: 'jpg' }).summary, '1 JPG · 1200 × 2133 px');
   assert.equal(plan({ fmt: PORTRAIT, width: 2160 }).summary, '1 PNG · 2160 × 2700 px');
 });
 
 test('een losse post als PDF: één pagina, bewerkbaar in Canva', () => {
-  const p = plan({ fmt: SQUARE, type: 'pdf' });
+  const p = plan({ fmt: PORTRAIT, type: 'pdf' });
   assert.equal(p.kind, 'pdf');
   assert.equal(p.pages, 1);
   assert.equal(p.summary, '1 PDF · bewerkbaar in Canva');
-  assert.equal(plan({ fmt: SQUARE, width: 2160, type: 'pdf' }).kind, 'pdf', 'de breedte maakt voor een PDF niet uit');
+  assert.equal(plan({ fmt: PORTRAIT, width: 2160, type: 'pdf' }).kind, 'pdf', 'de breedte maakt voor een PDF niet uit');
 });
 
 test('carousel: zip met afbeeldingen, of één PDF met een pagina per slide', () => {
@@ -47,19 +46,18 @@ test('alleen deze slide: één bestand, ook bij LinkedIn', () => {
 });
 
 test('de uitleg onder de download hoort bij wat je krijgt', () => {
-  assert.match(plan({ fmt: SQUARE, type: 'pdf' }).note, /Canva.*Uploaden/);
+  assert.match(plan({ fmt: PORTRAIT, type: 'pdf' }).note, /Canva.*Uploaden/);
   assert.match(plan({ carousel: true, slides: 3, fmt: PORTRAIT, width: 1200 }).note, /LinkedIn/);
   assert.match(plan({ carousel: true, slides: 3, fmt: PORTRAIT }).note, /^Eén zip/);
-  assert.equal(plan({ fmt: SQUARE, width: 1200 }).note, 'LinkedIn: PNG op de maat van het kanaal.');
-  assert.equal(plan({ fmt: SQUARE, width: 2160, type: 'jpg' }).note, 'JPG op dubbele maat, voor een groot scherm of drukwerk.');
+  assert.equal(plan({ fmt: PORTRAIT, width: 1200 }).note, 'LinkedIn: PNG op de maat van het kanaal.');
+  assert.equal(plan({ fmt: PORTRAIT, width: 2160, type: 'jpg' }).note, 'JPG op dubbele maat, voor een groot scherm of drukwerk.');
 });
 
 test('onbekend bestandstype valt terug op PNG', () => {
-  assert.equal(plan({ fmt: SQUARE, type: 'gif' }).kind, 'png');
+  assert.equal(plan({ fmt: PORTRAIT, type: 'gif' }).kind, 'png');
 });
 
 test('PDF-pagina: 0,75 pt per ontwerp-px, zoals de LinkedIn-PDF', () => {
-  assert.deepEqual(pdfPage(SQUARE), { w: 810, h: 810 });
   assert.deepEqual(pdfPage(PORTRAIT), { w: 810, h: 1012.5 });
   assert.deepEqual(pdfPage(STORY), { w: 810, h: 1440 });
 });

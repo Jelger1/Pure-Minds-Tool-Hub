@@ -10,8 +10,10 @@
 
      PMHex.WIDTH, PMHex.HEIGHT   maat van de zeshoek in viewBox-eenheden
                                  (HEIGHT 64, WIDTH ≈ 56,474, niet afgerond)
-     PMHex.presets               de drie huisstijlvarianten: blauw, donker, wit,
-                                 elk een effen zeshoek met een effen icoon
+     PMHex.presets               de vier huisstijlvarianten, de mappen in
+                                 assets/icons/Zeshoek: cyaan, donker en magenta
+                                 (effen zeshoek, wit icoon) en wit (witte
+                                 zeshoek, icoon uitgesneden)
      PMHex.svg(d, opts)          losse SVG: het kale icoon (24 × 24) of in de zeshoek
      PMHex.place(d)              { d, shrunk }: pad omgerekend naar de zeshoek;
                                  shrunk = iets verkleind voor de schuine randen.
@@ -27,6 +29,12 @@
      color   kleur van het icoon (standaard '#303030')
      fill    alleen zeshoek: kleur, of [boven, onder] voor een verticaal verloop
              (standaard '#ffffff')
+     knockout  alleen zeshoek: true snijdt het icoon uit de zeshoek (color telt
+             dan niet). Eén samengesteld pad, zeshoek + icoon met fill-rule
+             evenodd: geen masker, zodat het gat ook in Illustrator, Figma, Canva
+             en PowerPoint een gat blijft. Geef voor een icoon met overlappende
+             delen het pad uit PM_ICON_DATA.knockout mee, anders valt een
+             overlap weg (zie maak-zeshoeken.py).
      border  alleen zeshoek: [kleur, dikte in viewBox-eenheden], of niets
      id      id van het verloop (standaard 'pm-icoon'); maak hem uniek als er
              meerdere SVG's in dezelfde pagina staan
@@ -54,9 +62,10 @@
 
   // De varianten uit VARIANTEN in Python: effen zeshoek, geen verloop en geen rand
   const presets = bevries({
-    blauw: { fill: '#1ab9e2', color: '#ffffff' },   // heet Blauw, is Pure Cyaan (zoals de map Zeshoek/Blauw)
+    cyaan: { fill: '#1ab9e2', color: '#ffffff' },   // de huisvariant
     donker: { fill: '#303030', color: '#ffffff' },
-    wit: { fill: '#ffffff', color: '#303030' },
+    magenta: { fill: '#b61b50', color: '#ffffff' },
+    wit: { fill: '#ffffff', knockout: true },       // Witte zeshoek - doorzichtig icoon
   });
 
   /* ---------------------------------------------------------------------------
@@ -305,10 +314,15 @@
     } else {
       vlak = esc(vlak);
     }
-    const lagen = (rand ? `<path fill="${esc(rand[0])}" d="${bg.rand}"/>` : '') + `<path fill="${vlak}" d="${bg.vlak}"/>`;
+    // Uitsparen: het icoon als extra deelpad in elk vlak (vlakken() in Python)
+    const gat = opts.knockout ? icoon : '';
+    const regel = gat ? ' fill-rule="evenodd"' : '';
+    let lagen = (rand ? `<path fill="${esc(rand[0])}"${regel} d="${bg.rand}${gat}"/>` : '') +
+      `<path fill="${vlak}"${regel} d="${bg.vlak}${gat}"/>`;
+    if (!gat) lagen += `<path fill="${kleur}" d="${icoon}"/>`;
     const b = getal(hoogte ? hoogte * WIDTH / HEIGHT : WIDTH);
     const h = getal(hoogte || HEIGHT);
-    return `<svg ${XMLNS} ${HEX_VIEWBOX} width="${b}" height="${h}">${defs}${lagen}<path fill="${kleur}" d="${icoon}"/></svg>`;
+    return `<svg ${XMLNS} ${HEX_VIEWBOX} width="${b}" height="${h}">${defs}${lagen}</svg>`;
   }
 
   // Zelfde id-regel als het Python-script: 'pm-' + naam in kleine letters, zonder vreemde tekens

@@ -139,20 +139,21 @@ test('toelichting: een korte tekst blijft op het grootste korps in de linkerkolo
 
 const BMC_KEYS = ['partners', 'activiteiten', 'resources', 'proposities', 'relaties', 'kanalen', 'segmenten'];
 
-test('bmc: vijf kolommen tussen label en logo, kolom 4 verdeeld, de blokken in de volgorde van BMC_KEYS', () => {
+test('bmc: vijf kolommen tussen label en ondermarge (geen logo), kolom 4 verdeeld, de blokken in de volgorde van BMC_KEYS', () => {
   const bmc = { ...G.emptyBmc(), partners: points(4), resources: points(3), relaties: points(3), kanalen: points(6) };
   const { p } = planOf({ layout: 'bmc', label: 'business model canvas', title: '', bmc });
   const fr = S.frame();
   const B = S.GEOM.bmc;
   const top = Math.round(fr.labelTop + fr.labelSize * K.CAP + B.top);
-  const bottom = Math.round(fr.logo.y - B.bottom);
+  const bottom = Math.round(fr.h - fr.v - B.bottom);
   assert.equal(p.layout, 'bmc');
   assert.equal(p.panels.length, 6);
   assert.deepEqual(plainJson(p.panels.map((q) => Math.round(q.x))), [128, 464, 800, 1136, 1136, 1472]);
   assert.ok(p.panels.every((q) => q.w === 320));
-  // Onder het label (minstens 24 px), boven het logo (minstens 24 px vrij)
+  // Onder het label (minstens 24 px); zonder voetregel tot de ondermarge, ver onder
+  // de oude onderkant (boven het logo) en nooit in de marge
   assert.ok(top >= fr.labelTop + fr.labelSize * K.CAP + 24 && top <= 170, `bovenkant ${top}`);
-  assert.ok(bottom <= fr.logo.y - 24, `onderkant ${bottom}`);
+  assert.ok(bottom > fr.logo.y && bottom <= fr.h - fr.v, `onderkant ${bottom}`);
   for (const i of [0, 1, 2, 5]) assert.deepEqual([p.panels[i].y, p.panels[i].h], [top, bottom - top]);
   // Kolom 4: Klantrelaties boven, Kanalen onder, samen met de ruimte ertussen even hoog
   const [p3, p4] = [p.panels[3], p.panels[4]];
@@ -356,4 +357,61 @@ test('LAYOUTS: de waardepropositie heet in de positionering zoals het canvas', (
   const vpc = S.LAYOUTS.find((l) => l.id === 'vpc');
   assert.equal(vpc.name, 'Waardepropositie');
   assert.deepEqual(plainJson(vpc.names), { positionering: 'Waarde Propositie Canvas' });
+});
+
+/* --- bmc en vpc zonder voetregel: meer ruimte voor de tekst --- */
+
+// Een canvas dat de tekst en de beelden onthoudt (de rest doet niets, meten zoals fakeCtx)
+function recordingCanvas() {
+  const noop = () => ({ addColorStop() {} });
+  const log = { text: [], images: [] };
+  const base = fakeCtx();
+  base.fillText = (t) => log.text.push(String(t));
+  base.drawImage = (img) => log.images.push(img.name);
+  const ctx = new Proxy(base, { get: (t, k) => (k in t ? t[k] : noop) });
+  return { canvas: { width: 0, height: 0, getContext: () => ctx }, log };
+}
+const img = (name) => ({ name, complete: true, naturalWidth: 100, naturalHeight: 100 });
+const canvasSlides = () => [
+  { layout: 'bmc', label: 'business model canvas', title: '', bmc: { ...G.emptyBmc(), partners: points(4) } },
+  { layout: 'vpc', label: 'waardepropositie', title: '', vpc: { ...G.emptyVpc(), taken: points(3) } },
+  { layout: 'vpc', label: 'waarde propositie canvas', title: '', style: 'vol', vpc: { ...G.emptyVpc(), taken: points(3) } },
+];
+
+test('bmc en vpc: de vormen lopen onder de oude onderkant door, tot de ondermarge, binnen de zijmarges', () => {
+  const fr = S.frame();
+  const [bmc, vpc, vol] = canvasSlides().map((s) => planOf(s).p);
+  const bottom = Math.max(...bmc.panels.map((q) => q.y + q.h));
+  assert.ok(bottom > fr.contentBottom + 100, `bmc tot ${bottom}`);
+  assert.ok(bottom <= fr.h - fr.v);
+  for (const p of [vpc, vol]) {
+    const { square: sq, circle: ci } = p;
+    assert.ok(sq.y + sq.s > fr.contentBottom + 100 && ci.cy + ci.r > fr.contentBottom + 100, 'vierkant en cirkel lager dan voorheen');
+    assert.ok(sq.y + sq.s <= fr.h - fr.v && ci.cy + ci.r <= fr.h - fr.v, 'niet in de ondermarge');
+    assert.ok(sq.x >= fr.m && ci.cx + ci.r <= fr.w - fr.m, 'binnen de zijmarges');
+    assert.ok(sq.y - S.GEOM.vpc.captionGap - S.GEOM.vpc.captionSize > fr.labelTop + fr.labelSize, 'onderschrift onder het label');
+    assert.ok(ci.cx - ci.r > sq.x + sq.s, 'cirkel naast het vierkant');
+  }
+});
+
+test('bmc en vpc: geen pureminds.nl, slidenummer, badge of logo; andere slides houden ze', () => {
+  const slides = [...canvasSlides(), { layout: 'bullets', label: 'aanpak', title: 'Zo werken we', body: '- Eén' }];
+  const deck = { slides, dot: true, showNumbers: true, badge: true };
+  const env = { logo: img('logo'), badge: img('badge') };
+  const fr = S.frame();
+  slides.forEach((s, i) => {
+    const { canvas, log } = recordingCanvas();
+    S.renderSlide(canvas, deck, i, env);
+    const footer = log.text.includes('pureminds') || log.text.some((t) => / \/ 04$/.test(t));
+    if (s.layout === 'bullets') {
+      assert.ok(footer, 'gewone slide: voetregel en nummer');
+      assert.deepEqual(plainJson(log.images), ['badge', 'logo']);
+      assert.ok(S.badgeBox(fakeCtx(), fr, deck, i));
+    } else {
+      assert.ok(!footer, `${s.layout}${s.style ? ` ${s.style}` : ''}: geen voetregel of nummer`);
+      assert.deepEqual(plainJson(log.images), [], 'geen badge en geen logo');
+      assert.equal(S.badgeBox(fakeCtx(), fr, deck, i), null);
+      assert.ok(S.bare(s));
+    }
+  });
 });

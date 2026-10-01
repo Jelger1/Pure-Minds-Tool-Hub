@@ -1,13 +1,18 @@
 """
 Zet alle Remix-iconen in deze map om naar Pure Minds-zeshoekiconen (punt boven).
 
-Er komen drie varianten, elk in een eigen map onder Zeshoek/, met dezelfde
+Alleen de lijnstijl: van een icoon met -line en -fill wordt de -line-variant
+gebruikt; iconen in één stijl (zonder -line, zoals bold.svg) doen gewoon mee.
+Er komen vier varianten, elk in een eigen map onder Zeshoek/, met dezelfde
 categorieën en bestandsnamen als het origineel:
-- Blauw:  effen Pure Cyaan (#1ab9e2), wit icoon
-- Donker: antraciet zeshoek, wit icoon
-- Wit:    effen witte zeshoek, donker icoon
+- Cyaan zeshoek - wit icoon:         effen Pure Cyaan (#1ab9e2), wit icoon (de huisvariant)
+- Donkere zeshoek - wit icoon:       antraciet (#303030), wit icoon
+- Magenta zeshoek - wit icoon:       magenta (#b61b50), wit icoon
+- Witte zeshoek - doorzichtig icoon: witte zeshoek waar het icoon uit gesneden is;
+                                     de achtergrond schijnt door het icoon heen
 Alle varianten zijn effen: geen verloop en geen rand.
-Daarnaast komt er een overzicht.html om alles te bekijken en te doorzoeken.
+Daarnaast komen de iconen los (zonder zeshoek) in de huiskleuren in Los/<kleur>/,
+en een overzicht.html om alles te bekijken en te doorzoeken.
 
 Keuzes:
 - De coördinaten worden direct in het pad omgerekend (geen transform), zodat de
@@ -17,12 +22,22 @@ Keuzes:
   bewust iets rechts, signaalbalkjes staan bewust onderin).
 - Alleen iconen die te dicht bij de schuine randen komen, worden iets kleiner
   gemaakt, zodat niets tegen de rand aan plakt.
+- Het uitgesneden icoon is één samengesteld pad (zeshoek + icoon, fill-rule
+  evenodd), geen masker: zo blijft het gat een gat in Illustrator, Figma, Canva
+  en PowerPoint. Dat klopt alleen als evenodd hetzelfde icoon geeft als de
+  gewone vulling (nonzero). Bij een icoon met overlappende delen (zoals een
+  dubbel getekend balkje) zou de overlap dan wegvallen; voor die iconen staat
+  in uitsnijpaden.json een pad zonder overlap (dezelfde vorm, samengevoegd).
+  Met skia-pathops geïnstalleerd (pip install skia-pathops) controleert dit
+  script elk icoon en werkt het uitsnijpaden.json zelf bij; zonder gebruikt
+  het de lijst zoals hij er staat.
 - De witte variant is bedoeld voor een gekleurde of donkere achtergrond; op
   wit valt hij weg. Een variant kan nog wel een verloop of een rand krijgen
   (zie VARIANTEN); een rand is dan een tweede vlak in plaats van een stroke,
   omdat een stroke aan de buitenkant door de viewBox wordt afgesneden.
 
 Opnieuw draaien:  python maak-zeshoeken.py
+Daarna voor de Icon Finder (leest ook uitsnijpaden.json):  npm run icons
 """
 import json
 import math
@@ -33,18 +48,31 @@ import re
 
 BRON = os.path.dirname(os.path.abspath(__file__))
 DOEL = os.path.join(BRON, 'Zeshoek')
+DOEL_LOS = os.path.join(BRON, 'Los')
+
+# Losse iconen (zonder zeshoek) in de huiskleuren, dezelfde als 'los' in de Icon Finder
+LOSSE_KLEUREN = {
+    'Cyaan icoon': '#1ab9e2',
+    'Inkt icoon': '#303030',
+    'Magenta icoon': '#b61b50',
+    'Blauw icoon': '#1b71a8',
+    'Wit icoon': '#ffffff',
+}
+UITSNIJPADEN = os.path.join(BRON, 'uitsnijpaden.json')
 
 HOOGTE = 64.0          # hoogte van de zeshoek (viewBox); breedte volgt uit de vorm
 AFRONDING = 0.12       # hoekradius als deel van de straal; 0 geeft scherpe punten
 ICOONBREEDTE = 0.54    # het 20-eenheden-werkvlak van Remix t.o.v. de zeshoekbreedte
 MAX_VULLING = 0.78     # verste punt van een icoon, als deel van de afstand tot de rand
 
-# Per variant: vlak is één kleur of (boven, onder) voor een verloop;
-# rand is optioneel en heeft een dikte in viewBox-eenheden.
+# Per variant (de naam is de map): vlak is één kleur of (boven, onder) voor een
+# verloop; icoon is de kleur van het icoon, of uitsparen: het icoon wordt uit de
+# zeshoek gesneden. rand is optioneel en heeft een dikte in viewBox-eenheden.
 VARIANTEN = {
-    'Blauw': {'vlak': '#1ab9e2', 'icoon': '#ffffff'},
-    'Donker': {'vlak': '#303030', 'icoon': '#ffffff'},
-    'Wit': {'vlak': '#ffffff', 'icoon': '#303030'},
+    'Cyaan zeshoek - wit icoon': {'vlak': '#1ab9e2', 'icoon': '#ffffff'},
+    'Donkere zeshoek - wit icoon': {'vlak': '#303030', 'icoon': '#ffffff'},
+    'Magenta zeshoek - wit icoon': {'vlak': '#b61b50', 'icoon': '#ffffff'},
+    'Witte zeshoek - doorzichtig icoon': {'vlak': '#ffffff', 'uitsparen': True},
 }
 
 # --- Padbewerking -------------------------------------------------------------
@@ -182,15 +210,18 @@ def plaats_icoon(d, vorm):
     return verschuif(d, s, vorm['mx'] - 12 * s, vorm['my'] - 12 * s), verkleind
 
 
-def vlakken(variant, vorm, naam):
-    """De achtergrondlagen van een variant: defs (voor een verloop) en paden."""
+def vlakken(variant, vorm, naam, gat=''):
+    """De achtergrondlagen van een variant: defs (voor een verloop) en paden.
+    gat is het geplaatste icoon als het uit de zeshoek gesneden wordt: dan komt
+    het in elk vlak als extra deelpad, met fill-rule evenodd."""
     mx, my, R, r = vorm['mx'], vorm['my'], vorm['R'], vorm['r']
     vlak, defs, lagen = variant['vlak'], '', []
+    regel = ' fill-rule="evenodd"' if gat else ''
 
     if 'rand' in variant:
         # Binnenste zeshoek evenwijdig ingezet, zodat de rand overal even dik is.
         kleur, dikte = variant['rand']
-        lagen.append(f'<path fill="{kleur}" d="{zeshoekpad(mx, my, R, r)}"/>')
+        lagen.append(f'<path fill="{kleur}"{regel} d="{zeshoekpad(mx, my, R, r)}{gat}"/>')
         R, r = R - dikte / WORTEL3_2, max(r - dikte, 0)
 
     if isinstance(vlak, tuple):
@@ -200,62 +231,180 @@ def vlakken(variant, vorm, naam):
                 f'<stop offset="0" stop-color="{vlak[0]}"/><stop offset="1" stop-color="{vlak[1]}"/>'
                 f'</linearGradient></defs>')
         vlak = f'url(#{gid})'
-    lagen.append(f'<path fill="{vlak}" d="{zeshoekpad(mx, my, R, r)}"/>')
+    lagen.append(f'<path fill="{vlak}"{regel} d="{zeshoekpad(mx, my, R, r)}{gat}"/>')
     return defs, ''.join(lagen)
 
 
 def maak_svg(variant, naam, icoon, vorm):
+    """Eén zeshoek-SVG. Bij uitsparen is icoon het pad dat uit de zeshoek gaat."""
     b, h = getal(vorm['breedte']), getal(HOOGTE)
-    defs, lagen = vlakken(variant, vorm, naam)
+    if variant.get('uitsparen'):
+        defs, lagen = vlakken(variant, vorm, naam, icoon)
+    else:
+        defs, lagen = vlakken(variant, vorm, naam)
+        lagen += f'<path fill="{variant["icoon"]}" d="{icoon}"/>'
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {b} {h}" width="{b}" height="{h}">'
-            f'{defs}{lagen}<path fill="{variant["icoon"]}" d="{icoon}"/></svg>\n')
+            f'{defs}{lagen}</svg>\n')
+
+# --- Uitsparen: iconen met overlappende delen ---------------------------------
+
+
+def lees_uitsnijpaden():
+    """{'Categorie/naam.svg': pad zonder overlap} uit uitsnijpaden.json."""
+    if not os.path.exists(UITSNIJPADEN):
+        return {}
+    with open(UITSNIJPADEN, encoding='utf-8') as f:
+        return {k: v for k, v in json.load(f).items() if not k.startswith('_')}
+
+
+def controleer_uitsparen(bronnen):
+    """Zoekt met skia-pathops de iconen waarbij evenodd een andere vorm geeft dan
+    nonzero, en geeft voor elk een samengevoegd pad zonder overlap (24-raster).
+    None als skia-pathops niet geïnstalleerd is."""
+    try:
+        import pathops
+    except ImportError:
+        return None
+
+    def vorm_van(d, regel):
+        p, x, y = pathops.Path(fillType=regel), 0.0, 0.0
+        for c, a in segmenten(d):
+            if c == 'M':
+                p.moveTo(*a)
+                x, y = a
+            elif c == 'L':
+                p.lineTo(*a)
+                x, y = a
+            elif c == 'H':
+                x = a[0]
+                p.lineTo(x, y)
+            elif c == 'V':
+                y = a[0]
+                p.lineTo(x, y)
+            elif c == 'C':
+                p.cubicTo(*a)
+                x, y = a[4], a[5]
+            else:
+                p.close()
+        return p
+
+    def verschil(a, b):
+        # Oppervlak (in 24-rastereenheden²) dat in de ene vorm zit en niet in de andere
+        return abs(pathops.op(a, b, pathops.PathOp.XOR).area)
+
+    def als_pad(p):
+        delen = []
+        for soort, pts in p.segments:
+            if soort == 'moveTo':
+                delen.append(f'M{getal(pts[0][0])} {getal(pts[0][1])}')
+            elif soort == 'lineTo':
+                delen.append(f'L{getal(pts[0][0])} {getal(pts[0][1])}')
+            elif soort == 'curveTo':
+                delen.append('C' + ' '.join(f'{getal(x)} {getal(y)}' for x, y in pts))
+            elif soort == 'closePath':
+                delen.append('Z')
+            elif soort != 'endPath':
+                raise ValueError(f'onverwacht segment {soort}')
+        return ''.join(delen)
+
+    nonzero, evenodd = pathops.FillType.WINDING, pathops.FillType.EVEN_ODD
+    uit = {}
+    for sleutel, d in bronnen.items():
+        echt = vorm_van(d, nonzero)
+        if verschil(echt, vorm_van(d, evenodd)) < 1e-3:
+            continue
+        pad = als_pad(pathops.simplify(echt, fix_winding=True))
+        # Het nieuwe pad: evenodd gelijk aan nonzero, en (op het afronden op 3 decimalen
+        # na, zo'n 0,01) dezelfde vorm als het originele icoon
+        if (verschil(vorm_van(pad, nonzero), vorm_van(pad, evenodd)) >= 1e-3
+                or verschil(echt, vorm_van(pad, evenodd)) >= 0.05):
+            raise ValueError(f'{sleutel}: samengevoegd pad wijkt af')
+        uit[sleutel] = pad
+    return uit
+
+
+def schrijf_uitsnijpaden(paden):
+    inhoud = {'_uitleg': 'Gemaakt door maak-zeshoeken.py: paden zonder overlap voor iconen waarbij '
+                         'fill-rule evenodd een andere vorm geeft dan de gewone vulling. Alleen gebruikt '
+                         'voor de witte zeshoek met uitgesneden icoon (hier en in de Icon Finder).'}
+    inhoud.update(sorted(paden.items()))
+    with open(UITSNIJPADEN, 'w', encoding='utf-8', newline='\n') as uit:
+        json.dump(inhoud, uit, ensure_ascii=False, indent=2)
+        uit.write('\n')
 
 # --- Uitvoeren ----------------------------------------------------------------
 
 
-def main():
-    vorm = zeshoek()
-    overzicht, verkleind, fouten = {}, [], []
+def bronbestanden():
+    """{'Categorie/naam.svg': pad} van alle iconen in lijnstijl (en die in één stijl)."""
+    bronnen, fouten = {}, []
     for categorie in sorted(os.listdir(BRON)):
         map_ = os.path.join(BRON, categorie)
-        if categorie == 'Zeshoek' or not os.path.isdir(map_) or categorie.startswith(('.', '_')):
+        if categorie in ('Zeshoek', 'Los') or not os.path.isdir(map_) or categorie.startswith(('.', '_')):
             continue
-        bestanden = sorted(f for f in os.listdir(map_) if f.lower().endswith('.svg'))
-        if not bestanden:
-            continue
-        for v in VARIANTEN:
-            os.makedirs(os.path.join(DOEL, v, categorie), exist_ok=True)
-        overzicht[categorie] = []
-        for f in bestanden:
+        # De volle stijl (-fill) wordt niet meer gebruikt
+        for f in sorted(f for f in os.listdir(map_) if f.lower().endswith('.svg') and not f.endswith('-fill.svg')):
             bron = open(os.path.join(map_, f), encoding='utf-8').read()
             paden = re.findall(r'\sd="([^"]*)"', bron)
             if len(paden) != 1 or 'viewBox="0 0 24 24"' not in bron:
                 fouten.append(f'{categorie}/{f}: verwacht één pad op een 24-raster')
                 continue
-            try:
-                icoon, kleiner = plaats_icoon(paden[0], vorm)
-            except ValueError as e:
-                fouten.append(f'{categorie}/{f}: {e}')
-                continue
-            for v, variant in VARIANTEN.items():
-                with open(os.path.join(DOEL, v, categorie, f), 'w', encoding='utf-8', newline='\n') as uit:
-                    uit.write(maak_svg(variant, f[:-4], icoon, vorm))
-            overzicht[categorie].append(f[:-4])
-            if kleiner:
-                verkleind.append(f'{categorie}/{f}')
+            bronnen[f'{categorie}/{f}'] = paden[0]
+    return bronnen, fouten
+
+
+def main():
+    vorm = zeshoek()
+    bronnen, fouten = bronbestanden()
+
+    uitsnij = controleer_uitsparen(bronnen)
+    if uitsnij is None:
+        uitsnij = lees_uitsnijpaden()
+        print(f'skia-pathops niet geïnstalleerd: uitsnijpaden.json niet gecontroleerd ({len(uitsnij)} paden gebruikt)')
+    else:
+        schrijf_uitsnijpaden(uitsnij)
+        print(f'{len(uitsnij)} iconen met overlap, voor het uitsparen samengevoegd in uitsnijpaden.json: '
+              f'{", ".join(uitsnij) or "geen"}')
+
+    overzicht, verkleind = {}, []
+    for sleutel, d in bronnen.items():
+        categorie, f = sleutel.split('/')
+        try:
+            icoon, kleiner = plaats_icoon(d, vorm)
+            gat = plaats_icoon(uitsnij[sleutel], vorm)[0] if sleutel in uitsnij else icoon
+        except ValueError as e:
+            fouten.append(f'{sleutel}: {e}')
+            continue
+        for v, variant in VARIANTEN.items():
+            os.makedirs(os.path.join(DOEL, v, categorie), exist_ok=True)
+            with open(os.path.join(DOEL, v, categorie, f), 'w', encoding='utf-8', newline='\n') as uit:
+                uit.write(maak_svg(variant, f[:-4], gat if variant.get('uitsparen') else icoon, vorm))
+        # Los, zonder zeshoek: het bronpad ongewijzigd, alleen met de kleur ingevuld
+        for kleurmap, kleur in LOSSE_KLEUREN.items():
+            os.makedirs(os.path.join(DOEL_LOS, kleurmap, categorie), exist_ok=True)
+            with open(os.path.join(DOEL_LOS, kleurmap, categorie, f), 'w', encoding='utf-8', newline='\n') as uit:
+                uit.write(f'<svg viewBox="0 0 24 24" fill="{kleur}" xmlns="http://www.w3.org/2000/svg"><path d="{d}"/></svg>\n')
+        overzicht.setdefault(categorie, []).append(f[:-4])
+        if kleiner:
+            verkleind.append(sleutel)
 
     schrijf_overzicht(overzicht, vorm)
     totaal = sum(len(v) for v in overzicht.values())
-    print(f'{totaal} iconen x {len(VARIANTEN)} varianten ({", ".join(VARIANTEN)}) gemaakt in {DOEL}')
+    print(f'{totaal} iconen x {len(VARIANTEN)} varianten gemaakt in {DOEL}:')
+    for v in VARIANTEN:
+        print(f'  {v}')
+    print(f'en los in {len(LOSSE_KLEUREN)} kleuren in {DOEL_LOS}: {", ".join(LOSSE_KLEUREN)}')
     print(f'{len(verkleind)} iconen iets verkleind om binnen de schuine randen te blijven')
     for fout in fouten:
         print('Overgeslagen:', fout)
 
 
 def schrijf_overzicht(overzicht, vorm):
+    # Per variant: [map, licht]; een lichte zeshoek (wit) toont het overzicht op een donkere achtergrond
+    varianten = [[v, VARIANTEN[v]['vlak'] == '#ffffff'] for v in VARIANTEN]
     sjabloon = (OVERZICHT
                 .replace('__DATA__', json.dumps(overzicht, ensure_ascii=False))
-                .replace('__VARIANTEN__', json.dumps(list(VARIANTEN), ensure_ascii=False))
+                .replace('__VARIANTEN__', json.dumps(varianten, ensure_ascii=False))
                 .replace('__RATIO__', getal(vorm['breedte'] / HOOGTE)))
     with open(os.path.join(DOEL, 'overzicht.html'), 'w', encoding='utf-8', newline='\n') as uit:
         uit.write(sjabloon)
@@ -268,7 +417,7 @@ OVERZICHT = '''<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zeshoekiconen</title>
 <style>
-  :root { --ink: #303030; --grijs: #767676; --lijn: #e2e2e2; --vlak: #f4f6fa; --cyaan: #1ab9e2; --blauw: #1b71a8; }
+  :root { --ink: #303030; --grijs: #767676; --lijn: #e2e2e2; --vlak: #f4f6fa; --cyaan: #1ab9e2; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   body { margin: 0; font: 14px/1.5 "Open Sans", Arial, sans-serif; color: var(--ink); background: #fff; }
@@ -312,9 +461,13 @@ OVERZICHT = '''<!doctype html>
 <div id="melding"></div>
 <script>
   // Kies een variant en achtergrond; klik op een icoon om het pad naar het bestand te kopiëren.
+  // De witte zeshoek met uitgesneden icoon valt weg op wit: dan vanzelf een donkere achtergrond.
   const data = __DATA__;
-  const varianten = __VARIANTEN__;
-  const achtergronden = [['#ffffff', false], ['#f4f6fa', false], ['#1b71a8', true], ['#303030', true]];
+  const varianten = __VARIANTEN__.map(([naam]) => naam);
+  const licht = new Set(__VARIANTEN__.filter(([, l]) => l).map(([naam]) => naam));
+  const achtergronden = [['#ffffff', false], ['#f4f6fa', false], ['#1ab9e2', true], ['#b61b50', true], ['#303030', true]];
+  let donkerNu = false;
+  let vanzelf = false;   // achtergrond vanzelf donker gezet voor een lichte variant
   const lijst = document.getElementById('lijst');
   const telling = document.getElementById('telling');
   const melding = document.getElementById('melding');
@@ -357,7 +510,10 @@ OVERZICHT = '''<!doctype html>
     const knop = document.createElement('button');
     knop.style.background = kleur;
     knop.title = 'Achtergrond ' + kleur;
-    knop.addEventListener('click', () => kiesAchtergrond(kleur, donker, knop));
+    knop.addEventListener('click', () => {
+      vanzelf = false;
+      kiesAchtergrond(kleur, donker, knop);
+    });
     document.getElementById('achtergronden').append(knop);
     return knop;
   });
@@ -368,11 +524,20 @@ OVERZICHT = '''<!doctype html>
     try { history.replaceState(null, '', '#' + encodeURIComponent(v)); } catch (e) { /* geen probleem */ }
     variantKnoppen.forEach((k) => k.setAttribute('aria-pressed', k.textContent === v));
     for (const s of secties) for (const k of s.knoppen) k.img.src = src(s.categorie, k.naam);
+    const laatste = achtergronden.length - 1;
+    if (licht.has(v) && !donkerNu) {
+      kiesAchtergrond(...achtergronden[laatste], achtergrondKnoppen[laatste]);
+      vanzelf = true;
+    } else if (!licht.has(v) && vanzelf) {
+      kiesAchtergrond(...achtergronden[0], achtergrondKnoppen[0]);
+      vanzelf = false;
+    }
   }
 
   function kiesAchtergrond(kleur, donker, knop) {
     lijst.style.background = kleur;
     lijst.classList.toggle('donker', donker);
+    donkerNu = donker;
     achtergrondKnoppen.forEach((k) => k.setAttribute('aria-pressed', k === knop));
   }
 
@@ -411,8 +576,8 @@ OVERZICHT = '''<!doctype html>
   }
 
   document.getElementById('zoek').addEventListener('input', filter);
-  kiesVariant(variant);
   kiesAchtergrond(...achtergronden[0], achtergrondKnoppen[0]);
+  kiesVariant(variant);
   filter();
 </script>
 </body>

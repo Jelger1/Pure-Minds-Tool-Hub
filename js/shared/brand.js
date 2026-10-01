@@ -84,7 +84,6 @@
     bar: 12,
     storySafe: 250,           // boven en onder in een story zit de Instagram-interface
     formats: Object.freeze({
-      square: Object.freeze({ w: 1080, h: 1080, ratio: '1:1', label: 'vierkant' }),
       portrait: Object.freeze({ w: 1080, h: 1350, ratio: '4:5', label: 'portret' }),
       story: Object.freeze({ w: 1080, h: 1920, ratio: '9:16', label: 'story' }),
     }),
@@ -108,7 +107,7 @@
   });
 
   function exportSize(format, width = POST.width) {
-    const f = POST.formats[format] || POST.formats.square;
+    const f = POST.formats[format] || POST.formats.portrait;
     const w = Number(width) || POST.width;
     return { w, h: Math.round((f.h * w) / f.w) };
   }
@@ -175,7 +174,7 @@
    * naam, knoppen en de reactiebalk. Maten in px op de gevraagde breedte.
    */
   function safeZone(format, width = POST.width) {
-    const f = POST.formats[format] || POST.formats.square;
+    const f = POST.formats[format] || POST.formats.portrait;
     const k = (Number(width) || POST.width) / f.w;
     const size = { w: Math.round(f.w * k), h: Math.round(f.h * k) };
     if (format !== 'story') return { active: false, top: 0, bottom: 0, ...size, message: '' };

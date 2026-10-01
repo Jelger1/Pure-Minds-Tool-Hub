@@ -40,7 +40,7 @@
   function defaults() {
     return {
       template: 'overlay',
-      format: 'square',
+      format: 'portrait',
       dot: true,
       badge: false,  // Emerce 100-badge: geldt voor elke post, tot je hem uitzet
       crop: { zoom: 1, fx: 0.5, fy: 0.5 },
@@ -121,7 +121,8 @@
       if (!SIZES.includes(state.data[id].titleSize)) state.data[id].titleSize = 'normaal';
     }
     if (!T.TEMPLATE_META.some((t) => t.id === state.template)) state.template = 'overlay';
-    if (!T.FORMATS[state.format]) state.format = 'square';
+    // Het vierkante formaat (1:1) bestaat niet meer: een oud concept wordt 4:5
+    if (!T.FORMATS[state.format]) state.format = 'portrait';
     if (!DESTS[state.exportWidth]) state.exportWidth = 1080;
     if (!['png', 'jpg', 'pdf'].includes(state.exportType)) state.exportType = 'png';
     return state;

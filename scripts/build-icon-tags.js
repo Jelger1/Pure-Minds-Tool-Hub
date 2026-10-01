@@ -50,13 +50,13 @@ const overgeslagen = new Set(nl.overgeslagen || []);
 const STOPWORDS = new Set(['de', 'het', 'een', 'en', 'van', 'met', 'naar', 'in', 'op', 'te', 'of', 'is',
   'voor', 'the', 'a', 'an', 'and', 'to', 'for', 'with', 'on']);
 
-// --- Iconen: dezelfde groepering als icon-data.js (zonder -line/-fill) ------
+// --- Iconen: dezelfde groepering als icon-data.js (zonder -line; -fill telt niet mee)
 
 const names = new Set();
 for (const entry of fs.readdirSync(iconDir, { withFileTypes: true })) {
-  if (!entry.isDirectory() || entry.name === 'Zeshoek') continue;
+  if (!entry.isDirectory() || entry.name === 'Zeshoek' || entry.name === 'Los') continue;
   for (const file of fs.readdirSync(path.join(iconDir, entry.name))) {
-    if (file.endsWith('.svg')) names.add(file.slice(0, -4).replace(/-(line|fill)$/, ''));
+    if (file.endsWith('.svg') && !file.endsWith('-fill.svg')) names.add(file.slice(0, -4).replace(/-line$/, ''));
   }
 }
 const iconNames = [...names].sort();

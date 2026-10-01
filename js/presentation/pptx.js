@@ -28,6 +28,9 @@
      badge      staat de Emerce 100-badge aan, dan staat hij op elke slide
                 rechtsonder (links van het slidenummer als dat aan staat),
                 als scherpe afbeelding
+     canvassen  het Business Model Canvas en de waardepropositie staan op een
+                tweede layout zonder logo, voetregel, nummer en badge: hun
+                vormen lopen tot de ondermarge
 
    Lettertype: Pure Minds Sans (op de computer geïnstalleerd, of anders vervangt
    PowerPoint het; de bestanden staan in assets/fonts/).
@@ -684,6 +687,10 @@
     const number = state.showNumbers !== false ? slideNumber(fr) : null;
     deck.master({ background, objects: [bar(), logo(fr, logoImage), domain(fr), number] });
     deck.layout([number]);
+    // Business model canvas en waardepropositie: zonder logo, voetregel en nummer (zie
+    // templates.js, BARE). Een eigen layout die de master-vormen verbergt, met alleen de
+    // balk; alleen als het deck zo'n slide heeft (anders blijft het bestand zoals het was)
+    if (state.slides.some(S.bare)) deck.plainLayout([bar()]);
 
     const photos = new Map();
     let badge = null;
@@ -701,10 +708,12 @@
       const p = S.plan(ctx, fr, s, env, state);
       // Emerce 100-badge links van het slidenummer, per slide en boven een foto,
       // zoals het logo bij Beeld + tekst
+      // (templates.badgeBox: geen badge op een slide zonder voetregel)
       const box = badgeBox(ctx, fr, state, i);
       if (box && badge == null) badge = await badgeImage(deck, box, env.badge);
       const mark = box && badge != null ? { kind: 'pic', ...box, image: badge, name: 'Emerce 100-badge' } : null;
-      deck.slide([...slideObjects(fr, s, env, p, photo, logoImage), mark, number]);
+      if (S.bare(p)) deck.slide(slideObjects(fr, s, env, p, photo, logoImage), 2);
+      else deck.slide([...slideObjects(fr, s, env, p, photo, logoImage), mark, number]);
     }
     return deck.build();
   }

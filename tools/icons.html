@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Icon Finder &middot; Pure Minds</title>
-<meta name="description" content="Zoek in 1.690 iconen (de meeste in lijn en vol), in het Nederlands of Engels, en download ze als SVG of PNG: los of in de zeshoek van Pure Minds, in de merkkleuren.">
+<meta name="description" content="Zoek in 1.690 lijniconen, in het Nederlands of Engels, en download ze als SVG of PNG: los of in de zeshoek van Pure Minds, in de merkkleuren.">
 <meta name="theme-color" content="#1ab9e2">
 <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
 <link rel="stylesheet" href="../css/global.css">
@@ -48,7 +48,7 @@
     <div class="card card--accent browse" id="browse">
       <div class="browse__head">
         <h2 class="editor__title" id="browseTitle">Zoek je icoon<span class="dot">.</span></h2>
-        <p class="browse__lead">Kies stijl, vorm en kleur: wat je hier ziet, download je.</p>
+        <p class="browse__lead">Kies vorm en kleur: wat je hier ziet, download je.</p>
       </div>
 
       <!-- Blijft in beeld tijdens het scrollen -->
@@ -65,21 +65,14 @@
           </div>
           <button type="button" class="stylebtn" id="styleToggle" aria-expanded="false" aria-controls="styles">
             <span class="stylebtn__art" id="styleArt" aria-hidden="true"></span>
-            <span class="stylebtn__txt"><b>stijl</b><i id="styleSummary">lijn · los</i></span>
+            <span class="stylebtn__txt"><b>stijl</b><i id="styleSummary">los · inkt</i></span>
             <svg class="stylebtn__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
         </div>
         <p class="sr-only" id="searchHelp">De resultaten verschijnen terwijl je typt. Pijltje omlaag gaat naar de iconen.</p>
 
-        <!-- Stijl, vorm en kleur gelden voor alle iconen -->
+        <!-- Vorm en kleur gelden voor alle iconen (alleen lijnstijl, de volle stijl is weg) -->
         <div class="styles" id="styles">
-          <div class="styles__group">
-            <span class="styles__label" id="lblStyle">Stijl</span>
-            <div class="seg seg--2 seg--sm styles__seg" role="radiogroup" aria-labelledby="lblStyle">
-              <input type="radio" name="style" id="st-line" value="line"><label for="st-line"><b>lijn</b></label>
-              <input type="radio" name="style" id="st-fill" value="fill"><label for="st-fill"><b>vol</b></label>
-            </div>
-          </div>
           <div class="styles__group">
             <span class="styles__label" id="lblShape">Vorm</span>
             <div class="seg seg--2 seg--sm styles__seg" role="radiogroup" aria-labelledby="lblShape">
@@ -140,7 +133,7 @@
           <li>Zoek in het Nederlands of Engels: <b>prullenbak</b> vindt ook <i>delete-bin</i>.</li>
           <li class="for-mouse">Druk op <kbd>/</kbd> om te zoeken, en blader met de pijltjestoetsen.</li>
           <li class="for-mouse"><b>Dubbelklik</b> op een icoon om hem meteen te downloaden.</li>
-          <li>Stijl, vorm en kleur gelden voor alle iconen tegelijk.</li>
+          <li>Vorm en kleur gelden voor alle iconen tegelijk.</li>
         </ul>
       </div>
 
@@ -179,14 +172,6 @@
             </button>
           </div>
           <p class="detail__words" id="dWords" hidden></p>
-          <div class="detail__style" id="dStyleWrap">
-            <span class="export__label" id="lblDStyle">Stijl</span>
-            <div class="seg seg--2 seg--sm" role="radiogroup" aria-labelledby="lblDStyle">
-              <input type="radio" name="dstyle" id="ds-line" value="line"><label for="ds-line"><b>lijn</b></label>
-              <input type="radio" name="dstyle" id="ds-fill" value="fill"><label for="ds-fill"><b>vol</b></label>
-            </div>
-          </div>
-          <p class="detail__single" id="dSingle" hidden>Dit icoon is er in één stijl.</p>
         </div>
 
         <div class="export detail__export">

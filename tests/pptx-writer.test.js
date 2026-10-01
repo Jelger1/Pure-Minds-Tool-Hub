@@ -731,3 +731,91 @@ test('andere layouts houden het zeshoekje als opsommingsteken', () => {
   box.paragraphs.slice(1).forEach((q) => { assert.equal(q.bullet.char, '⬢'); assert.equal(q.indent, q.runs[0].size * 1.15); });
   assert.ok(!objects.some((o) => o && o.kind === 'path'));
 });
+
+/* --- layout 2: slides zonder de vormen van de master (bmc en vpc) --- */
+
+test('plainLayout: tweede layout met showMasterSp="0", alleen voor de slides die erom vragen', () => {
+  const deck = writer();
+  const bar = { kind: 'rect', x: 0, y: 0, w: 1920, h: 16, fill: { color: '#1ab9e2' }, name: 'Balk' };
+  deck.master({ background: null, objects: [bar] });
+  deck.layout([]);
+  deck.plainLayout([bar]);
+  deck.slide([bar]);
+  deck.slide([bar], 2);
+  assert.deepEqual(deck.slideLayouts, [1, 2]);
+  const master = deck.part();
+  const m = deck.masterXml(master);
+  assertWellFormed(m, 'master');
+  assert.ok(m.includes('<p:sldLayoutId id="2147483649" r:id="rId1"/><p:sldLayoutId id="2147483650" r:id="rId3"/>'));
+  assert.ok(master.rels.some((r) => r.id === 'rId3' && r.target === '../slideLayouts/slideLayout2.xml'));
+  const plain = deck.part();
+  const l2 = deck.plainLayoutXml(plain);
+  assertWellFormed(l2, 'layout 2');
+  assert.ok(l2.includes('showMasterSp="0"'), 'de vormen van de master verborgen, de achtergrond blijft');
+  assert.ok(l2.includes('name="Balk"'), 'de balk staat op de layout zelf');
+  assert.ok(plain.rels.some((r) => r.target === '../slideMasters/slideMaster1.xml'));
+  const rel = (i) => { const part = deck.part(); deck.slideXml(deck.slides[i], part, deck.slideLayouts[i]); return part.rels[0].target; };
+  assert.equal(rel(0), '../slideLayouts/slideLayout1.xml');
+  assert.equal(rel(1), '../slideLayouts/slideLayout2.xml');
+  assert.ok(deck.contentTypesXml().includes('/ppt/slideLayouts/slideLayout2.xml'));
+  // Zonder plainLayout: layout 1, en de master en content types zonder layout 2
+  const bare = writer();
+  bare.slide([bar], 2);
+  assert.deepEqual(bare.slideLayouts, [1]);
+  assert.ok(!bare.masterXml(bare.part()).includes('2147483650'));
+  assert.ok(!bare.contentTypesXml().includes('slideLayout2'));
+});
+
+// exportDeck zonder browser: canvas, zip en lettertypes nagebootst; geeft de bestanden van de zip
+async function exportFiles(state) {
+  const noop = () => ({ addColorStop() {} });
+  const canvas = () => {
+    const ctx = new Proxy(fakeCtx(), { get: (t, k) => (k in t ? t[k] : noop) });
+    return { width: 0, height: 0, getContext: () => ctx };
+  };
+  class Zip {
+    constructor() { this.files = {}; }
+    file(name, data) { this.files[name] = data; }
+    async generateAsync() { return this.files; }
+  }
+  const win = {
+    PMGenerator: G,
+    PM: { fontsReady: Promise.resolve(), canvasToBlob: async () => new Uint8Array([1]), libs: { jszip: async () => Zip } },
+    PM_BRAND: { logoWhite: 'data:image/png;base64,AA==' },
+  };
+  win.window = win;
+  const sandbox = { window: win, document: { createElement: canvas }, atob: (s) => Buffer.from(s, 'base64').toString('binary'), setTimeout };
+  vm.createContext(sandbox);
+  for (const file of ['js/shared/canvas-kit.js', 'js/presentation/templates.js', 'js/shared/pptx-writer.js', 'js/presentation/pptx.js']) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), sandbox, { filename: file });
+  }
+  return win.PMSlidesPptx.exportDeck(state, () => ({}), {});
+}
+
+test('exportDeck: bmc en vpc op layout 2 zonder slidenummer; andere slides en decks zoals voorheen', async () => {
+  const slides = [
+    { id: 'a', layout: 'bullets', label: 'aanpak', title: 'Zo werken we', body: '- Eén' },
+    { id: 'b', layout: 'bmc', label: 'business model canvas', title: '', bmc: { ...G.emptyBmc(), partners: '- Leveranciers' } },
+    { id: 'c', layout: 'vpc', label: 'waarde propositie canvas', title: '', style: 'vol', vpc: G.emptyVpc() },
+    { id: 'd', layout: 'vpc', label: 'waardepropositie', title: '', vpc: G.emptyVpc() },
+  ];
+  const files = await exportFiles({ slides, dot: true, showNumbers: true, badge: false });
+  const layoutOf = (i) => /slideLayout(\d)\.xml/.exec(files[`ppt/slides/_rels/slide${i}.xml.rels`])[1];
+  assert.deepEqual([1, 2, 3, 4].map(layoutOf), ['1', '2', '2', '2']);
+  assert.ok(files['ppt/slides/slide1.xml'].includes('type="sldNum"'), 'gewone slide: het nummerveld');
+  for (const i of [2, 3, 4]) {
+    const s = files[`ppt/slides/slide${i}.xml`];
+    assert.ok(!s.includes('type="sldNum"') && !s.includes('name="Logo"') && !s.includes('pureminds'), `slide ${i}: geen nummer, logo of voetregel`);
+  }
+  const l2 = files['ppt/slideLayouts/slideLayout2.xml'];
+  assert.ok(l2.includes('showMasterSp="0"') && l2.includes('name="Balk"') && !l2.includes('name="Logo"'));
+  // Logo en voetregel blijven op de master (voor alle andere slides)
+  const master = files['ppt/slideMasters/slideMaster1.xml'];
+  assert.ok(master.includes('name="Logo"') && master.includes('name="pureminds.nl"'));
+  // Een deck zonder canvas: geen layout 2, alles op layout 1
+  const plain = await exportFiles({ slides: [slides[0]], dot: true, showNumbers: true, badge: false });
+  assert.ok(!('ppt/slideLayouts/slideLayout2.xml' in plain));
+  assert.ok(!plain['ppt/slideMasters/slideMaster1.xml'].includes('2147483650'));
+  assert.ok(!plain['ppt/slideMasters/_rels/slideMaster1.xml.rels'].includes('slideLayout2') && !plain['[Content_Types].xml'].includes('slideLayout2'));
+  assert.ok(files['ppt/slideMasters/_rels/slideMaster1.xml.rels'].includes('slideLayout2'));
+});

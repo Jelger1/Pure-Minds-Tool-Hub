@@ -75,7 +75,7 @@ test('doeDone: match, change, click en signal', () => {
   assert.equal(doeDone({ event: 'input', match: '\\*\\*.+\\*\\*' }, { type: 'input', value: 'een woord' }), false);
   assert.equal(doeDone({ event: 'input', match: '(' }, { type: 'input', value: 'x' }), true, 'kapotte regex blokkeert niet');
   assert.equal(doeDone({ event: 'change' }, { type: 'change', value: 'carousel' }), true);
-  assert.equal(doeDone({ event: 'change', match: '^story$' }, { type: 'change', value: 'square' }), false);
+  assert.equal(doeDone({ event: 'change', match: '^story$' }, { type: 'change', value: 'portrait' }), false);
   assert.equal(doeDone({ event: 'click' }, { type: 'click' }), true);
   assert.equal(doeDone({ signal: 'foto' }, { type: 'signal', name: 'foto' }), true);
   assert.equal(doeDone({ signal: 'foto' }, { type: 'signal', name: 'ander' }), false);

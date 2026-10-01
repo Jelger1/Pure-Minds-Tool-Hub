@@ -37,7 +37,6 @@
   } = global.PMCanvas;
 
   const FORMATS = {
-    square: { w: 1080, h: 1080, ratio: '1:1', label: 'vierkant' },
     portrait: { w: 1080, h: 1350, ratio: '4:5', label: 'portret' },
     story: { w: 1080, h: 1920, ratio: '9:16', label: 'story' },
   };
@@ -131,7 +130,7 @@
      ------------------------------------------------------------------------- */
 
   function frame(format) {
-    const f = FORMATS[format] || FORMATS.square;
+    const f = FORMATS[format] || FORMATS.portrait;
     const m = GRID.margin;
     const story = f.h / f.w > 1.5;
     const v = story ? GRID.storySafe : m;  // verticale marge

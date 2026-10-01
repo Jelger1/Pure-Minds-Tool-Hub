@@ -48,11 +48,12 @@ test('slidemaat en marges zijn gelijk aan de Presentation Maker', () => {
 });
 
 test('exportmaten kloppen met de tabel in de README', () => {
-  assert.deepEqual(brand.exportSize('square', 1080), { w: 1080, h: 1080 });
+  assert.deepEqual(brand.exportSize('portrait', 1080), { w: 1080, h: 1350 });
   assert.deepEqual(brand.exportSize('portrait', 1200), { w: 1200, h: 1500 });
   assert.deepEqual(brand.exportSize('story', 1200), { w: 1200, h: 2133 });
   assert.deepEqual(brand.exportSize('story', 2160), { w: 2160, h: 3840 });
-  assert.deepEqual(brand.exportSize('onbekend'), { w: 1080, h: 1080 });
+  assert.deepEqual(brand.exportSize('square'), { w: 1080, h: 1350 }, '1:1 bestaat niet meer');
+  assert.deepEqual(brand.exportSize('onbekend'), { w: 1080, h: 1350 }, 'onbekend wordt 4:5');
   assert.deepEqual(brand.EXPORT.post.map((e) => e.width), [1080, 1200, 2160]);
 });
 
@@ -137,7 +138,7 @@ test('safeZone: alleen een story heeft balken, geschaald met de export', () => {
   assert.equal(s.rects.length, 2);
   assert.match(s.message, /250 px boven en onder/);
   assert.equal(brand.safeZone('story', 2160).top, 500);
-  const sq = brand.safeZone('square');
+  const sq = brand.safeZone('portrait');
   assert.equal(sq.active, false);
   assert.equal(sq.message, '');
 });

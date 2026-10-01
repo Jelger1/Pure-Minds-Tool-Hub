@@ -47,7 +47,7 @@
 
   async function build({ pages, title = 'Pure Minds-post', clientLogoSvg = null, progress = () => {} }) {
     if (!pages || !pages.length) throw new Error('Er is niets om te exporteren.');
-    const fmt = T.FORMATS[pages[0].state.format] || T.FORMATS.square;
+    const fmt = T.FORMATS[pages[0].state.format] || T.FORMATS.portrait;
 
     // Logo en Emerce-badge als vector; een klantlogo in SVG ook
     const vectors = new Map();

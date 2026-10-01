@@ -71,7 +71,7 @@ window.PM_TOOLS = [
     tour: 'je eerste post',
     status: 'live',
     starts: [
-      { label: 'Instagram-post', sub: '1:1 · feed', ratio: '1 / 1', params: { template: 'overlay', format: 'square' } },
+      { label: 'Instagram-post', sub: '4:5 · feed', ratio: '4 / 5', params: { template: 'overlay', format: 'portrait' } },
       { label: 'Story', sub: '9:16 · story, reel', ratio: '9 / 16', params: { template: 'overlay', format: 'story' } },
       { label: 'Carousel', sub: '4:5 · LinkedIn', ratio: '4 / 5', stack: true, params: { template: 'carousel', format: 'portrait' } },
     ],
@@ -79,10 +79,10 @@ window.PM_TOOLS = [
       key: 'pm-postmaker-v1',
       summary(s) {
         const names = { photo: 'foto', overlay: 'foto met tekst', blog: 'blogpost', case: 'casepost', carousel: 'carousel' };
-        const formats = { square: ['1:1', '1 / 1'], portrait: ['4:5', '4 / 5'], story: ['9:16', '9 / 16'] };
+        const formats = { portrait: ['4:5', '4 / 5'], story: ['9:16', '9 / 16'] };
         const d = (s.data && s.data[s.template]) || {};
         const title = s.template === 'carousel' ? d.slides && d.slides[0] && d.slides[0].title : d.title || d.client || d.label;
-        const f = formats[s.format] || formats.square;
+        const f = formats[s.format] || formats.portrait;
         const noun = s.template === 'carousel' ? 'carousel' : s.format === 'story' ? 'story' : 'post';
         return { title, sub: [names[s.template], f[0]].filter(Boolean).join(' · '), ratio: f[1], noun };
       },
@@ -158,7 +158,7 @@ window.PM_TOOLS = [
     name: 'Icon Finder',
     short: 'iconen',
     href: 'tools/icons.html',
-    description: '1.690 iconen, de meeste in lijn en vol, te zoeken in het Nederlands of Engels. Los of in de zeshoek, in de merkkleuren.',
+    description: '1.690 lijniconen, te zoeken in het Nederlands of Engels. Los of in de zeshoek, in de merkkleuren.',
     exports: ['SVG', 'PNG', 'kopiëren'],
     cta: 'zoek een icoon',
     search: { param: 'q', placeholder: 'bijv. euro, pijl of grafiek' },   // js/icons/app.js leest ?q=

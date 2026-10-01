@@ -43,7 +43,7 @@
     <div class="appbar__left">
       <div class="appbar__doc" aria-live="polite">
         <span class="appbar__title" id="docTitle">Nieuwe post</span>
-        <span class="appbar__sub" id="docSub">foto met tekst · 1:1</span>
+        <span class="appbar__sub" id="docSub">foto met tekst · 4:5</span>
       </div>
       <span class="appbar__sep appbar__sep--name" aria-hidden="true"></span>
       <button type="button" class="appbar__btn" id="undoBtn" aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl + Z)" aria-keyshortcuts="Control+Z Meta+Z" disabled><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.82843 6.99955L8.36396 9.53509L6.94975 10.9493L2 5.99955L6.94975 1.0498L8.36396 2.46402L5.82843 4.99955H13C17.4183 4.99955 21 8.58127 21 12.9996C21 17.4178 17.4183 20.9996 13 20.9996H4V18.9996H13C16.3137 18.9996 19 16.3133 19 12.9996C19 9.68584 16.3137 6.99955 13 6.99955H5.82843Z"/></svg></button>
@@ -81,7 +81,7 @@
                 <input type="radio" name="exportType" id="ex-pdf" value="pdf"><label for="ex-pdf" title="Om verder te bewerken in Canva: tekst, vormen en logo blijven losse lagen"><b>PDF</b><i>bewerkbaar</i></label>
               </div>
             </div>
-            <p class="popover__sum"><span>Je krijgt</span><b id="exportSum" aria-live="polite">1 PNG · 1080 × 1080 px</b></p>
+            <p class="popover__sum"><span>Je krijgt</span><b id="exportSum" aria-live="polite">1 PNG · 1080 × 1350 px</b></p>
           </div>
           <div class="popover__foot">
             <button type="button" class="btn btn-primary" id="downloadBtn2"><span data-label>download</span></button>
@@ -126,8 +126,7 @@
         <div class="field">
           <span class="label" id="fmtLabel">Formaat <button type="button" class="help" data-help="formaat"></button></span>
           <div class="fmt-grid" role="radiogroup" aria-labelledby="fmtLabel">
-            <label class="fmt"><input type="radio" name="format" value="square"><span class="fmt__art"><span class="shape" style="width:2.2rem;height:2.2rem"></span></span><span class="fmt__txt"><b>1:1</b><i>feed</i></span></label>
-            <label class="fmt"><input type="radio" name="format" value="portrait"><span class="fmt__art"><span class="shape" style="width:2rem;height:2.5rem"></span></span><span class="fmt__txt"><b>4:5</b><i>portret</i></span></label>
+            <label class="fmt"><input type="radio" name="format" value="portrait"><span class="fmt__art"><span class="shape" style="width:2rem;height:2.5rem"></span></span><span class="fmt__txt"><b>4:5</b><i>feed</i></span></label>
             <label class="fmt"><input type="radio" name="format" value="story"><span class="fmt__art"><span class="shape" style="width:1.45rem;height:2.58rem"></span></span><span class="fmt__txt"><b>9:16</b><i>story</i></span></label>
           </div>
           <p class="field-hint" data-for-format="story">Story: label en logo blijven buiten de balken van Instagram (250 px boven en onder).</p>

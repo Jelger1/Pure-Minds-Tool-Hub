@@ -14,7 +14,7 @@ Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 | [Insta Post Maker](tools/insta.html) | Instagram- en LinkedIn-posts in vijf templates | PNG, JPG, PDF om verder te bewerken in Canva (elke post; een carousel als één PDF met een pagina per slide) |
 | [Document Maker](tools/document.html) | Brief, offerte, memo of notitie op A4-briefpapier | bewerkbare PDF, Word (.docx, ook voor Google Docs), afdrukken |
 | [Presentation Maker](tools/presentation.html) | 16:9-slides in zeven layouts, waaronder een tabel, plus voorstellen en positioneringen in de vaste opbouw van Pure Minds | bewerkbare PDF, PowerPoint (.pptx, ook voor Google Slides), PNG (Full HD of 4K) |
-| [Icon Finder](tools/icons.html) | 1.690 iconen, de meeste in lijn en vol, te zoeken in het Nederlands of Engels; los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
+| [Icon Finder](tools/icons.html) | 1.690 lijniconen, te zoeken in het Nederlands of Engels; los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
 
 Alle PDF's hebben **echte tekst** in ingesloten Pure Minds Sans, met per gewicht een
 eigen fontnaam (te selecteren en aan te passen in Canva, Acrobat of
@@ -107,8 +107,11 @@ js/
 assets/fonts/                 Pure Minds Sans (het huislettertype), alle sneden
 assets/brand/                 logo's, favicon, brandbook
   emerce/                     Emerce 100-badge 2026, strak uitgesneden (posts, documenten, slides)
-assets/icons/                 Remix-iconen per categorie (bron voor de Icon Finder), met LICENSE
-  maak-zeshoeken.py           maakt Zeshoek/<Blauw|Donker|Wit>/ en overzicht.html
+assets/icons/                 Remix-iconen per categorie, lijnstijl (bron voor de Icon Finder), met LICENSE
+  maak-zeshoeken.py           maakt Zeshoek/ (vier kleurvarianten) en overzicht.html
+  uitsnijpaden.json           paden zonder overlap voor de doorzichtige uitsnede
+  Zeshoek/                    alle iconen in de zeshoek, één map per kleurvariant
+  Los/                        alle iconen zonder zeshoek, één map per huiskleur (cyaan, inkt, magenta, blauw, wit)
 scripts/build-brand-data.js   maakt brand-data.js en pdf-fonts.js
 scripts/build-icon-data.js    maakt js/icons/icon-data.js uit assets/icons/
 scripts/build-icon-tags.js    maakt js/icons/icon-tags.js uit scripts/icon-words/
@@ -417,7 +420,8 @@ en `safeZone('story')`.
 
 Vijf templates: standaard foto, foto met tekst, Pure blog post, Pure case post en een
 informatieve carousel met swipe-indicator (de laatste slide krijgt er vanzelf
-geen). Formaten 1:1, 4:5 en 9:16 (story). Alle posts zijn donker. De editor
+geen). Formaten 4:5 (feed) en 9:16 (story); een
+ouder 1:1-concept opent als 4:5. Alle posts zijn donker. De editor
 gebruikt de [editor-bouwstenen](#editor-bouwstenen).
 
 - **Rail:** *Template* (template en formaat, en *alles wissen*), *Foto*,
@@ -461,7 +465,7 @@ gebruikt de [editor-bouwstenen](#editor-bouwstenen).
   Heeft de PDF meer onderdelen dan Canva importeert (1.400), dan zegt de tool
   dat. Een post is één pagina, een carousel een pagina per slide (ook
   voor Instagram), *alleen deze slide* één pagina. Pagina: 0,75 pt per
-  ontwerp-px (1:1 is 810 × 810 pt), net als de LinkedIn-PDF; in Canva is hij
+  ontwerp-px (4:5 is 810 × 1012,5 pt), net als de LinkedIn-PDF; in Canva is hij
   weer 1080 px breed. Bestand: `pureminds-<template>-<onderwerp>.pdf`.
 - **Ongedaan maken** (appbalk, `Ctrl` + `Z`): de hele post, ook een foto
   vervangen of weghalen. Foto en klantlogo staan elk onder een eigen sleutel
@@ -483,7 +487,6 @@ gebruikt de [editor-bouwstenen](#editor-bouwstenen).
 
 | Formaat | 1080 px (Instagram) | 1200 px (LinkedIn) | 2160 px |
 |---|---|---|---|
-| 1:1 | 1080 × 1080 | 1200 × 1200 | 2160 × 2160 |
 | 4:5 | 1080 × 1350 | 1200 × 1500 | 2160 × 2700 |
 | 9:16 (story) | 1080 × 1920 | 1200 × 2133 | 2160 × 3840 |
 
@@ -872,13 +875,12 @@ als los iconenpakket.
   ("pijlen", "huisje"). Staat er een typfout in, dan toont de tool wat erop
   lijkt ("prulenbak"). De beste treffer staat eerst: een exacte naam, dan
   namen die met het woord beginnen, dan kortere namen.
-- **Stijl, vorm en kleur** gelden voor het hele raster, dus wat je ziet,
-  download je:
-  - stijl: *lijn* of *vol*
+- **Vorm en kleur** gelden voor het hele raster, dus wat je ziet,
+  download je (alle iconen zijn lijniconen):
   - vorm: *los* of *zeshoek*
   - kleur, altijd effen: inkt, cyaan, blauw, magenta, wit of een eigen kleur
-    (los); cyaan met een wit of een inktkleurig icoon, donker, magenta, wit of een
-    eigen kleur (zeshoek)
+    (los); cyaan, donker of magenta met een wit icoon, wit met een
+    uitgesneden (doorzichtig) icoon, of een eigen kleur (zeshoek)
 
   Bij wit worden raster en preview vanzelf donker.
 - **Categorieën:** de knoppen boven het raster tonen per categorie hoeveel
@@ -896,7 +898,7 @@ als los iconenpakket.
   pas dan op een canvas van precies die maat getekend. Er wordt dus nooit een
   klein plaatje opgeschaald: ook 2048 px is haarscherp.
 - **Bestandsnamen:** `home-line.svg` (los, inkt), `home-line-cyaan.svg`,
-  `home-fill-zeshoek-blauw-512px.png`, `…-eigen-1a2b3c` voor een eigen kleur.
+  `home-line-zeshoek-donker-512px.png`, `home-line-zeshoek-wit-doorzichtig.svg`, `…-eigen-1a2b3c` voor een eigen kleur.
 - **Sneltoetsen:**
 
   | Toets | Wat |
@@ -912,8 +914,8 @@ als los iconenpakket.
 - **Mobiel:** een gekozen icoon opent in een paneel van onderen, met dezelfde
   export.
 - **Adres en opslag:** zoekterm, categorie en gekozen icoon staan in het adres
-  (`?q=mail&cat=Arrows&icoon=mail`), dus een link doorsturen werkt. Stijl,
-  vorm, kleur, formaat en de laatst gebruikte iconen staan in `localStorage`
+  (`?q=mail&cat=Arrows&icoon=mail`), dus een link doorsturen werkt. Vorm,
+  kleur, formaat en de laatst gebruikte iconen staan in `localStorage`
   (`pm-icons-v1`).
 
 ### Iconen en zoekwoorden bijwerken
@@ -926,17 +928,25 @@ als los iconenpakket.
 - **De zeshoek:** `js/icons/hex.js` rekent in de browser precies na wat
   `assets/icons/maak-zeshoeken.py` doet. Een zeshoek-SVG uit de tool is dus
   gelijk aan het bestand dat het script in `assets/icons/Zeshoek/` zet, op
-  afronding na (hoogstens 0,001 eenheid, onzichtbaar). Die map is uitvoer en
-  staat niet in de repo. Verander je maten of varianten in
+  afronding na (hoogstens 0,001 eenheid, onzichtbaar). Die map staat in de
+  repo, zodat je de iconen ook los kunt pakken. Verander je maten of varianten in
   het Python-script, doe dat dan ook in `hex.js`.
 
   De varianten zijn effen, zonder verloop of rand:
 
-  | Variant | Zeshoek | Icoon |
+  | Map | Zeshoek | Icoon |
   |---|---|---|
-  | Blauw (Pure Cyaan) | `#1ab9e2` | wit |
-  | Donker | `#303030` | wit |
-  | Wit | `#ffffff` | inkt |
+  | `Cyaan zeshoek - wit icoon` (huisvariant) | `#1ab9e2` | wit |
+  | `Donkere zeshoek - wit icoon` | `#303030` | wit |
+  | `Magenta zeshoek - wit icoon` | `#b61b50` | wit |
+  | `Witte zeshoek - doorzichtig icoon` | `#ffffff` | uitgesneden |
+
+  De doorzichtige variant is één samengesteld pad (zeshoek plus icoon, regel
+  evenodd), zodat hij in Illustrator, Figma, Canva en PowerPoint werkt. Twee
+  iconen met overlappende delen gebruiken een pad zonder overlap uit
+  `uitsnijpaden.json`. Nieuwe iconen: draai `python assets/icons/maak-zeshoeken.py`
+  (met `pip install skia-pathops` controleert het script zelf op overlap) en
+  daarna `npm run icons`.
 
 ## Techniek & analyse
 

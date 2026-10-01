@@ -64,7 +64,7 @@
 .search__clear:hover { color: var(--pm-ink); background: var(--pm-soft); }
 .search__clear:focus-visible { outline: 3px solid rgba(26, 185, 226, .5); outline-offset: -3px; }
 
-/* Mobiel: stijl, vorm en kleur achter één knop */
+/* Mobiel: vorm en kleur achter één knop ("stijl") */
 .stylebtn { display: none; }
 @media (max-width: 1023px) {
   .stylebtn {
@@ -95,7 +95,7 @@
   .search:not(.has-value) .search__input { padding-right: .75rem; }
 }
 
-/* Stijl, vorm en kleur */
+/* Vorm en kleur */
 .styles { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem 1rem; }
 .styles__group { display: flex; align-items: center; gap: .5rem; }
 .styles__group--color { flex-wrap: nowrap; }
@@ -135,6 +135,11 @@
 .swatch__ico {
   position: relative; width: .5rem; height: .577rem; background: var(--sw-ico);
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+/* Witte zeshoek met uitgesneden icoon: het stipje geblokt, het teken voor doorzichtig */
+.swatch__ico--knockout {
+  width: .625rem; height: .722rem;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath d='M0 0h2v2H0zM2 2h2v2H2z' fill='%23767676'/%3E%3C/svg%3E") 0 0 / 4px 4px;
 }
 .swatch:hover { border-color: var(--pm-border); background: var(--pm-soft); }
 .swatch:has(input:checked) { border-color: var(--pm-cyan); background: var(--pm-tint); box-shadow: inset 0 0 0 1px var(--pm-cyan); }
@@ -360,9 +365,6 @@
 .copyname.is-copied .i-check { display: block; stroke: var(--pm-green); stroke-width: 2.75; }
 .detail__words { font-size: .8125rem; line-height: 1.5; color: var(--pm-muted); }
 .detail__words b { font-weight: 600; color: var(--pm-ink); }
-.detail__style { display: flex; align-items: center; gap: .75rem; margin-top: .125rem; }
-.detail__style .seg { min-width: 8rem; }
-.detail__single { font-size: .75rem; color: var(--pm-muted); }
 
 .detail__export { margin-top: 1.125rem; }
 .detail__export .export__opts { flex-wrap: nowrap; }

@@ -13,7 +13,9 @@
      const foto = deck.image(blob, 'jpeg', 'sleutel');
      deck.master({ background: foto, objects: [...] });
      deck.layout([...]);
-     deck.slide([...]);
+     deck.plainLayout([...]);            // optioneel: layout 2, zonder de vormen van de master
+     deck.slide([...]);                  // op layout 1
+     deck.slide([...], 2);               // op layout 2
      const blob = await deck.build();
 
    Objecten (maten in ontwerp-px, kleuren als '#rrggbb' of 'rgba(...)'):
@@ -113,6 +115,8 @@
       this.slides = [];
       this.masterDef = { background: null, objects: [] };
       this.layoutObjects = [];
+      this.plainObjects = null;   // layout 2 (plainLayout), alleen als die gebruikt wordt
+      this.slideLayouts = [];     // per slide: layout 1 of 2
     }
 
     px(v) { return Math.round(v * this.emu); }
@@ -129,7 +133,14 @@
 
     master(def) { this.masterDef = def; }
     layout(objects) { this.layoutObjects = objects; }
-    slide(objects) { this.slides.push(objects.filter(Boolean)); }
+    // Tweede layout die de vormen van de master verbergt (showMasterSp="0"): alleen de
+    // achtergrond van de master blijft, plus deze objecten. Voor slides zonder logo en
+    // voetregel (het business model canvas en de waardepropositie)
+    plainLayout(objects) { this.plainObjects = objects; }
+    slide(objects, layout = 1) {
+      this.slides.push(objects.filter(Boolean));
+      this.slideLayouts.push(layout === 2 && this.plainObjects ? 2 : 1);
+    }
 
     /* --- onderdelen van een part (master, layout of slide): relaties en id's --- */
 
@@ -359,10 +370,13 @@
       const tree = this.tree(d.objects || [], part, 'master');
       const layoutRel = part.rel(`${REL}slideLayout`, '../slideLayouts/slideLayout1.xml');
       part.rel(`${REL}theme`, '../theme/theme1.xml');
+      // Layout 2 alleen als hij er is: zonder blijft de master precies zoals hij was
+      const plainRel = this.plainObjects ? part.rel(`${REL}slideLayout`, '../slideLayouts/slideLayout2.xml') : null;
+      const plainId = plainRel ? `<p:sldLayoutId id="2147483650" r:id="${plainRel}"/>` : '';
       // Donkere master: tekst die je in PowerPoint toevoegt wordt wit (tx1 = lt1)
       return `${XML}<p:sldMaster xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:bg><p:bgPr>${bg}<a:effectLst/></p:bgPr></p:bg>${tree}</p:cSld>`
         + '<p:clrMap bg1="dk1" tx1="lt1" bg2="dk2" tx2="lt2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>'
-        + `<p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="${layoutRel}"/></p:sldLayoutIdLst></p:sldMaster>`;
+        + `<p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="${layoutRel}"/>${plainId}</p:sldLayoutIdLst></p:sldMaster>`;
     }
 
     layoutXml(part) {
@@ -371,9 +385,17 @@
       return `${XML}<p:sldLayout xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}" type="blank" preserve="1"><p:cSld name="Pure Minds">${tree}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`;
     }
 
-    slideXml(objects, part) {
+    // Layout 2: de vormen van de master verborgen ("achtergrondafbeeldingen verbergen" in
+    // PowerPoint), de achtergrond van de master blijft
+    plainLayoutXml(part) {
+      const tree = this.tree(this.plainObjects || [], part, 'layout');
+      part.rel(`${REL}slideMaster`, '../slideMasters/slideMaster1.xml');
+      return `${XML}<p:sldLayout xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}" showMasterSp="0" type="blank" preserve="1"><p:cSld name="Pure Minds zonder voetregel">${tree}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`;
+    }
+
+    slideXml(objects, part, layout = 1) {
       const tree = this.tree(objects, part, 'slide');
-      part.rel(`${REL}slideLayout`, '../slideLayouts/slideLayout1.xml');
+      part.rel(`${REL}slideLayout`, `../slideLayouts/slideLayout${layout}.xml`);
       return `${XML}<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld>${tree}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
     }
 
@@ -414,6 +436,7 @@
         + over('/ppt/presentation.xml', `${CT}presentationml.presentation.main+xml`)
         + over('/ppt/slideMasters/slideMaster1.xml', `${CT}presentationml.slideMaster+xml`)
         + over('/ppt/slideLayouts/slideLayout1.xml', `${CT}presentationml.slideLayout+xml`)
+        + (this.plainObjects ? over('/ppt/slideLayouts/slideLayout2.xml', `${CT}presentationml.slideLayout+xml`) : '')
         + over('/ppt/theme/theme1.xml', `${CT}theme+xml`)
         + this.slides.map((_, i) => over(`/ppt/slides/slide${i + 1}.xml`, `${CT}presentationml.slide+xml`)).join('')
         + over('/docProps/core.xml', 'application/vnd.openxmlformats-package.core-properties+xml')
@@ -441,9 +464,11 @@
       const masterXml = this.masterXml(master);
       const layout = this.part();
       const layoutXml = this.layoutXml(layout);
-      const slides = this.slides.map((objects) => {
+      const plain = this.plainObjects ? this.part() : null;
+      const plainXml = plain ? this.plainLayoutXml(plain) : null;
+      const slides = this.slides.map((objects, i) => {
         const part = this.part();
-        return { xml: this.slideXml(objects, part), part };
+        return { xml: this.slideXml(objects, part, this.slideLayouts[i]), part };
       });
 
       const root = [
@@ -466,6 +491,10 @@
       zip.file('ppt/slideMasters/_rels/slideMaster1.xml.rels', this.relsXml(master.rels));
       zip.file('ppt/slideLayouts/slideLayout1.xml', layoutXml);
       zip.file('ppt/slideLayouts/_rels/slideLayout1.xml.rels', this.relsXml(layout.rels));
+      if (plain) {
+        zip.file('ppt/slideLayouts/slideLayout2.xml', plainXml);
+        zip.file('ppt/slideLayouts/_rels/slideLayout2.xml.rels', this.relsXml(plain.rels));
+      }
       slides.forEach((s, i) => {
         zip.file(`ppt/slides/slide${i + 1}.xml`, s.xml);
         zip.file(`ppt/slides/_rels/slide${i + 1}.xml.rels`, this.relsXml(s.part.rels));
