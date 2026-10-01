@@ -18,7 +18,7 @@
      PM.readImage(file)    bestand -> { img, url } of een nette foutmelding
      PM.bindDrop(...)      slepen van een bestand op een zone
      PM.saveBlob(...)      bestand downloaden
-     PM.libs               jsPDF, svg2pdf, JSZip en docx, pas geladen bij de eerste export
+     PM.libs               jsPDF, svg2pdf, JSZip, docx en pdf-lib, pas geladen bij de eerste export
      PM.pdfFonts(pdf)      Pure Minds Sans insluiten in een PDF (echte, bewerkbare tekst)
      PM.pdfDocument(opts)  een nieuwe PDF zoals alle makers hem maken; PM.pdfFinish(pdf, meta) -> Blob
      PM.fontFiles()        Pure Minds Sans als bytes per snede (voor Word en PowerPoint)
@@ -533,6 +533,12 @@
       integrity: 'sha384-9OH56uLhIvkZkwF0jWNlfpcK3gPuSy5DfEMNqKe156wCpkND+MDdtaRyd05kwpG0',
       ready: () => global.docx && global.docx.Document && global.docx,
     },
+    // PDF's nabewerken: lagen (OCG) en metadata in het brandbook (js/styleguide/export.js)
+    pdflib: {
+      src: 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
+      integrity: 'sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI',
+      ready: () => global.PDFLib && global.PDFLib.PDFDocument && global.PDFLib,
+    },
   };
   const loading = {};
 
@@ -564,6 +570,7 @@
     svg2pdf: () => loadLib('jspdf').then(() => loadLib('svg2pdf')),
     jszip: () => loadLib('jszip'),
     docx: () => loadLib('docx'),
+    pdflib: () => loadLib('pdflib'),
   };
 
   // Pure Minds Sans als bytes per snede, om in te sluiten in Word en PowerPoint

@@ -40,6 +40,12 @@
    jpegQuality: kwaliteit van foto's (standaard 0,9). Een afbeelding met
    img.dataset.pdfType = 'PNG' (een logo met doorzichtige achtergrond) gaat
    als PNG, net als elke afbeelding waarin transparantie zit.
+   fontStyle(gewicht, cursief): welke snede jsPDF gebruikt (standaard
+   PM.pdfFontStyle); de Brand Styleguide geeft Light 300 zo een eigen snede.
+   Lagen: ctx.beginLayer('Tekst') … ctx.endLayer() zet alles daartussen in
+   gemarkeerde inhoud (/OC /Tekst BDC … EMC). De naam moet daarna als laag
+   (OCG) in de resources van de pagina komen; de Brand Styleguide doet dat met
+   pdf-lib (js/styleguide/export.js). Zonder deze aanroepen verandert er niets.
    Niet ondersteund (niet nodig voor de templates): transformaties en andere
    tekstbasislijnen dan 'alphabetic'.
    ============================================================================= */
@@ -680,7 +686,7 @@
      ------------------------------------------------------------------------- */
 
   class PMPdfCanvas {
-    constructor(pdf, { width, height, pageWidth, vectors, rasterScale = 2, jpegQuality = 0.9, measure }) {
+    constructor(pdf, { width, height, pageWidth, vectors, rasterScale = 2, jpegQuality = 0.9, measure, fontStyle }) {
       this.pdf = pdf;
       this.page = { x: 0, y: 0, w: width, h: height || width };
       this.k = pageWidth / width;             // ontwerp-px -> pt
@@ -692,6 +698,7 @@
       this.clips = [];
       this.path = new Path();
       this.stats = { text: 0, vector: 0, raster: 0, image: 0, svg: 0 };
+      this.fontStyle = fontStyle || null;
       // Meten met een echte 2D-context: dezelfde maten als de preview
       this.m = measure || scratch();
       this.hasLetterSpacing = 'letterSpacing' in this.m;
@@ -749,7 +756,7 @@
       const weight = w === 'bold' || w === 'bolder' ? 700 : w === 'lighter' ? 400 : Number(w);
       const italic = /\b(italic|oblique)\b/i.test(before);
       const spacing = this.hasLetterSpacing ? parseFloat(this.letterSpacing) || 0 : 0;
-      return { style: global.PM.pdfFontStyle(weight, italic), size: size ? Number(size[1]) : 10, spacing, css: this.font, ls: this.letterSpacing };
+      return { style: (this.fontStyle || global.PM.pdfFontStyle)(weight, italic), size: size ? Number(size[1]) : 10, spacing, css: this.font, ls: this.letterSpacing };
     }
 
     measureWith(font, ls, text) {
@@ -990,6 +997,23 @@
       this.items.push({ kind: 'image', img, src: cropSrc, dest: vis, alpha });
     }
 
+    /* --- lagen: gemarkeerde inhoud, alleen letters en cijfers in de naam --- */
+
+    // Altijd in paren en nooit genest: een nieuwe laag sluit de vorige eerst
+    beginLayer(name) {
+      const tag = String(name || '').replace(/[^A-Za-z0-9]/g, '');
+      if (!tag) return;
+      this.endLayer();
+      this.items.push({ kind: 'mark', tag });
+      this.layerOpen = true;
+    }
+
+    endLayer() {
+      if (!this.layerOpen) return;
+      this.items.push({ kind: 'mark', tag: null });
+      this.layerOpen = false;
+    }
+
     /* --- wegschrijven --- */
 
     withAlpha(a, draw) {
@@ -1167,12 +1191,14 @@
 
     // Alles in tekenvolgorde naar de huidige pagina; geeft de telling per soort terug
     async flush() {
+      this.endLayer();   // een laag die nog openstaat, sluit op het eind van de pagina
       for (const item of this.items) {
         if (item.kind === 'text') this.writeText(item);
         else if (item.kind === 'vector') this.writeVector(item);
         else if (item.kind === 'raster') this.writeRaster(item);
         else if (item.kind === 'image') this.writeImage(item);
         else if (item.kind === 'svg') await this.writeSvg(item);
+        else if (item.kind === 'mark') this.pdf.internal.write(item.tag ? `/OC /${item.tag} BDC` : 'EMC');
       }
       this.items = [];
       return { ...this.stats };

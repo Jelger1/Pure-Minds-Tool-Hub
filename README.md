@@ -15,6 +15,7 @@ Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 | [Document Maker](tools/document.html) | Brief, offerte, memo of notitie op A4-briefpapier | bewerkbare PDF, Word (.docx, ook voor Google Docs), afdrukken |
 | [Presentation Maker](tools/presentation.html) | 16:9-slides in zeven layouts, waaronder een tabel, plus voorstellen en positioneringen in de vaste opbouw van Pure Minds | bewerkbare PDF, PowerPoint (.pptx, ook voor Google Slides), PNG (Full HD of 4K) |
 | [Icon Finder](tools/icons.html) | 1.690 lijniconen, te zoeken in het Nederlands of Engels; los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
+| [Brand Styleguide](tools/styleguide.html) | Het brandbook (versie 2.1) digitaal: kleurwaarden kopiëren, logo's downloaden, contrast checken, zoeken in alle richtlijnen | bewerkbare PDF met lagen (Canva, Illustrator), logo-pakket (SVG en PNG), kleuren als ASE en JSON |
 
 Alle PDF's hebben **echte tekst** in ingesloten Pure Minds Sans, met per gewicht een
 eigen fontnaam (te selecteren en aan te passen in Canva, Acrobat of
@@ -50,6 +51,7 @@ tools/
   document.html               Document Maker
   presentation.html           Presentation Maker
   icons.html                  Icon Finder
+  styleguide.html             Brand Styleguide
 css/
   global.css                  gedeeld designsysteem (kleuren, Pure Minds Sans, kaarten,
                               knoppen, velden, kop met toolwisselaar)
@@ -60,6 +62,7 @@ css/
   document.css                Document Maker + het A4-briefpapier
   presentation.css            Presentation Maker
   icons.css                   Icon Finder
+  styleguide.css              Brand Styleguide
 js/
   shared/tools.js             register van alle tools (hub + toolwisselaar)
   shared/core.js              gedeelde hulpfuncties (window.PM)
@@ -104,6 +107,14 @@ js/
   icons/hex.js                de zeshoek om een icoon, gelijk aan maak-zeshoeken.py
   icons/search.js             zoeken met rangschikking, meervouden en typfouten
   icons/app.js                Icon Finder
+  styleguide/brand-tokens.js  de huisstijl als gegevens: kleuren met rol, typeschaal, logo-regels, A4-raster
+  styleguide/content.js       alle teksten van het brandbook, de hoofdstukken en de pagina's
+  styleguide/svg-path.js      logo, badge en iconen als canvas-paden (alleen M, L, C en Z)
+  styleguide/model.js         contrast, zoeken, kleurbestanden (ASE, JSON) en PDF-delen (zonder DOM)
+  styleguide/pages.js         de brandbook-pagina's als tekenfuncties (podium én PDF)
+  styleguide/export.js        PDF met lagen (pdf-lib), logo-pakket, kleurbestanden, badge
+  styleguide/help.js          [?]-uitleg, rondleiding en sneltoetsen (PM_HELP.styleguide)
+  styleguide/app.js           podium, hoofdstukken, panelen, zoeken en export
 assets/fonts/                 Pure Minds Sans (het huislettertype), alle sneden
 assets/brand/                 logo's, favicon, brandbook
   emerce/                     Emerce 100-badge 2026, strak uitgesneden (posts, documenten, slides)
@@ -118,8 +129,8 @@ scripts/build-icon-tags.js    maakt js/icons/icon-tags.js uit scripts/icon-words
 scripts/icon-words/           nl.json (Nederlands woordenboek), remix-tags.json
 server/server.js              kleine statische server (npm start, Render)
 tests/                        unittests van de editor-bouwstenen, de Insta Post Maker, de Document Maker,
-                              de Presentation Maker, het voorstel, de positionering, de PowerPoint-schrijver
-                              en de PDF-export (npm test)
+                              de Presentation Maker, het voorstel, de positionering, de PowerPoint-schrijver,
+                              de Brand Styleguide en de PDF-export (npm test)
 ```
 
 ## Een tool toevoegen
@@ -953,6 +964,65 @@ als los iconenpakket.
   (met `pip install skia-pathops` controleert het script zelf op overlap) en
   daarna `npm run icons`.
 
+## Brand Styleguide
+
+Het brandbook van Pure Minds Marketing Group als tool: versie 2.1, op basis
+van `assets/PureMinds-Brandbook-v2.0.pdf`. Missie, visie en kernwaarden staan
+er letterlijk in (alleen opgeschoond; "on-aangetapt" blijft zoals in de
+voorstellen). Nieuw in 2.1: tone of voice en schrijfregels, clear space en
+minimum formaat van het logo, regels voor de zeshoek en de iconen, contrast,
+de 60/30/10-regel en beeldtaal. Medium 500 is geschrapt (geen fontbestand).
+
+- **Indeling:** zoals de andere makers. De rail heeft zeven hoofdstukken
+  (Merk, Logo, Kleur, Type, Beeld, Iconen, Gebruik); een hoofdstuk kiezen
+  scrolt naar zijn eerste pagina en opent zijn paneel. Scrol je zelf naar een
+  ander hoofdstuk, dan volgt het paneel (breed scherm). Het podium toont de
+  17 pagina's (A4 liggend) onder elkaar, met miniaturen eronder. Op een
+  telefoon is de rail een tabbalk en het paneel een blad van onderen.
+- **Panelen:** teksten kopiëren (naam, slogan, missie, visie); het logo in wit
+  of Inkt als SVG of PNG; de **clear space** aan en uit (om elk logo op elke
+  pagina, alleen op het scherm) met een rekenhulp; HEX, RGB en CMYK met één
+  klik kopiëren; een **contrastchecker** tussen twee merkkleuren (WCAG 2.1);
+  de 60/30/10-regel licht en donker; de typeschaal als CSS; een fotocheck;
+  de icoonvarianten met een zoekveld naar de Icon Finder; de makers en de
+  Emerce 100-badge.
+- **Zoeken** (`/`) doorzoekt alle teksten en springt naar de pagina.
+  Vanaf het dashboard opent `tools/styleguide.html?q=magenta` meteen de
+  resultaten.
+- **Eén bron:** kleuren, typeschaal en logo-regels staan in
+  `brand-tokens.js` (gelijk aan `css/global.css` en `PM.brand`; de test
+  bewaakt dat), de teksten in `content.js`. Het podium en de PDF tekenen met
+  dezelfde functies (`pages.js`).
+- **Export** (*exporteer brandbook*, `Ctrl` + `S`):
+
+  | Bestand | Wat |
+  |---|---|
+  | `brandbook-pure-minds-marketing-group.pdf` | alle pagina's, bewerkbaar |
+  | `brandbook-<hoofdstuk>.pdf` | alleen het hoofdstuk dat in beeld is (menu) |
+  | `pure-minds-logo-pakket.zip` | `pure-minds-logo-wit` en `-inkt`, SVG en PNG (2000 px, doorzichtig), met LEESMIJ |
+  | `pure-minds-kleuren.ase` | stalen voor Illustrator, InDesign en Photoshop: een map RGB en een map CMYK |
+  | `pure-minds-kleuren.json` | kleuren met rol en CSS-variabele, de verhouding en het lettertype |
+
+- **De PDF:** echte tekst in Pure Minds Sans (elk gewicht een eigen
+  PostScript-naam, ook `PureMindsSans-Light`), vormen, logo, badge en iconen
+  als vector-paden (geen afbeeldingen, geen uitknippaden, geen verlopen),
+  kleuren exact, A4 liggend (841,89 × 595,28 pt). Daarna zet pdf-lib er vijf
+  **lagen** in (optionele inhoudsgroepen: Achtergrond, Vormen, Tekst, Logo,
+  Beeld), plus titel, onderwerp en auteur. `PMPdfCanvas` markeert de blokken
+  daarvoor (`beginLayer`/`endLayer`, zie `js/shared/pdf-canvas.js`); de andere
+  makers gebruiken dat niet en hun PDF's blijven gelijk. Het hele brandbook
+  is zo'n 1.100 elementen, onder de 1.400 van Canva; wordt het ooit meer, dan
+  komen er delen van hele hoofdstukken in een zip.
+- **Canva en Illustrator:** Canva opent elk tekstvak en elke vorm los (zet
+  Pure Minds Sans in de Brand Kit, anders kiest Canva een vervanger).
+  Illustrator opent de tekst bewerkbaar; de lagen van een PDF die niet uit
+  Illustrator komt, zet Illustrator meestal samen in één laag met groepen,
+  in de goede volgorde. Acrobat toont de vijf lagen.
+- **Het logo** in de exports is het origineel uit `assets/brand/logo/`; de
+  zwarte variant (`#24282e`) krijgt in het pakket de kleur Inkt (`#303030`).
+- **Opslag:** variant, clear space, compositie, contrastkleuren, logobreedte
+  en de fotocheck staan in `localStorage` (`pm-styleguide-v1`).
+
 ## Techniek & analyse
 
 Vier tools die buiten de hub draaien, in een eigen donker blok naast de
@@ -1046,10 +1116,10 @@ tekenopdracht zonder browser.
 
 ## Export-bibliotheken
 
-jsPDF 4.2.1, svg2pdf.js 2.8.1, docx 9.7.1 (Word) en JSZip 3.10.1
-(PowerPoint) komen van jsDelivr, met een vaste versie en SRI-hash
-(`js/shared/core.js`). Ze worden pas geladen bij de eerste export, dus
-bewerken werkt ook zonder internet.
+jsPDF 4.2.1, svg2pdf.js 2.8.1, docx 9.7.1 (Word), JSZip 3.10.1
+(PowerPoint, zips) en pdf-lib 1.17.1 (de lagen in het brandbook) komen van
+jsDelivr, met een vaste versie en SRI-hash (`js/shared/core.js`). Ze worden
+pas geladen bij de eerste export, dus bewerken werkt ook zonder internet.
 
 ## Opslag
 

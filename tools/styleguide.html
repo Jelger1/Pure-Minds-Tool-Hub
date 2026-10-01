@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="nl" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brand Styleguide &middot; Pure Minds</title>
+<meta name="description" content="De huisstijl van Pure Minds Marketing Group als digitaal brandbook: kleurwaarden kopiëren, logo's downloaden, contrast checken en het hele brandbook exporteren als bewerkbare PDF voor Canva en Illustrator.">
+<meta name="theme-color" content="#1ab9e2">
+<link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/editor.css">
+<link rel="stylesheet" href="../css/styleguide.css">
+</head>
+<body>
+<div class="bg-deco" aria-hidden="true"></div>
+
+<!-- Cyaan balk, zoals bovenaan pureminds.nl en de andere interne tools -->
+<div class="topstrip">
+  <a href="https://www.pureminds.nl/" target="_blank" rel="noopener">pure minds</a>
+  <span class="topstrip__sep">|</span>interne tool: brand styleguide<span class="hide-sm"> met het hele brandbook</span>
+</div>
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <div class="site-header__brand">
+      <a href="../index.html" aria-label="Naar de Generator Hub"><img src="../assets/brand/pureminds-logo.svg" alt="Pure Minds" width="106" height="38" class="site-header__logo"></a>
+      <span class="site-header__divider hide-sm" aria-hidden="true"></span>
+      <div class="site-header__title hide-sm">
+        <h1>Brand Styleguide</h1>
+        <p>De huisstijl om te kopiëren, te downloaden en te exporteren.</p>
+      </div>
+    </div>
+    <nav class="toolnav" data-toolnav="styleguide" aria-label="Tools"></nav>
+  </div>
+</header>
+
+<noscript><p class="noscript">JavaScript staat uit: de pagina's van het brandbook worden getekend met JavaScript. Zet het aan, of open het brandbook als PDF in assets/.</p></noscript>
+
+<div class="app" data-app="styleguide">
+
+  <!-- ============================================================
+       APPBALK: het brandbook, zoeken, hulp en de ene hoofdactie
+       ============================================================ -->
+  <header class="appbar">
+    <div class="appbar__left">
+      <div class="appbar__doc">
+        <span class="appbar__title">Brandbook 2.1</span>
+        <span class="appbar__sub" id="docSub">17 pagina's &middot; A4 liggend</span>
+      </div>
+      <span class="appbar__sep appbar__sep--name" aria-hidden="true"></span>
+      <!-- Zoeken door alle teksten; een resultaat springt naar zijn pagina -->
+      <div class="sg-search" id="search" role="search" data-tour="zoeken">
+        <svg class="ri sg-search__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z"/></svg>
+        <label class="sr-only" for="sgQuery">Zoek in het brandbook</label>
+        <input class="sg-search__input" id="sgQuery" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search"
+          placeholder="zoek: magenta, clear space, je of u…" role="combobox" aria-expanded="false" aria-controls="sgResults" aria-autocomplete="list">
+        <kbd class="sg-search__kbd for-mouse" aria-hidden="true">/</kbd>
+        <button type="button" class="sg-search__close" id="searchClose" aria-label="Zoeken sluiten"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"/></svg></button>
+        <div class="sg-results" id="sgResults" role="listbox" aria-label="Gevonden in het brandbook" hidden></div>
+      </div>
+    </div>
+    <div class="appbar__right">
+      <!-- Smal: zoeken achter een knop -->
+      <button type="button" class="appbar__btn sg-search-open" id="searchOpen" aria-label="Zoek in het brandbook" aria-controls="search"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z"/></svg></button>
+      <div class="menu">
+        <button type="button" class="appbar__btn" data-help-menu aria-haspopup="menu" aria-controls="helpMenu" title="Rondleiding en sneltoetsen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM11 15H13V17H11V15ZM13 13.3551V14H11V12.5C11 11.9477 11.4477 11.5 12 11.5C12.8284 11.5 13.5 10.8284 13.5 10C13.5 9.17157 12.8284 8.5 12 8.5C11.2723 8.5 10.6656 9.01823 10.5288 9.70577L8.56731 9.31346C8.88637 7.70919 10.302 6.5 12 6.5C13.933 6.5 15.5 8.067 15.5 10C15.5 11.5855 14.4457 12.9248 13 13.3551Z"/></svg><span class="appbar__txt">hulp</span></button>
+        <div class="menu__list" id="helpMenu" role="menu" aria-label="Hulp">
+          <button type="button" class="menu__item" role="menuitem" data-action="tour"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM16.5 7.5L14 14L7.5 16.5L10 10L16.5 7.5ZM12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"/></svg><span data-label>rondleiding starten</span></button>
+          <button type="button" class="menu__item" role="menuitem" data-action="sneltoetsen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17H21V19H3V17ZM3 11H6V14H3V11ZM8 11H11V14H8V11ZM3 5H6V8H3V5ZM13 5H16V8H13V5ZM18 5H21V8H18V5ZM13 11H16V14H13V11ZM18 11H21V14H18V11ZM8 5H11V8H8V5Z"/></svg>sneltoetsen<kbd aria-hidden="true">?</kbd></button>
+        </div>
+      </div>
+
+      <!-- Exporteren: de knop maakt meteen de hele PDF; het pijltje heeft de andere bestanden -->
+      <div class="split" data-tour="export">
+        <button type="button" class="btn btn-primary" id="exportBtn" title="Exporteer het brandbook als bewerkbare pdf (Ctrl + S)"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 10H18L12 16L6 10H11V3H13V10ZM4 19H20V12H22V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V12H4V19Z"/></svg><span data-label>exporteer brandbook</span></button>
+        <button type="button" class="btn btn-primary split__more" aria-haspopup="menu" aria-controls="exportMenu" aria-label="Meer exportopties: pdf per hoofdstuk, logo-pakket en kleuren"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"/></svg></button>
+        <div class="menu__list sg-export" id="exportMenu" role="menu" aria-label="Exporteren">
+          <button type="button" class="menu__item" role="menuitem" data-action="pdf"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4H15V8H19V20H5V4ZM3.9985 2C3.44749 2 3 2.44405 3 2.9918V21.0082C3 21.5447 3.44476 22 3.9934 22H20.0066C20.5551 22 21 21.5489 21 20.9925L20.9997 7L16 2H3.9985ZM10.4999 7.5C10.4999 9.07749 10.0442 10.9373 9.27493 12.6534C8.50287 14.3757 7.46143 15.8502 6.37524 16.7191L7.55464 18.3321C10.4821 16.3804 13.7233 15.0421 16.8585 15.49L17.3162 13.5513C14.6435 12.6604 12.4999 9.98994 12.4999 7.5H10.4999ZM11.0999 13.4716C11.3673 12.8752 11.6042 12.2563 11.8037 11.6285C12.2753 12.3531 12.8553 13.0182 13.5101 13.5953C12.5283 13.7711 11.5665 14.0596 10.6352 14.4276C10.7999 14.1143 10.9551 13.7948 11.0999 13.4716Z"/></svg><span class="sg-export__txt"><b>pdf compleet</b><i id="pdfAllSum">alle 17 pagina's, bewerkbaar</i></span></button>
+          <button type="button" class="menu__item" role="menuitem" data-action="pdf-hoofdstuk"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 21V23H11V21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H9C10.1947 3 11.2671 3.52375 12 4.35418C12.7329 3.52375 13.8053 3 15 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H13ZM20 19V5H15C13.8954 5 13 5.89543 13 7V19H20ZM11 19V7C11 5.89543 10.1046 5 9 5H4V19H11Z"/></svg><span class="sg-export__txt"><b>pdf van dit hoofdstuk</b><i id="pdfChapterSum">Merk</i></span></button>
+          <div class="menu__sep" role="separator"></div>
+          <button type="button" class="menu__item" role="menuitem" data-action="logo-pakket"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22ZM19 20V4H5V20H19ZM14 12V17H10V14H12V12H14ZM12 4H14V6H12V4ZM10 6H12V8H10V6ZM12 8H14V10H12V8ZM10 10H12V12H10V10Z"/></svg><span class="sg-export__txt"><b>logo-pakket</b><i>zip met SVG en PNG, wit en Inkt</i></span></button>
+          <button type="button" class="menu__item" role="menuitem" data-action="ase"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C17.5222 2 22 5.97778 22 10.8889C22 13.9556 19.5111 16.4444 16.4444 16.4444H14.4778C13.5556 16.4444 12.8111 17.1889 12.8111 18.1111C12.8111 18.5333 12.9778 18.9222 13.2333 19.2111C13.5 19.5111 13.6667 19.9 13.6667 20.3333C13.6667 21.2556 12.9 22 12 22C6.47778 22 2 17.5222 2 12C2 6.47778 6.47778 2 12 2ZM10.8111 18.1111C10.8111 16.0843 12.451 14.4444 14.4778 14.4444H16.4444C18.4065 14.4444 20 12.851 20 10.8889C20 7.1392 16.4677 4 12 4C7.58235 4 4 7.58235 4 12C4 16.19 7.2226 19.6285 11.324 19.9718C10.9948 19.4168 10.8111 18.7761 10.8111 18.1111ZM7.5 12C6.67157 12 6 11.3284 6 10.5C6 9.67157 6.67157 9 7.5 9C8.32843 9 9 9.67157 9 10.5C9 11.3284 8.32843 12 7.5 12ZM16.5 12C15.6716 12 15 11.3284 15 10.5C15 9.67157 15.6716 9 16.5 9C17.3284 9 18 9.67157 18 10.5C18 11.3284 17.3284 12 16.5 12ZM12 9C11.1716 9 10.5 8.32843 10.5 7.5C10.5 6.67157 11.1716 6 12 6C12.8284 6 13.5 6.67157 13.5 7.5C13.5 8.32843 12.8284 9 12 9Z"/></svg><span class="sg-export__txt"><b>kleuren voor Adobe</b><i>ase: stalen voor Illustrator en InDesign</i></span></button>
+          <button type="button" class="menu__item" role="menuitem" data-action="json"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V14.3C4 13.4716 3.32843 12.8 2.5 12.8H2V11.2H2.5C3.32843 11.2 4 10.5284 4 9.7V6C4 4.34315 5.34315 3 7 3H8V5H7C6.44772 5 6 5.44772 6 6V10.1C6 10.9858 5.42408 11.7372 4.62623 12C5.42408 12.2628 6 13.0142 6 13.9V18C6 18.5523 6.44772 19 7 19H8V21H7C5.34315 21 4 19.6569 4 18ZM20 14.3V18C20 19.6569 18.6569 21 17 21H16V19H17C17.5523 19 18 18.5523 18 18V13.9C18 13.0142 18.5759 12.2628 19.3738 12C18.5759 11.7372 18 10.9858 18 10.1V6C18 5.44772 17.5523 5 17 5H16V3H17C18.6569 3 20 4.34315 20 6V9.7C20 10.5284 20.6716 11.2 21.5 11.2H22V12.8H21.5C20.6716 12.8 20 13.4716 20 14.3Z"/></svg><span class="sg-export__txt"><b>kleuren als json</b><i>voor developers</i></span></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       RAIL: de hoofdstukken (volgorde uit PM_HELP.styleguide.sections)
+       ============================================================ -->
+  <nav class="rail" aria-label="Hoofdstukken van het brandbook" data-tour="hoofdstukken">
+    <button class="rail__item" data-section="merk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM16.5 7.5L14 14L7.5 16.5L10 10L16.5 7.5ZM12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"/></svg><span>Merk</span></button>
+    <button class="rail__item" data-section="logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 2.5L23 12L17.5 21.5H6.5L1 12L6.5 2.5H17.5ZM16.3469 4.5H7.65311L3.311 12L7.65311 19.5H16.3469L20.689 12L16.3469 4.5Z"/></svg><span>Logo</span></button>
+    <button class="rail__item" data-section="kleur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C17.5222 2 22 5.97778 22 10.8889C22 13.9556 19.5111 16.4444 16.4444 16.4444H14.4778C13.5556 16.4444 12.8111 17.1889 12.8111 18.1111C12.8111 18.5333 12.9778 18.9222 13.2333 19.2111C13.5 19.5111 13.6667 19.9 13.6667 20.3333C13.6667 21.2556 12.9 22 12 22C6.47778 22 2 17.5222 2 12C2 6.47778 6.47778 2 12 2ZM10.8111 18.1111C10.8111 16.0843 12.451 14.4444 14.4778 14.4444H16.4444C18.4065 14.4444 20 12.851 20 10.8889C20 7.1392 16.4677 4 12 4C7.58235 4 4 7.58235 4 12C4 16.19 7.2226 19.6285 11.324 19.9718C10.9948 19.4168 10.8111 18.7761 10.8111 18.1111ZM7.5 12C6.67157 12 6 11.3284 6 10.5C6 9.67157 6.67157 9 7.5 9C8.32843 9 9 9.67157 9 10.5C9 11.3284 8.32843 12 7.5 12ZM16.5 12C15.6716 12 15 11.3284 15 10.5C15 9.67157 15.6716 9 16.5 9C17.3284 9 18 9.67157 18 10.5C18 11.3284 17.3284 12 16.5 12ZM12 9C11.1716 9 10.5 8.32843 10.5 7.5C10.5 6.67157 11.1716 6 12 6C12.8284 6 13.5 6.67157 13.5 7.5C13.5 8.32843 12.8284 9 12 9Z"/></svg><span>Kleur</span></button>
+    <button class="rail__item" data-section="type"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.246 15H4.75416L2.75416 20H0.600098L7.0001 4H9.0001L15.4001 20H13.246L11.246 15ZM10.446 13L8.0001 6.88516L5.55416 13H10.446ZM21.0001 12.5351V12H23.0001V20H21.0001V19.4649C20.4118 19.8052 19.7287 20 19.0001 20C16.791 20 15.0001 18.2091 15.0001 16C15.0001 13.7909 16.791 12 19.0001 12C19.7287 12 20.4118 12.1948 21.0001 12.5351ZM19.0001 18C20.1047 18 21.0001 17.1046 21.0001 16C21.0001 14.8954 20.1047 14 19.0001 14C17.8955 14 17.0001 14.8954 17.0001 16C17.0001 17.1046 17.8955 18 19.0001 18Z"/></svg><span>Type</span></button>
+    <button class="rail__item" data-section="beeld"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.9918 21C2.44405 21 2 20.5551 2 20.0066V3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918ZM20 15V5H4V19L14 9L20 15ZM20 17.8284L14 11.8284L6.82843 19H20V17.8284ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z"/></svg><span>Beeld</span></button>
+    <button class="rail__item" data-section="iconen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9998 1L6 11H18L11.9998 1ZM11.9998 4.8873L14.4676 9H9.53232L11.9998 4.8873ZM6.75 20C5.23122 20 4 18.7688 4 17.25C4 15.7312 5.23122 14.5 6.75 14.5C8.26878 14.5 9.5 15.7312 9.5 17.25C9.5 18.7688 8.26878 20 6.75 20ZM6.75 22C9.37335 22 11.5 19.8734 11.5 17.25C11.5 14.6266 9.37335 12.5 6.75 12.5C4.12665 12.5 2 14.6266 2 17.25C2 19.8734 4.12665 22 6.75 22ZM15 15.5V19.5H19V15.5H15ZM13 21.5V13.5H21V21.5H13Z"/></svg><span>Iconen</span></button>
+    <button class="rail__item" data-section="gebruik"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H21C21.5523 3 22 3.44772 22 4V20ZM11 15H4V19H11V15ZM20 11H13V19H20V11ZM11 5H4V13H11V5ZM20 5H13V9H20V5Z"/></svg><span>Gebruik</span></button>
+  </nav>
+
+  <!-- ============================================================
+       PANELEN: het gereedschap van elk hoofdstuk (koppen uit PM_HELP.styleguide.sections)
+       ============================================================ -->
+  <div class="panels" id="panels">
+
+    <!-- Merk: de vaste teksten om te kopiëren -->
+    <section class="panel" data-section="merk">
+      <div class="panel__body">
+        <p class="panel__lead">Missie, visie en toon van Pure Minds. Kopieer de teksten zoals ze in het brandbook staan. <button type="button" class="help" data-help="teksten"></button></p>
+        <div class="sg-texts" id="brandTexts"></div>
+        <div class="field">
+          <span class="label">Kernwaarden</span>
+          <ul class="sg-values" id="brandValues"></ul>
+        </div>
+        <p class="notice sg-note"><b>Je of u?</b> Altijd je en jij, ook in offertes. <button type="button" class="help" data-help="je-of-u"></button></p>
+        <nav class="sg-pagelist" data-pages="merk" aria-label="Pagina's van Merk"></nav>
+      </div>
+    </section>
+
+    <!-- Logo: varianten downloaden, de clear space tonen en het minimum narekenen -->
+    <section class="panel" data-section="logo">
+      <div class="panel__body">
+        <div class="field">
+          <span class="label" id="variantLabel">Variant</span>
+          <div class="seg seg--2" role="radiogroup" aria-labelledby="variantLabel">
+            <input type="radio" name="logoVariant" id="lv-wit" value="wit"><label for="lv-wit"><span class="sg-chip sg-chip--ink" aria-hidden="true"></span><b>wit</b><i>op donker</i></label>
+            <input type="radio" name="logoVariant" id="lv-inkt" value="inkt"><label for="lv-inkt"><span class="sg-chip sg-chip--white" aria-hidden="true"></span><b>Inkt</b><i>op licht</i></label>
+          </div>
+          <div class="sg-logo" id="logoPreview"><canvas id="logoCanvas" width="480" height="300" role="img" aria-label="Het logo in de gekozen variant"></canvas></div>
+        </div>
+        <div class="field">
+          <span class="label">Download <button type="button" class="help" data-help="logo-bestanden"></button></span>
+          <div class="sg-row">
+            <button type="button" class="btn btn-outline btn-sm" data-logo-format="svg"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19H21V21H3V19ZM13 13.1716L19.0711 7.1005L20.4853 8.51472L12 17L3.51472 8.51472L4.92893 7.1005L11 13.1716V2H13V13.1716Z"/></svg><span data-label>svg</span></button>
+            <button type="button" class="btn btn-outline btn-sm" data-logo-format="png"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19H21V21H3V19ZM13 13.1716L19.0711 7.1005L20.4853 8.51472L12 17L3.51472 8.51472L4.92893 7.1005L11 13.1716V2H13V13.1716Z"/></svg><span data-label>png</span></button>
+            <button type="button" class="btn btn-quiet btn-sm" data-local-action="logo-pakket"><span data-label>logo-pakket (zip)</span></button>
+          </div>
+        </div>
+        <label class="switch" data-tour="clearspace">
+          <input type="checkbox" id="clearToggle">
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt"><b>Clear space</b> tonen op de pagina's <button type="button" class="help" data-help="clear-space"></button></span>
+        </label>
+        <div class="field sg-calc">
+          <label class="label" for="calcW">Logobreedte <i>in px</i> <button type="button" class="help" data-help="minimum"></button></label>
+          <input class="input" id="calcW" type="number" inputmode="numeric" min="1" max="10000" step="1">
+          <p class="sg-calc__out" id="calcOut" role="status"></p>
+        </div>
+        <nav class="sg-pagelist" data-pages="logo" aria-label="Pagina's van Logo"></nav>
+      </div>
+    </section>
+
+    <!-- Kleur: waarden kopiëren, contrast checken, de 60/30/10-verhouding -->
+    <section class="panel" data-section="kleur">
+      <div class="panel__body">
+        <p class="panel__lead">Klik een waarde om hem te kopiëren. <button type="button" class="help" data-help="kleurwaarden"></button></p>
+        <div class="sg-swatches" id="swatches" data-tour="kleurwaarden"></div>
+
+        <h3 class="sg-h">Contrast checken <button type="button" class="help" data-help="contrast"></button></h3>
+        <div class="grid2 sg-pair">
+          <div class="field">
+            <label class="label" for="contrastFg">Tekst</label>
+            <select class="input input--select" id="contrastFg"></select>
+          </div>
+          <div class="field">
+            <label class="label" for="contrastBg">Achtergrond</label>
+            <select class="input input--select" id="contrastBg"></select>
+          </div>
+        </div>
+        <div class="sg-contrast" id="contrastOut" role="status" aria-live="polite"></div>
+
+        <h3 class="sg-h">De 60/30/10-regel <button type="button" class="help" data-help="ratio"></button></h3>
+        <div class="seg seg--2" role="radiogroup" aria-label="Compositie">
+          <input type="radio" name="ratioMode" id="rm-licht" value="licht"><label for="rm-licht"><b>licht</b></label>
+          <input type="radio" name="ratioMode" id="rm-donker" value="donker"><label for="rm-donker"><b>donker</b></label>
+        </div>
+        <canvas class="sg-ratio" id="ratioCanvas" width="600" height="420" role="img" aria-label="De 60/30/10-verhouding als balk en als compositie"></canvas>
+        <ul class="sg-legend" id="ratioLegend"></ul>
+
+        <h3 class="sg-h">Kleurbestanden <button type="button" class="help" data-help="kleurbestanden"></button></h3>
+        <div class="sg-row">
+          <button type="button" class="btn btn-outline btn-sm" data-colors="ase"><span data-label>kleuren voor Adobe (ase)</span></button>
+          <button type="button" class="btn btn-quiet btn-sm" data-colors="json"><span data-label>json</span></button>
+        </div>
+        <nav class="sg-pagelist" data-pages="kleur" aria-label="Pagina's van Kleur"></nav>
+      </div>
+    </section>
+
+    <!-- Type: het lettertype en de typeschaal als CSS -->
+    <section class="panel" data-section="type">
+      <div class="panel__body">
+        <p class="panel__lead">Eén lettertype voor alles: Pure Minds Sans, met Open Sans als vangnet. <button type="button" class="help" data-help="typeschaal"></button></p>
+        <div class="sg-code">
+          <code id="fontStack"></code>
+          <button type="button" class="btn btn-quiet btn-xs" data-copy-font>kopieer</button>
+        </div>
+        <ul class="sg-scale" id="typeScale"></ul>
+        <p class="field-hint">De lettertypebestanden staan in assets/fonts/ (Light tot ExtraBold, met cursief). Medium 500 is geschrapt.</p>
+        <nav class="sg-pagelist" data-pages="type" aria-label="Pagina's van Type"></nav>
+      </div>
+    </section>
+
+    <!-- Beeld: een foto langs de beeldtaal leggen -->
+    <section class="panel" data-section="beeld">
+      <div class="panel__body">
+        <p class="panel__lead">Echt werk, echte mensen, rustig beeld met ruimte voor tekst.</p>
+        <fieldset class="sg-checks">
+          <legend class="sg-h">Past deze foto? <button type="button" class="help" data-help="fotocheck"></button></legend>
+          <div id="photoChecks"></div>
+        </fieldset>
+        <div class="sg-checks__foot">
+          <p class="sg-checks__sum" id="photoSum" role="status"></p>
+          <button type="button" class="linkbtn" id="photoReset">opnieuw</button>
+        </div>
+        <nav class="sg-pagelist" data-pages="beeld" aria-label="Pagina's van Beeld"></nav>
+      </div>
+    </section>
+
+    <!-- Iconen: de varianten, en zoeken in de Icon Finder -->
+    <section class="panel" data-section="iconen">
+      <div class="panel__body">
+        <p class="panel__lead">Alle 1.690 lijniconen staan in de Icon Finder, los of in de zeshoek.</p>
+        <form class="sg-find" action="icons.html" method="get" role="search">
+          <label class="sr-only" for="iconQ">Zoek een icoon in de Icon Finder</label>
+          <input class="input" id="iconQ" name="q" type="search" placeholder="bijv. euro, pijl of grafiek" autocomplete="off" enterkeyhint="search">
+          <button type="submit" class="btn btn-outline btn-sm">zoek</button>
+        </form>
+        <div class="field">
+          <span class="label">In de zeshoek <button type="button" class="help" data-help="icoonvarianten"></button></span>
+          <ul class="sg-variants" id="iconVariants"></ul>
+        </div>
+        <a class="btn btn-quiet btn-sm sg-link" href="icons.html">open de Icon Finder</a>
+        <nav class="sg-pagelist" data-pages="iconen" aria-label="Pagina's van Iconen"></nav>
+      </div>
+    </section>
+
+    <!-- Gebruik: de makers en de Emerce 100-badge -->
+    <section class="panel" data-section="gebruik">
+      <div class="panel__body">
+        <p class="panel__lead">De makers passen de huisstijl vanzelf toe. Begin daar.</p>
+        <ul class="sg-makers">
+          <li><a href="insta.html"><b>Insta Post Maker</b><i>social posts in vijf templates</i></a></li>
+          <li><a href="document.html"><b>Document Maker</b><i>brief, offerte, memo op briefpapier</i></a></li>
+          <li><a href="presentation.html"><b>Presentation Maker</b><i>slides, voorstellen, positioneringen</i></a></li>
+        </ul>
+        <div class="field">
+          <span class="label">Emerce 100-badge <button type="button" class="help" data-help="emerce"></button></span>
+          <div class="sg-badges">
+            <span class="sg-badges__tile sg-badges__tile--dark"><img src="../assets/brand/emerce/e100-2026-liggend-wit.svg" alt="Emerce 100-badge, wit" width="120" height="44"></span>
+            <span class="sg-badges__tile"><img src="../assets/brand/emerce/e100-2026-liggend-zwart.svg" alt="Emerce 100-badge, zwart" width="120" height="44"></span>
+          </div>
+          <div class="sg-row">
+            <button type="button" class="btn btn-outline btn-sm" data-badge="wit"><span data-label>badge wit (svg)</span></button>
+            <button type="button" class="btn btn-outline btn-sm" data-badge="zwart"><span data-label>badge zwart (svg)</span></button>
+          </div>
+        </div>
+        <nav class="sg-pagelist" data-pages="gebruik" aria-label="Pagina's van Gebruik"></nav>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================
+       PODIUM: de A4-pagina's onder elkaar, met de miniaturen eronder
+       ============================================================ -->
+  <main class="stage" id="stage">
+    <div class="stage__head">
+      <div class="stage__group">
+        <span class="pill pill-info" id="pagePill">pagina 1 van 17</span>
+        <span class="pill" id="chapterPill">Merk</span>
+      </div>
+      <div class="stage__group">
+        <span class="pill sg-size">A4 liggend &middot; 297 &times; 210 mm</span>
+        <button type="button" class="help" data-help="exporteer"></button>
+      </div>
+    </div>
+    <div class="stage__scroll sg-pages" id="pages" tabindex="0" aria-label="De pagina's van het brandbook; Page Up en Page Down bladeren"></div>
+    <div class="stage__foot">
+      <div class="strip sg-strip" id="strip" role="listbox" aria-orientation="horizontal" aria-label="Pagina's"></div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../js/shared/tools.js"></script>
+<script src="../js/shared/core.js"></script>
+<script src="../js/shared/brand-data.js"></script>
+<script src="../js/shared/canvas-kit.js"></script>
+<script src="../js/shared/pdf-canvas.js"></script>
+<script src="../js/icons/hex.js"></script>
+<script src="../js/styleguide/brand-tokens.js"></script>
+<script src="../js/styleguide/content.js"></script>
+<script src="../js/styleguide/svg-path.js"></script>
+<script src="../js/styleguide/model.js"></script>
+<script src="../js/styleguide/pages.js"></script>
+<script src="../js/styleguide/export.js"></script>
+<script src="../js/shared/shell.js"></script>
+<script src="../js/shared/help.js"></script>
+<script src="../js/shared/tour.js"></script>
+<script src="../js/styleguide/help.js"></script>
+<script src="../js/styleguide/app.js"></script>
+</body>
+</html>
