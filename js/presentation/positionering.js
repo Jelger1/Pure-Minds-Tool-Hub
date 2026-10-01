@@ -99,7 +99,7 @@
   const zin = (k) => (/[.!?]$/.test(k) ? k : `${k}.`);
 
   const TEXT = Object.freeze({
-    intro: (k) => `Om een duidelijk beeld te hebben van het merkverhaal en kernwaarden van ${k} hebben we een positioneringsinterview gehouden. Tijdens dit interview zijn we samen op zoek gegaan naar de kern van het bedrijf. Daarmee zijn we aan de slag gegaan en creëren we een verhaal waarmee je je doelgroepen kunt bereiken en raken. Vanuit dit fundament bepaal je verder de strategie, bovendien dient het als basis voor de te ontwikkelen creatieve concepten: de ‘storytelling’ en je boodschap die je gebruikt op je online kanalen.`,
+    intro: (k) => `Om een duidelijk beeld te hebben van het merkverhaal en de kernwaarden van ${k} hebben we een positioneringsinterview gehouden. Tijdens dit interview zijn we samen op zoek gegaan naar de kern van het bedrijf. Daarmee zijn we aan de slag gegaan en creëren we een verhaal waarmee je je doelgroepen kunt bereiken en raken. Vanuit dit fundament bepaal je verder de strategie. Bovendien dient het als basis voor de te ontwikkelen creatieve concepten: de ‘storytelling’ en je boodschap die je gebruikt op je online kanalen.`,
     // In de referenties "Aan de rechterzijde": in de layout Genummerd staan de onderdelen eronder
     agendaIntro: 'Hieronder zijn de verschillende onderdelen van deze positionering neergezet.',
     // De onderdelen, alleen wat aan staat (één regel per punt)
@@ -112,7 +112,7 @@
     }),
     // Een witregel tussen de twee alinea's, zoals in de referentie (gemeten: past ook met een
     // klantnaam van 40 tekens). Eindigt de naam op een punt (Groep B.V.), dan geen tweede punt
-    afsluiter: (k, aanbod) => `Deze positionering biedt een helder en onderbouwd inzicht in de positie van ${k} in de markt. Door het in kaart brengen van klantbehoeften, pijnpunten, voordelen en de huidige dienstverlening ontstaat een duidelijk beeld van waar de grootste kansen en knelpunten liggen voor ${zin(k)}\n\nDe positionering laat zien hoe de ${aanbod === 'producten' ? 'producten & diensten' : 'diensten'} van ${k} aansluiten op de behoeften van hun klanten, waar de onderscheidende kracht ligt en welke strategische richtingen het meest kansrijk zijn om de waardepropositie verder te versterken en uiteindelijke marketingdoelstellingen te realiseren met de juiste boodschap en doelgroep.`,
+    afsluiter: (k, aanbod) => `Deze positionering biedt een helder en onderbouwd inzicht in de positie van ${k} in de markt. Door het in kaart brengen van klantbehoeften, pijnpunten, voordelen en de huidige dienstverlening ontstaat een duidelijk beeld van waar de grootste kansen en knelpunten liggen voor ${zin(k)}\n\nDe positionering laat zien hoe de ${aanbod === 'producten' ? 'producten & diensten' : 'diensten'} van ${k} aansluiten op de behoeften van hun klanten, waar de onderscheidende kracht ligt en welke strategische richtingen het meest kansrijk zijn om de waardepropositie verder te versterken en uiteindelijk de marketingdoelstellingen te realiseren met de juiste boodschap en doelgroep.`,
     contact: 'www.pureminds.nl\n045 - 3690530\ninfo@pureminds.nl',
     // De eerste tekst van elke toelichting: één vraag tussen blokhaken (een invulplek)
     uitleg: Object.freeze({

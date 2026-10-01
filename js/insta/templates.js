@@ -123,7 +123,7 @@
     { id: 'overlay', name: 'Foto met tekst', sub: 'tekst op beeld' },
     { id: 'blog', name: 'Pure blog post', sub: 'nieuwe blog + cta' },
     { id: 'case', name: 'Pure case post', sub: 'klant en resultaat' },
-    { id: 'carousel', name: 'Info carousel', sub: 'swipe-post in slides' },
+    { id: 'carousel', name: 'Info carousel', sub: 'swipepost in slides' },
   ];
 
   /* ---------------------------------------------------------------------------

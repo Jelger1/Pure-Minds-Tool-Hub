@@ -123,7 +123,7 @@
     { id: 'closing', name: 'Afsluiter', sub: 'bedankt + contact' },
     // Alleen in de soorten van types (de app filtert erop): het voorstel en de positionering.
     // names: een andere naam in een soort (de positionering noemt de canvassen bij hun naam)
-    { id: 'tekst', name: 'Tekst', sub: "titel + alinea's", types: ['voorstel', 'positionering'] },
+    { id: 'tekst', name: 'Tekst', sub: 'titel + alinea’s', types: ['voorstel', 'positionering'] },
     { id: 'kolommen', name: 'Kolommen', sub: 'twee of drie blokken', types: ['voorstel', 'positionering'] },
     { id: 'vragen', name: 'Genummerd', sub: 'vragen of stappen', types: ['voorstel', 'positionering'] },
     { id: 'vpc', name: 'Waardepropositie', sub: 'klantprofiel + waardemap', types: ['voorstel', 'positionering'], names: { positionering: 'Waarde Propositie Canvas' } },

@@ -17,9 +17,9 @@
   const TYPES = ['png', 'jpg', 'pdf'];
   const DESTS = { 1080: 'Instagram', 1200: 'LinkedIn', 2160: 'extra scherp' };
   const NOTES = {
-    linkedin: 'LinkedIn toont een carousel als document: maak een bericht, kies "document toevoegen" en upload deze PDF.',
+    linkedin: 'LinkedIn toont een carousel als document: maak een bericht, kies “document toevoegen” en upload deze PDF.',
     pdf: "In Canva: sleep de PDF op de startpagina of klik op Uploaden. Tekst, vormen en logo blijven los te bewerken; foto's en verlopen worden afbeeldingen. Werkt ook in Illustrator en Acrobat.",
-    zip: 'Eén zip met alle slides op volgorde. Upload ze samen als één carousel-bericht.',
+    zip: 'Eén zip met alle slides op volgorde. Upload ze samen als één carouselbericht.',
   };
   const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 

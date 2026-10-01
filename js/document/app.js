@@ -91,7 +91,7 @@
   }
 
   const SENDER_DEFAULTS = {
-    company: 'Pure Minds marketing group',
+    company: 'Pure Minds Marketing Group',
     street: '',
     city: '',
     phone: '',
@@ -132,6 +132,8 @@
   const normalizeSender = (s) => {
     const out = { ...SENDER_DEFAULTS, ...(s && typeof s === 'object' ? s : {}) };
     out.badge = out.badge === true;
+    // De bedrijfsnaam schrijf je met hoofdletters; oude opgeslagen briefpapieren rechtzetten
+    if (typeof out.company === 'string' && /^pure minds marketing group$/i.test(out.company.trim())) out.company = SENDER_DEFAULTS.company;
     return out;
   };
 

@@ -34,7 +34,7 @@
     { id: 'template', label: 'Template', title: 'Kies template en formaat', icon: 'layout-masonry-line' },
     { id: 'foto', label: 'Foto', title: 'Foto en uitsnede', icon: 'image-line' },
     { id: 'tekst', label: 'Tekst', title: 'Tekst van je post', icon: 'input-method-line' },
-    { id: 'details', label: 'Details', title: 'Fijn afstellen', icon: 'equalizer-line' },
+    { id: 'details', label: 'Details', title: 'Fijnafstellen', icon: 'equalizer-line' },
   ],
 
   help: {
@@ -73,7 +73,7 @@
     },
     'diensten': {
       title: 'Wat hebben we gedaan?',
-      text: "Vul één tot drie diensten in. De tool maakt er een lopende zin van, met komma's en “en”, zoals: Google Ads, SEO en een nieuwe landingspagina. Ze komen in cyaan op de plek van {diensten}.",
+      text: "Vul één tot drie diensten in. De tool maakt er een lopende zin van, met komma’s en “en”, zoals: Google Ads, SEO en een nieuwe landingspagina. Ze komen in cyaan op de plek van {diensten}.",
     },
     'klantlogo': {
       title: 'Klantlogo',
@@ -113,7 +113,7 @@
     // Kop van de tool
     'emerce-badge': {
       title: 'Emerce 100',
-      text: 'Pure Minds staat in de Emerce 100 van 2026, de beste e-business bedrijven. Aan: de badge komt klein en wit linksonder in de post; in een carousel alleen op de laatste slide. Blijft aan voor je volgende posts.',
+      text: 'Pure Minds staat in de Emerce 100 van 2026, de beste e-businessbedrijven. Aan: de badge komt klein en wit linksonder in de post; in een carousel alleen op de laatste slide. Blijft aan voor je volgende posts.',
     },
 
     // Download
@@ -175,7 +175,7 @@
     {
       id: 'klaar',
       title: 'Je post is klaar',
-      text: 'Deze rondleiding en de sneltoetsen vind je altijd terug in het ?-menu rechtsboven. Tip: je tekst en foto blijven in deze browser bewaard, dus morgen ga je verder waar je bleef.',
+      text: 'Deze rondleiding en de sneltoetsen vind je altijd terug in het hulpmenu rechtsboven. Tip: je tekst en foto blijven in deze browser bewaard, dus morgen ga je verder waar je bleef.',
     },
   ],
 

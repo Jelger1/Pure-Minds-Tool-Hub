@@ -227,7 +227,7 @@ test('vaste teksten staan er letterlijk in', () => {
   assert.ok(interview.subtitle.endsWith(`\n**${P.TEXT.catalogusLead}**`), 'de inleiding van de catalogus staat vet');
   assert.ok(interview.subtitle.startsWith(P.TEXT.interviewZonder('Speedstar')));
   // Eurosit E6: ook de twee zinnen over het verhaal en de strategie
-  assert.equal(P.TEXT.interviewZonder('Eurosit'), 'Om een duidelijk beeld te hebben van het merkverhaal en kernwaarden van Eurosit willen we een positioneringsinterview houden. Tijdens dit interview gaan we samen op zoek naar de kern van het bedrijf. Daarmee creëren we een verhaal waarmee je je doelgroepen kunt bereiken en raken. Vanuit dit fundament bepalen we verder de strategie, bovendien dient het als basis voor de te ontwikkelen creatieve concepten: de ‘storytelling’ en je boodschap die je gebruikt op je online kanalen en website.');
+  assert.equal(P.TEXT.interviewZonder('Eurosit'), 'Om een duidelijk beeld te hebben van het merkverhaal en de kernwaarden van Eurosit willen we een positioneringsinterview houden. Tijdens dit interview gaan we samen op zoek naar de kern van het bedrijf. Daarmee creëren we een verhaal waarmee je je doelgroepen kunt bereiken en raken. Vanuit dit fundament bepalen we verder de strategie. Bovendien dient het als basis voor de te ontwikkelen creatieve concepten: de ‘storytelling’ en je boodschap die je gebruikt op je online kanalen en website.');
   assert.ok(spec({ ...inp, namen: 'Joyce en Mitch' }, 'interview').subtitle.startsWith('We starten met een diepgaand interview met Joyce en Mitch.'));
   const verdieping = spec(inp, 'verdieping');
   assert.equal(verdieping.body, `${P.TEXT.vervolgvragen.join('\n')}\n\n${P.TEXT.icp}`);
@@ -260,7 +260,7 @@ test('vaste teksten staan er letterlijk in', () => {
   assert.equal(spec({ ...inp, websiteSoort: 'optimaliseren', websiteNu: 'Zo is het.' }, 'website').body, `Zo is het.\n\n${P.TEXT.websiteOpt('Speedstar')}`);
   // Uitvoering zoals Speedstar S10: de contentkalender en de KPI's als opsomming
   const uit = spec(inp, 'uitvoering').body;
-  assert.ok(uit.includes('invullen en onderhouden van een contentkalender. Met vaste rubrieken en frequentie (aantal per week/maand in overleg)\n'));
+  assert.ok(uit.includes('invullen en onderhouden van een contentkalender, met vaste rubrieken en frequentie (aantal per week/maand in overleg)\n'));
   assert.ok(uit.includes('(in samenwerking met Speedstar)'));
   assert.ok(uit.endsWith('We gebruiken hiervoor een breed KPI-framework, afhankelijk van de doelstellingen, zoals:\n- Naamsbekendheid\n- Bereik\n- Conversies\n- enz.'));
   assert.ok(!uit.includes('LinkedIn'), 'het kanaal van één klant hoort er niet in');
@@ -339,7 +339,7 @@ test('"Wat wij gaan doen" volgt de onderdelen; eigen punten gaan voor', () => {
   assert.ok(spec(input({ parts: { ...P.OPTIONAL, sea: true } }), 'aanpak').body.endsWith('\n- SEA-opzet en maandelijkse optimalisaties en monitoring\n- Contentplanning en uitvoering'));
   // De inleiding over het gesprek staat vet, zoals in Speedstar S4
   const own = spec(input({ klant: 'Speedstar', gesprek: 'januari', diensten: 'Logo-onderzoek\n\n- LinkedIn-campagne\n' }), 'aanpak');
-  assert.ok(own.body.startsWith('**Naar aanleiding van het gesprek in januari, hierbij een samenvatting van hetgeen besproken:**\n\n**Voorgestelde marketingaanpak:**'));
+  assert.ok(own.body.startsWith('**Naar aanleiding van het gesprek in januari, hierbij een samenvatting van hetgeen besproken is:**\n\n**Voorgestelde marketingaanpak:**'));
   assert.ok(own.body.endsWith('**Wat wij gaan doen:**\n- Logo-onderzoek\n- LinkedIn-campagne'));
 });
 

@@ -64,7 +64,7 @@
     // De volgorde van het klanttraject: eerst het voorstel, na het traject de positionering
     'soort': {
       title: 'Presentatie, voorstel of positionering',
-      text: 'Presentatie: vrije slides in zeven layouts. Voorstel: na het eerste gesprek, het formulier maakt de slides. Positionering: na het traject, met beide canvassen en een toelichting per blok. Wisselen mag altijd: niets gaat verloren.',
+      text: 'Presentatie: vrije slides in zeven layouts. Voorstel: na het eerste gesprek; het formulier maakt de slides. Positionering: na het traject, met beide canvassen en een toelichting per blok. Wisselen mag altijd: niets gaat verloren.',
     },
 
     // Voorstel
@@ -172,7 +172,7 @@
     // De layout Toelichting: de tekst loopt over twee kolommen (templates.js, flowColumns)
     'toelichting': {
       title: 'Toelichting',
-      text: 'Per blok of vak van de canvassen een eigen slide. Schrijf alinea’s, of een vet kopje met punten eronder. Lange tekst loopt vanzelf over twee kolommen en wordt kleiner tot hij past. Vervang de tekst tussen blokhaken.',
+      text: 'Per blok of vak van de canvassen een eigen slide. Schrijf alinea\'s, of een vet kopje met punten eronder. Lange tekst loopt vanzelf over twee kolommen en wordt kleiner tot hij past. Vervang de tekst tussen blokhaken.',
     },
 
     // Foto
@@ -190,7 +190,7 @@
     },
     'foto-of-logo': {
       title: 'Foto of logo',
-      text: 'Foto vult de zeshoek en kun je verschuiven en inzoomen. Logo staat in zijn geheel op een witte zeshoek, zoals het klantlogo op de titelslide van een voorstel. Het mooist: een PNG of SVG met transparante achtergrond.',
+      text: 'Foto vult de zeshoek; je kunt hem verschuiven en inzoomen. Logo staat in zijn geheel op een witte zeshoek, zoals het klantlogo op de titelslide van een voorstel. Het mooist: een PNG of SVG met transparante achtergrond.',
     },
 
     // Hele presentatie
@@ -206,7 +206,7 @@
     // Kop van de preview
     'emerce-badge': {
       title: 'Emerce 100',
-      text: 'Pure Minds staat in de Emerce 100 van 2026: de beste e-businessbedrijven. Aan: de badge staat klein en wit rechtsonder op elke slide, naast het logo (of het slidenummer als dat aan staat). Ook in PDF, PowerPoint en PNG.',
+      text: 'Pure Minds staat in de Emerce 100 van 2026: de beste e-businessbedrijven. Aan: de badge staat klein en wit rechtsonder op elke slide, naast het logo (of het slidenummer als dat aanstaat). Ook in PDF, PowerPoint en PNG.',
     },
 
     // Strook met slides onder de slide
@@ -222,7 +222,7 @@
     },
     'powerpoint': {
       title: 'PowerPoint',
-      text: 'Om verder te bewerken in PowerPoint of Google Presentaties, met echte tekstvakken. Mist je computer Open Sans, dan kiest PowerPoint een ander lettertype. Voor Google: upload in Drive en kies Bestand → Opslaan als Google Presentaties.',
+      text: 'Om verder te bewerken in PowerPoint of Google Slides, met echte tekstvakken. Mist je computer Open Sans, dan kiest PowerPoint een ander lettertype. Voor Google Slides: upload in Drive en kies Bestand → Opslaan als Google Presentaties.',
     },
     'als-afbeelding': {
       title: 'Als afbeelding',
@@ -245,7 +245,7 @@
     {
       id: 'nadruk', section: 'inhoud', target: 'titel',
       title: 'Laat een woord opvallen',
-      text: 'Selecteer een of twee woorden in je titel en klik op cyaan. Ze krijgen de accentkleur van Pure Minds, zodat de kern van je verhaal eruit springt.',
+      text: 'Selecteer een of twee woorden in je titel en klik op cyaan. Ze krijgen de accentkleur van Pure Minds, zodat de kern van je verhaal eruitspringt.',
       doe: { signal: 'nadruk', hint: 'Selecteer een woord en klik op cyaan' },
     },
     {
@@ -275,7 +275,7 @@
     {
       id: 'download', target: 'download',
       title: 'Download je presentatie',
-      text: 'Klik op download pdf. Staat er nog voorbeeldtekst in, dan zie je eerst waar. Het pijltje ernaast heeft PowerPoint (ook voor Google Presentaties) en afbeeldingen.',
+      text: 'Klik op download pdf. Staat er nog voorbeeldtekst in, dan zie je eerst waar. Het pijltje ernaast heeft PowerPoint (ook voor Google Slides) en afbeeldingen.',
       doe: { signal: 'download', hint: 'Klik op download pdf' },
     },
     {
@@ -300,7 +300,7 @@
     ['Enter', 'in de tabel: naar de cel eronder, of een nieuwe rij'],
     ['Enter', 'in de prijsregels: naar de regel eronder, of een nieuwe regel'],
     ['Ctrl + Z', 'ongedaan maken'],
-    ['Ctrl + Shift + Z', 'opnieuw'],
+    ['Ctrl + Shift + Z of Ctrl + Y', 'opnieuw'],
     ['Alt + F10', 'naar de werkbalk'],
     ['?', 'sneltoetsen tonen'],
   ],
@@ -409,14 +409,14 @@ window.PM_HELP.positionering = {
     {
       id: 'canvas', section: 'inhoud',
       title: 'Vul de canvassen in',
-      text: 'Beide canvassen hebben een eigen slide. Vul bij Inhoud de zeven blokken van het Business Model Canvas, in trefwoorden: een vet kopje met punten eronder, elk met - ervoor. Daarna het Waarde Propositie Canvas.',
+      text: 'Beide canvassen hebben een eigen slide. Vul bij Inhoud de zeven blokken van het Business Model Canvas in, in trefwoorden: een vet kopje met punten eronder, elk met - ervoor. Daarna het Waarde Propositie Canvas.',
     },
     // Zonder doel: app.js kiest de eerste toelichting in de strook, Inhoud toont dan zijn tekst
     // (ook als je de rondleiding bij deze stap hervat)
     {
       id: 'toelichting', section: 'inhoud',
       title: 'Schrijf de toelichting',
-      text: 'Elk blok en elk vak krijgt een eigen slide. Vervang de tekst tussen [blokhaken] door je uitleg: alinea’s, of vette kopjes met punten. Lange tekst loopt vanzelf over twee kolommen.',
+      text: 'Elk blok en elk vak krijgt een eigen slide. Vervang de tekst tussen [blokhaken] door je uitleg: alinea\'s, of vette kopjes met punten. Lange tekst loopt vanzelf over twee kolommen.',
     },
     {
       id: 'checklist', section: 'gegevens', target: 'gegevens-checklist',

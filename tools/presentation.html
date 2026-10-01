@@ -61,7 +61,7 @@
       <!-- Download: de knop maakt meteen de pdf; het pijltje toont PowerPoint en afbeeldingen -->
       <div class="split" data-tour="download">
         <button type="button" class="btn btn-primary" id="downloadBtn" title="Download de presentatie als pdf (Ctrl + S)"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 10H18L12 16L6 10H11V3H13V10ZM4 19H20V12H22V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V12H4V19Z"/></svg><span data-label>download pdf</span></button>
-        <button type="button" class="btn btn-primary split__more" aria-haspopup="dialog" aria-controls="dlPop" aria-label="Downloadopties: pdf, PowerPoint of afbeelding"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"/></svg></button>
+        <button type="button" class="btn btn-primary split__more" aria-haspopup="dialog" aria-controls="dlPop" aria-label="Meer downloadopties: PDF, PowerPoint en afbeeldingen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"/></svg></button>
         <div class="popover dl" id="dlPop" role="dialog" aria-labelledby="dlTitle">
           <h2 class="popover__title" id="dlTitle">Download<span class="dot">.</span></h2>
           <div class="popover__body">
@@ -234,7 +234,7 @@
           <label class="switch">
             <input type="checkbox" data-form-on="vpc">
             <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
-            <span class="switch__txt">Waardepropositie-canvas <span class="muted">invullen bij Inhoud</span></span>
+            <span class="switch__txt">Waardepropositie <span class="muted">invullen bij Inhoud</span></span>
           </label>
           <label class="switch">
             <input type="checkbox" data-form-on="website">
@@ -404,7 +404,7 @@
             <span class="switch__txt">Toelichting Waarde Propositie Canvas <span class="muted">zes slides</span></span>
           </label>
         </div>
-        <p class="field-hint">Tip: vul eerst beide canvassen in trefwoorden en schrijf daarna per blok de toelichting.</p>
+        <p class="field-hint">Tip: vul eerst beide canvassen in met trefwoorden en schrijf daarna per blok de toelichting.</p>
 
         <div class="panel__foot">
           <span>Alles wordt in deze browser onthouden.</span>
@@ -462,7 +462,7 @@
           </div>
           <div class="field">
             <label class="label" for="sv-pijnen">Pijnpunten <i>één per regel</i></label>
-            <textarea class="input" id="sv-pijnen" data-vpc="pijnen" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="pijnpunten" placeholder="Welke problemen, hindernissen en risico’s ervaart de klant?"></textarea>
+            <textarea class="input" id="sv-pijnen" data-vpc="pijnen" rows="3" data-rich="vet" data-toolbar="vet" data-toolbar-label="pijnpunten" placeholder="Welke problemen, hindernissen en risico's ervaart de klant?"></textarea>
           </div>
           <div class="field">
             <label class="label" for="sv-voordelen">Voordelen <i>één per regel</i></label>
@@ -542,7 +542,7 @@
 
         <div class="field" data-for="table">
           <span class="label" id="tableLabel">Tabel <button type="button" class="help" data-help="tabel"></button></span>
-          <p class="field-hint tbl-hint" id="tableHint">Tab en Enter springen door de cellen, plakken uit Excel of Google Sheets kan <button type="button" class="help" data-help="plakken-uit-excel"></button></p>
+          <p class="field-hint tbl-hint" id="tableHint">Tab en Enter springen door de cellen, plakken uit Excel of Google Sheets kan. <button type="button" class="help" data-help="plakken-uit-excel"></button></p>
           <div class="tbl-wrap">
             <div class="tbl" id="tableGrid" role="group" aria-labelledby="tableLabel" aria-describedby="tableHint"></div>
           </div>

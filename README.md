@@ -3,7 +3,7 @@
 Interne tools van Pure Minds op één plek: social posts, documenten op
 briefpapier, presentaties en iconen, allemaal in de huisstijl en direct te
 downloaden.
-Daarnaast drie technische tools voor websites, ads en SEO; zie
+Daarnaast vier technische tools voor websites, ads en SEO; zie
 [Techniek & analyse](#techniek--analyse).
 Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 
@@ -14,7 +14,7 @@ Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 | [Insta Post Maker](tools/insta.html) | Instagram- en LinkedIn-posts in vijf templates | PNG, JPG, PDF om verder te bewerken in Canva (elke post; een carousel als één PDF met een pagina per slide) |
 | [Document Maker](tools/document.html) | Brief, offerte, memo of notitie op A4-briefpapier | bewerkbare PDF, Word (.docx, ook voor Google Docs), afdrukken |
 | [Presentation Maker](tools/presentation.html) | 16:9-slides in zeven layouts, waaronder een tabel, plus voorstellen en positioneringen in de vaste opbouw van Pure Minds | bewerkbare PDF, PowerPoint (.pptx, ook voor Google Slides), PNG (Full HD of 4K) |
-| [Icon Finder](tools/icons.html) | Ruim 3.200 iconen zoeken in het Nederlands of Engels, los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
+| [Icon Finder](tools/icons.html) | 1.690 iconen, de meeste in lijn en vol, te zoeken in het Nederlands of Engels; los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
 
 Alle PDF's hebben **echte tekst** in ingesloten Open Sans, met per gewicht een
 eigen fontnaam (te selecteren en aan te passen in Canva, Acrobat of
@@ -43,7 +43,7 @@ zodat de browser de export niet blokkeert.
 ## Structuur
 
 ```
-index.html                    de hub: begin direct, verder werken, alle tools per blok,
+index.html                    de hub: maken (een kaart per tool) en checken (de technische tools),
                               en de uitleg bij de Consent Check (<dialog>)
 tools/
   insta.html                  Insta Post Maker
@@ -75,8 +75,8 @@ js/
   shared/pptx-writer.js       schrijft een .pptx (Office Open XML) zonder bibliotheek
   shared/brand-data.js        ingebedde logo's (gegenereerd: npm run brand)
   shared/pdf-fonts.js         Open Sans voor PDF en Word (gegenereerd, pas geladen bij export)
-  hub.js                      dashboard: snelle starts, concepten, toolkaarten per blok
-                              met filter, en de uitleg bij lokale tools
+  hub.js                      dashboard: per tool een kaart met concept, formaten of zoekveld en
+                              rondleiding, de technische tools ernaast, en de uitleg bij lokale tools
   insta/templates.js, app.js
   insta/export.js             wat een download oplevert (PNG, JPG, zip of PDF), de zin en de uitleg erbij
   insta/pdf.js                de PDF van een post of carousel (PMInstaPdf.build)
@@ -128,13 +128,14 @@ tests/                        unittests van de editor-bouwstenen, de Insta Post 
 3. Zet de tool in `js/shared/tools.js`. De hub en de toolwisselaar in elke
    kop pakken hem dan vanzelf op. Met `status: 'binnenkort'` staat hij als
    niet-klikbare kaart in de hub.
-4. Optioneel: `starts` geeft tegels onder *Begin direct* (de tool leest de
-   meegegeven instellingen met `PM.startParams()`), en `draft` laat het
-   concept van de tool zien onder *Verder werken*. Heeft de tool een
-   rondleiding (`js/<id>/help.js`), zet dan `tour: 'je eerste …'`.
-   - De hub toont dan een knop onder *Nieuw hier?*. Die opent
+4. Optioneel: `starts` geeft formaten op de kaart (de tool leest de
+   meegegeven instellingen met `PM.startParams()`), `search` in plaats daarvan
+   een zoekveld, en `draft` laat het concept van de tool zien onder *verder
+   waar je was*. Heeft de tool een rondleiding (`js/<id>/help.js`), zet dan
+   `tour: 'je eerste …'`.
+   - De kaart toont dan de link *hoe werkt het? (2 min)*. Die opent
      `tools/<id>.html#rondleiding`, en de rondleiding start direct.
-   - Het blok verdwijnt als alle rondleidingen gedaan zijn.
+   - De link verdwijnt als de rondleiding gedaan is.
 5. Draait de tool buiten de hub (een web-app elders, of een download)? Geef
    hem dan `kind: 'web'` of `kind: 'lokaal'`, `href` naar de app of de
    download, en `group: 'techniek'`. Hij staat dan alleen op het dashboard,
@@ -412,7 +413,7 @@ en `safeZone('story')`.
 
 ## Insta Post Maker
 
-Vijf templates: standaard foto, foto met tekst, Pure Blog, Pure Case en een
+Vijf templates: standaard foto, foto met tekst, Pure blog post, Pure case post en een
 informatieve carousel met swipe-indicator (de laatste slide krijgt er vanzelf
 geen). Formaten 1:1, 4:5 en 9:16 (story). Alle posts zijn donker. De editor
 gebruikt de [editor-bouwstenen](#editor-bouwstenen).
@@ -434,7 +435,7 @@ gebruikt de [editor-bouwstenen](#editor-bouwstenen).
   knop die je erheen brengt.
 - **Foto:** klik op de lege fotoplek, sleep hem overal op het podium of plak
   hem. Is hij te klein voor de gekozen export, dan zegt een rustige melding
-  bij de foto en onder de post hoe groot hij moet zijn. Bij Pure case staat
+  bij de foto en onder de post hoe groot hij moet zijn. Bij Pure case post staat
   *foto als donkere achtergrond* bovenaan en gaat hij vanzelf aan als je een
   foto kiest.
 - **Story:** de schakelaar *veilige zone* in de kop van de preview toont de
@@ -874,7 +875,7 @@ als los iconenpakket.
   - stijl: *lijn* of *vol*
   - vorm: *los* of *zeshoek*
   - kleur, altijd effen: inkt, cyaan, blauw, magenta, wit of een eigen kleur
-    (los); cyaan met een wit of een inkt icoon, donker, magenta, wit of een
+    (los); cyaan met een wit of een inktkleurig icoon, donker, magenta, wit of een
     eigen kleur (zeshoek)
 
   Bij wit worden raster en preview vanzelf donker.
@@ -937,11 +938,10 @@ als los iconenpakket.
 
 ## Techniek & analyse
 
-Drie tools die buiten de hub draaien, in een eigen donker blok op het
-dashboard. Boven *Alle tools* staat een filter: alles, alleen design &
-content, of alleen techniek & analyse. De keuze staat in het adres, dus
-`index.html#techniek` opent meteen de technische tools (handig als
-bladwijzer).
+Vier tools die buiten de hub draaien, in een eigen donker blok naast de
+makers op het dashboard (*Wat wil je checken?*). `index.html#techniek`
+springt er meteen heen (handig als bladwijzer), `index.html#design` naar de
+makers.
 
 | Tool | Wat | Draait |
 |---|---|---|
@@ -950,13 +950,13 @@ bladwijzer).
 | [SEO Content Gap Analyzer](https://seo-content-gap-analyzer-1yxm.vercel.app/) | Zet een pagina naast de Google-top 10: ontbrekende koppen, termen en vragen | web-app, opent in een nieuw tabblad |
 | [Keyword Focus & Intent Check](https://keyword-focus-intent-check.vercel.app/) | Past een pagina bij het focuszoekwoord en de zoekintentie, en wat mist er nog: intentcheck, keyword mapping en contentbriefing (PDF of markdown) | web-app, opent in een nieuw tabblad |
 
-- **Kaarten:** een lichte "blauwdruk"-omslag met een lijntekening (de makers
-  hebben een donkere omslag), en rechtsboven waar de tool draait: *web-app*
-  of *lokaal*. Een web-app opent in een nieuw tabblad; de pijl op de knop
-  wijst daarom schuin omhoog.
-- **Consent Check:** twee knoppen op de kaart, *download* (de zip van GitHub)
-  en *hoe werkt dit?*. Na het downloaden wijst een melding de weg naar de
-  uitleg.
+- **Kaarten:** elke tool dezelfde opbouw: naam, wat hij doet, waar hij draait
+  (*web-app* of *lokaal*), wat je krijgt, en één knop. Een web-app opent in
+  een nieuw tabblad (*open de web-app*); de pijl op de knop wijst daarom
+  schuin omhoog.
+- **Consent Check:** de knop *hoe start je hem?* en de link *direct
+  downloaden* (de zip van GitHub). Na het downloaden wijst een melding de weg
+  naar de uitleg.
 - **Uitleg** (`<dialog id="guide-consent">` in `index.html`): een paneel van
   rechts met een tabje voor Mac en voor Windows; het tabje van je eigen
   computer staat al open. De Mac-tekst is letterlijk die van de maker van de

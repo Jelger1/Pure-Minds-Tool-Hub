@@ -24,7 +24,7 @@
     return [
       { layout: 'title', label: 'pure minds', title: 'Groeien met **online marketing**', subtitle: 'Strategie en plan voor het komende jaar', meta: `Pure Minds · ${date}` },
       { layout: 'section', label: 'hoofdstuk', title: 'Waar staan we nu', subtitle: 'Een eerlijke blik op de huidige resultaten' },
-      { layout: 'bullets', label: 'analyse', title: 'Wat we zien in de data', body: 'Het meeste verkeer komt via betaalde zoekcampagnes\nDe landingspagina\'s converteren onder het gemiddelde\nMobiel groeit het hardst, maar converteert het slechtst\nRemarketing wordt nog niet ingezet' },
+      { layout: 'bullets', label: 'analyse', title: 'Wat we zien in de data', body: 'Het meeste verkeer komt via betaalde zoekcampagnes\nDe landingspagina’s converteren onder het gemiddelde\nMobiel groeit het hardst, maar converteert het slechtst\nRemarketing wordt nog niet ingezet' },
       { layout: 'split', label: 'aanpak', title: 'Van klik naar klant', body: 'We brengen advertentie en landingspagina samen in één verhaal.\n- heldere belofte boven de vouw\n- één duidelijke actie per pagina\n- testen, meten en bijsturen' },
       { layout: 'table', label: 'cijfers', title: 'Resultaten per kanaal', subtitle: 'Periode: [maand of kwartaal invullen]' },
       { layout: 'quote', label: 'resultaat', style: 'stat', value: '+184%', subtitle: 'meer aanvragen binnen drie maanden', author: 'Bron: [bron invullen]', quote: 'Eindelijk zien we precies waar ons **budget** naartoe gaat.' },

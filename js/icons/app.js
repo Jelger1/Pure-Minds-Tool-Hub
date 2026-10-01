@@ -69,7 +69,7 @@
   // label = de naam naast de stalen, als die anders is dan de id.
   const HEX_COLORS = [
     { id: 'cyaan', name: 'Cyaan, wit icoon', fill: '#1ab9e2', color: WHITE },
-    { id: 'cyaan-inkt', name: 'Cyaan, inkt icoon', label: 'cyaan · inkt', fill: '#1ab9e2', color: INK },
+    { id: 'cyaan-inkt', name: 'Cyaan, inktkleurig icoon', label: 'cyaan · inkt', fill: '#1ab9e2', color: INK },
     { id: 'donker', name: 'Donker', fill: INK, color: WHITE },
     { id: 'magenta', name: 'Magenta', fill: '#b61b50', color: WHITE },
     { id: 'wit', name: 'Wit', fill: WHITE, color: INK },

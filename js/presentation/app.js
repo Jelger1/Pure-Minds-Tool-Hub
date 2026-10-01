@@ -1973,7 +1973,7 @@
   function addRow(at = tbl().cells.length) {
     const t = tbl();
     if (t.cells.length >= LIM.rows) {
-      toast(`Maximaal ${LIM.rows} rijen: meer is op een slide niet te lezen. Verdeel de tabel over twee slides.`, true);
+      toast(`Hoogstens ${LIM.rows} rijen: meer is op een slide niet te lezen. Verdeel de tabel over twee slides.`, true);
       return false;
     }
     t.cells.splice(at, 0, Array(t.cells[0].length).fill(''));
@@ -1983,7 +1983,7 @@
   function addCol() {
     const t = tbl();
     if (t.cells[0].length >= LIM.cols) {
-      toast(`Maximaal ${LIM.cols} kolommen: meer is op een slide niet te lezen.`, true);
+      toast(`Hoogstens ${LIM.cols} kolommen: meer is op een slide niet te lezen.`, true);
       return false;
     }
     t.cells.forEach((row) => row.push(''));
@@ -2292,7 +2292,7 @@
     if (small.length) {
       const list = small.map((i) => i + 1);
       const which = list.length === 1 ? `slide ${list[0]}` : `slide ${list.slice(0, -1).join(', ')} en ${list[list.length - 1]}`;
-      el.dlPhotoNote.textContent = `De foto op ${which} is kleiner dan ${state.exportWidth === 3840 ? '4K' : 'Full HD'} nodig heeft en kan zacht worden.${state.exportWidth === 3840 ? ' Full HD is scherp genoeg voor de meeste schermen.' : ''}`;
+      el.dlPhotoNote.textContent = `${list.length === 1 ? 'De foto op' : "De foto's op"} ${which} ${list.length === 1 ? 'is' : 'zijn'} kleiner dan ${state.exportWidth === 3840 ? '4K' : 'Full HD'} nodig heeft en ${list.length === 1 ? 'kan' : 'kunnen'} zacht worden.${state.exportWidth === 3840 ? ' Full HD is scherp genoeg voor de meeste schermen.' : ''}`;
     }
   }
 
@@ -2328,7 +2328,7 @@
     progress('inpakken…');
     const name = `pureminds-presentatie-${deckName()}-slides.zip`;
     PM.saveBlob(await zip.generateAsync({ type: 'blob' }), name);
-    toast(`${state.slides.length} slides gedownload in ${name}`);
+    toast(`Zip met ${state.slides.length} slides gedownload: ${name}`);
     return `${state.slides.length} slides`;
   }
 
@@ -2345,7 +2345,7 @@
       // Logo en Emerce 100-badge als vector (scherp op elk formaat)
       vectors: new Map([[env.logo, PM.brandSvg('logoWhiteSvg')], [env.badge, PM.brandSvg('badgeWhite')]]),
       title: String(state.slides[0].title || 'Presentatie').replace(/\*\*/g, ''),
-      subject: 'Pure Minds presentatie',
+      subject: 'Pure Minds-presentatie',
       progress,
     });
     const name = `pureminds-presentatie-${deckName()}.pdf`;

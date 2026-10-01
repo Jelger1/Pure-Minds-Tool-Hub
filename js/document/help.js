@@ -49,7 +49,7 @@
     // Soort
     'soort': {
       title: 'Soort document',
-      text: 'Brief: met adres, kenmerk en aanhef. Offerte: met prijsregels, btw en een blok voor akkoord. Memo: aan, van en cc, voor intern gebruik. Notitie: alleen titel en datum. Wisselen mag altijd, je tekst blijft staan.',
+      text: 'Brief: met adres, kenmerk en aanhef. Offerte: met prijsregels, btw en een blok voor akkoord. Memo: aan, van en cc, voor intern gebruik. Notitie: alleen titel en datum. Wisselen mag altijd: je tekst blijft staan.',
     },
 
     // Gegevens
@@ -77,7 +77,7 @@
     },
     'lijst': {
       title: 'Lijsten',
-      text: 'Opsomming maakt een lijst met cyaan zeshoekjes als opsommingsteken. Genummerde lijst nummert vanzelf, en telt door als de lijst op de volgende pagina verder gaat. Nog eens klikken haalt de lijst weg.',
+      text: 'Opsomming maakt een lijst met cyaan zeshoekjes als opsommingsteken. Genummerde lijst nummert vanzelf, en telt door als de lijst op de volgende pagina verdergaat. Nog eens klikken haalt de lijst weg.',
     },
     'plakken': {
       title: 'Plakken uit Word',
@@ -105,7 +105,7 @@
     // Afsluiting
     'ondertekening': {
       title: 'Ondertekening',
-      text: 'Zet slotgroet, naam, functie en eventueel je handtekening onder het document. Achter je functie komt vanzelf de bedrijfsnaam uit Briefpapier, zoals “Accountmanager · Pure Minds marketing group”.',
+      text: 'Zet slotgroet, naam, functie en eventueel je handtekening onder het document. Achter je functie komt vanzelf de bedrijfsnaam uit Briefpapier, zoals “Accountmanager · Pure Minds Marketing Group”.',
     },
     'handtekening': {
       title: 'Handtekening',
@@ -121,7 +121,7 @@
     // Kop van de tool
     'emerce-badge': {
       title: 'Emerce 100',
-      text: 'Pure Minds staat in de Emerce 100 van 2026, de beste e-business bedrijven. Aan: de badge staat klein en zwart rechts in de voet van elke pagina. Hij hoort bij het briefpapier, dus hij geldt voor al je documenten.',
+      text: 'Pure Minds staat in de Emerce 100 van 2026, de beste e-businessbedrijven. Aan: de badge staat klein en zwart rechts in de voet van elke pagina. Hij hoort bij het briefpapier, dus hij geldt voor al je documenten.',
     },
     'paginas': {
       title: "Pagina's",

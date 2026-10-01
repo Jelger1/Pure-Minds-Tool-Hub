@@ -1052,7 +1052,7 @@
       const pages = indexes.map((i) => (i == null
         ? { state, env: {} }
         : { state: { ...state, template: 'carousel' }, env: { slideIndex: i } }));
-      const title = isCarousel() ? String(slides[0].title || 'carousel').replace(/\*\*/g, '') : postSubject() || 'Pure Minds post';
+      const title = isCarousel() ? String(slides[0].title || 'carousel').replace(/\*\*/g, '') : postSubject() || 'Pure Minds-post';
       const { blob, elements } = await buildPdf(pages, title, progress);
       let name;
       if (!isCarousel()) name = `${['pureminds', state.template, slug(postSubject())].filter(Boolean).join('-')}.pdf`;
