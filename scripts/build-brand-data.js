@@ -55,6 +55,9 @@ const fonts = {
   extrabold: 'PureMindsSans-ExtraBold.ttf',
   italic: 'PureMindsSans-Italic.ttf',
   bolditalic: 'PureMindsSans-BoldItalic.ttf',
+  // Light alleen voor de Brand Styleguide (de pagina Typografie). Als laatste: zo houden de
+  // andere snedes in jsPDF hun nummer (/F14 …) en blijven de PDF's van de andere makers gelijk
+  light: 'PureMindsSans-Light.ttf',
 };
 
 const pdfFonts = `/* Gegenereerd door scripts/build-brand-data.js. Niet met de hand wijzigen:

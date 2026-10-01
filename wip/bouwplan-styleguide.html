@@ -1,0 +1,719 @@
+<title>Pure Minds Styleguide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: een leesdocument met een vaste inhoudsopgave links (breed scherm), secties als hoofdstukken;
+   huisstijl van Pure Minds zelf: inkt, Pure Cyaan, magenta alleen voor de hoofdactie */
+:root {
+  --bg: #f6f9fb;
+  --surface: #ffffff;
+  --ink: #303030;
+  --muted: #5c6670;
+  --line: #dde5eb;
+  --cyan: #1ab9e2;
+  --cyan-text: #0f7fa0;
+  --magenta: #b61b50;
+  --tint: #e8f7fc;
+  --code-bg: #f0f4f7;
+  --dark: #303030;
+  --on-dark: #ffffff;
+  --good: #009670;
+  --bad: #b61b50;
+  --font: "Pure Minds Sans", "Open Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f2326; --surface: #272b2f; --ink: #eef2f4; --muted: #a7b2bb; --line: #3a4148;
+    --cyan: #1ab9e2; --cyan-text: #5fd0ee; --magenta: #d63a70; --tint: #20343d; --code-bg: #1b1f22;
+    --dark: #16191b; --on-dark: #ffffff; --good: #2bc39a; --bad: #e0567f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1f2326; --surface: #272b2f; --ink: #eef2f4; --muted: #a7b2bb; --line: #3a4148;
+  --cyan: #1ab9e2; --cyan-text: #5fd0ee; --magenta: #d63a70; --tint: #20343d; --code-bg: #1b1f22;
+  --dark: #16191b; --on-dark: #ffffff; --good: #2bc39a; --bad: #e0567f; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.65; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 0 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; } .toc { display: none; } }
+
+/* Kop */
+.hero { background: var(--dark); color: var(--on-dark); border-top: 6px solid var(--cyan); }
+.hero__in { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 48px 44px; display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 32px; align-items: center; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); margin: 0 0 10px; }
+.hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; font-weight: 800; letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+.hero h1 .dot, h2 .dot { color: var(--cyan); }
+.hero p.lead { color: #cfd8de; max-width: 62ch; margin: 16px 0 0; font-size: 18px; }
+.hero__logo { color: #fff; width: 150px; }
+@media (max-width: 640px) { .hero__in { grid-template-columns: minmax(0, 1fr); } .hero__logo { width: 96px; } }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 22px; font-size: 13px; color: #cfd8de; }
+.meta b { color: #fff; font-weight: 700; }
+
+/* Inhoudsopgave */
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; padding-top: 40px; font-size: 14px; }
+.toc p { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: h; }
+.toc a { display: flex; gap: 10px; padding: 6px 10px; color: var(--ink); text-decoration: none; border-left: 2px solid transparent; }
+.toc a:hover, .toc a:focus-visible { border-left-color: var(--cyan); background: var(--tint); outline: none; }
+.toc a span { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 1.4em; }
+
+/* Inhoud */
+main { min-width: 0; }
+section { padding-top: 48px; }
+section + section { border-top: 1px solid var(--line); margin-top: 48px; }
+h2 { font-size: clamp(26px, 3.2vw, 34px); line-height: 1.2; font-weight: 800; letter-spacing: -.015em; margin: 0 0 6px; text-wrap: balance; }
+h3 { font-size: 21px; line-height: 1.3; font-weight: 700; margin: 36px 0 10px; text-wrap: balance; }
+h4 { font-size: 15px; font-weight: 700; margin: 22px 0 6px; }
+p, li { max-width: 72ch; }
+p { margin: 0 0 14px; }
+.sub { color: var(--muted); margin-bottom: 22px; }
+ul, ol { padding-left: 1.2em; margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+li::marker { color: var(--cyan); }
+strong { font-weight: 700; }
+a { color: var(--cyan-text); }
+code { font-family: var(--mono); font-size: .88em; background: var(--code-bg); padding: .1em .35em; }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.6; background: var(--code-bg); border-left: 3px solid var(--cyan); padding: 16px 18px; overflow-x: auto; margin: 12px 0 22px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+.label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+.note { border-left: 3px solid var(--cyan); background: var(--tint); padding: 12px 16px; margin: 14px 0 22px; max-width: 72ch; }
+.note--warn { border-left-color: var(--magenta); }
+.note p:last-child { margin-bottom: 0; }
+
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); } .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.panel { background: var(--surface); border: 1px solid var(--line); padding: 18px 20px; min-width: 0; }
+.panel h4:first-child, .panel p:first-child { margin-top: 0; }
+
+/* Tabellen */
+.tbl { overflow-x: auto; margin: 10px 0 24px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--surface); }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; background: var(--code-bg); }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ok { color: var(--good); font-weight: 700; }
+.ko { color: var(--bad); font-weight: 700; }
+
+/* Kernwaarden */
+.value { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--vc); padding: 16px 18px; }
+.value .n { display: inline-grid; place-items: center; width: 26px; height: 30px; background: var(--vc); color: #fff; font-weight: 800; font-size: 13px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); margin-bottom: 8px; }
+.value h4 { margin: 0 0 4px; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; }
+.value p { font-size: 14px; margin: 0; }
+.tov { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--muted); }
+.tov b { color: var(--ink); }
+
+/* Toon: wel/niet */
+.say { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); background: var(--surface); margin-bottom: 12px; }
+.say > div { padding: 12px 16px; min-width: 0; font-size: 15px; }
+.say > div + div { border-left: 1px solid var(--line); }
+.say .tag { display: block; margin-bottom: 4px; }
+.say .tag.ok::before { content: "✓ "; }
+.say .tag.ko::before { content: "✕ "; }
+@media (max-width: 640px) { .say { grid-template-columns: minmax(0, 1fr); } .say > div + div { border-left: 0; border-top: 1px solid var(--line); } }
+
+/* Logo-figuren */
+.fig { background: var(--surface); border: 1px solid var(--line); padding: 16px; min-width: 0; }
+.fig svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.fig figcaption, .fig .cap { font-size: 13px; color: var(--muted); margin-top: 10px; }
+figure { margin: 0; }
+.stage-dark { background: var(--dark); }
+.stage-light { background: #eef3f6; }
+.verdict { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+
+/* Kleuren */
+.swatch { border: 1px solid var(--line); background: var(--surface); min-width: 0; }
+.swatch .chip { aspect-ratio: 16 / 9; max-width: 100%; display: flex; align-items: flex-end; padding: 10px 12px; font-weight: 700; font-size: 14px; }
+.swatch .vals { padding: 10px 12px; font-family: var(--mono); font-size: 12px; line-height: 1.6; }
+.swatch .role { padding: 0 12px 12px; font-size: 13px; color: var(--muted); }
+.copy { all: unset; cursor: pointer; border-bottom: 1px dotted currentColor; }
+.copy:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* 60/30/10 */
+.ratio { background: var(--surface); border: 1px solid var(--line); padding: 18px 20px; }
+.ratio__bar { display: flex; height: 54px; border: 1px solid var(--line); }
+.ratio__bar div { display: flex; align-items: center; padding: 0 12px; font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; transition: flex-basis .35s ease; }
+.ratio__legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.ratio__legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+.ratio__ctrl { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.ratio__ctrl button { font: inherit; font-size: 13px; font-weight: 700; padding: 6px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.ratio__ctrl button[aria-pressed="true"] { border-color: var(--cyan); background: var(--tint); }
+.ratio__ctrl button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.mock { display: grid; grid-template-columns: 1.1fr 1fr; border: 1px solid var(--line); min-height: 220px; }
+.mock__a { padding: 22px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.mock__b { position: relative; overflow: hidden; }
+.mock h5 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 800; letter-spacing: -.01em; }
+.mock p { margin: 0; font-size: 13px; max-width: none; }
+.mock .btn { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 8px 14px; color: #fff; }
+@media (max-width: 640px) { .mock { grid-template-columns: minmax(0, 1fr); } .mock__b { min-height: 120px; } }
+@media (prefers-reduced-motion: reduce) { .ratio__bar div { transition: none; } }
+
+/* Interface-schets */
+.ui { border: 1px solid var(--line); background: var(--surface); font-size: 12px; overflow-x: auto; }
+.ui__in { min-width: 640px; }
+.ui__bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.ui__bar b { font-size: 13px; }
+.ui__sp { flex: 1; }
+.ui__search { border: 1px solid var(--line); padding: 4px 10px; color: var(--muted); min-width: 180px; }
+.ui__btn { background: #b61b50; color: #fff; font-weight: 700; padding: 6px 12px; }
+.ui__body { display: grid; grid-template-columns: 74px 220px minmax(0, 1fr); min-height: 300px; }
+.ui__rail { border-right: 1px solid var(--line); display: grid; align-content: start; gap: 2px; padding: 8px 0; }
+.ui__rail span { text-align: center; padding: 7px 4px; color: var(--muted); }
+.ui__rail span.on { color: var(--ink); font-weight: 700; box-shadow: inset 3px 0 0 var(--cyan); background: var(--tint); }
+.ui__panel { border-right: 1px solid var(--line); padding: 12px; display: grid; align-content: start; gap: 8px; }
+.ui__panel .row { border: 1px solid var(--line); padding: 6px 8px; }
+.ui__stage { background: var(--code-bg); padding: 16px; display: grid; gap: 10px; align-content: start; }
+.ui__page { background: #303030; color: #fff; aspect-ratio: 297 / 210; max-width: 100%; padding: 14px 16px; display: grid; grid-template-rows: auto 1fr auto; border-top: 3px solid #1ab9e2; }
+.ui__page .t { font-weight: 800; font-size: 16px; }
+.ui__page .sw { display: flex; gap: 6px; align-items: end; }
+.ui__page .sw i { flex: 1; height: 40px; }
+.ui__strip { display: flex; gap: 6px; }
+.ui__strip i { width: 54px; aspect-ratio: 297 / 210; background: #3d4146; border-top: 2px solid #1ab9e2; }
+
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps > li { counter-increment: s; position: relative; padding-left: 40px; margin-bottom: 14px; }
+.steps > li::before { content: counter(s); position: absolute; left: 0; top: 2px; width: 26px; height: 30px; display: grid; place-items: center; background: var(--cyan); color: #303030; font-weight: 800; font-size: 13px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+
+pre.mermaid { background: var(--surface); border-left: 0; border: 1px solid var(--line); font-family: var(--font); }
+footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+</style>
+
+<header class="hero">
+  <div class="hero__in">
+    <div>
+      <p class="eyebrow">Bouwplan · Pure Minds Tool Hub</p>
+      <h1>Pure Minds Styleguide<span class="dot">.</span></h1>
+      <p class="lead">Een interactieve, digitale stijlgids als nieuwe tool in de hub. Hij digitaliseert brandbook v2.0, vult het aan waar het nu tekortschiet en exporteert het hele brandbook als bewerkbare vector-PDF voor Canva en Illustrator.</p>
+      <div class="meta"><span>Bron: <b>PureMinds-Brandbook-v2.0.pdf</b> (8 pagina's)</span><span>Lettertype: <b>Pure Minds Sans</b></span><span>Stack: <b>vanilla HTML, CSS en JS</b>, zoals de hub</span></div>
+    </div>
+    <svg class="hero__logo" viewBox="0 0 2229.16 2568.97" role="img" aria-label="Pure Minds Marketing Group-logo" fill="currentColor">{{LOGO}}</svg>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Inhoud">
+    <p>Inhoud</p>
+    <ol>
+      <li><a href="#tool"><span>1</span>De tool in de hub</a></li>
+      <li><a href="#merk"><span>2</span>Merk en tone of voice</a></li>
+      <li><a href="#logo"><span>3</span>Logo en zeshoek</a></li>
+      <li><a href="#kleur"><span>4</span>Kleur en 60/30/10</a></li>
+      <li><a href="#type"><span>5</span>Typografie</a></li>
+      <li><a href="#beeld"><span>6</span>Beeldtaal</a></li>
+      <li><a href="#export"><span>7</span>Export naar PDF</a></li>
+      <li><a href="#plan"><span>8</span>Bouwvolgorde</a></li>
+      <li><a href="#fouten"><span>9</span>Correcties op v2.0</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+<!-- ================================================================ 1 -->
+<section id="tool">
+  <h2>De tool in de hub<span class="dot">.</span></h2>
+  <p class="sub">Een vijfde maker naast posts, documenten, presentaties en iconen. Dezelfde opbouw als de andere tools, zodat niemand iets nieuws hoeft te leren.</p>
+
+  <h3>Plek en bestanden</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Bestand</th><th>Wat erin staat</th></tr></thead>
+    <tbody>
+      <tr><td><code>tools/styleguide.html</code></td><td>De pagina: appbalk, rail, paneel, podium met de brandbook-pagina's.</td></tr>
+      <tr><td><code>js/styleguide/brand-tokens.js</code></td><td>De huisstijl als gegevens: kleuren, typeschaal, logo-regels, marges. Eén bron voor scherm én PDF (zie hieronder).</td></tr>
+      <tr><td><code>js/styleguide/content.js</code></td><td>Alle teksten van het brandbook (missie, visie, waarden, tone of voice, richtlijnen), los van de opmaak.</td></tr>
+      <tr><td><code>js/styleguide/pages.js</code></td><td>De brandbook-pagina's als tekenfuncties op een A4-liggend canvas (297 × 210 mm), zoals de slides in de Presentation Maker.</td></tr>
+      <tr><td><code>js/styleguide/app.js</code></td><td>Navigatie, kopiëren van kleurwaarden, logo-downloads, de 60/30/10-demo, de export.</td></tr>
+      <tr><td><code>js/styleguide/export.js</code></td><td>De PDF-export: dezelfde tekenfuncties op <code>PMPdfCanvas</code>, plus lagen.</td></tr>
+      <tr><td><code>css/styleguide.css</code></td><td>Alleen wat afwijkt van <code>editor.css</code>.</td></tr>
+      <tr><td><code>js/shared/tools.js</code></td><td>Eén regel: <code>{ id: 'styleguide', name: 'Brand Styleguide', … }</code>, zodat de kaart op de homepage en in de toolwisselaar verschijnt.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Interface-indeling</h3>
+  <p>Wat je op het scherm ziet, is wat je exporteert. Het podium toont de brandbook-pagina's precies zoals ze in de PDF komen; het paneel ernaast maakt ze bruikbaar (kopiëren, downloaden, uitproberen).</p>
+  <div class="ui" role="img" aria-label="Schets van de interface: appbalk met zoeken en exporteren, een rail met hoofdstukken, een paneel met details en een podium met de brandbook-pagina's">
+    <div class="ui__in">
+      <div class="ui__bar"><b>Brand Styleguide</b><span style="color:var(--muted)">brandbook v2.1 · 14 pagina's</span><span class="ui__sp"></span><span class="ui__search">zoek: magenta, clear space…</span><span>hulp</span><span class="ui__btn">exporteer brandbook ▾</span></div>
+      <div class="ui__body">
+        <div class="ui__rail"><span>Merk</span><span class="on">Logo</span><span>Kleur</span><span>Type</span><span>Beeld</span><span>Iconen</span><span>Gebruik</span></div>
+        <div class="ui__panel"><b>Logo</b><div class="row">Variant: wit · zwart</div><div class="row">Clear space tonen ☑</div><div class="row">download SVG · PNG · PDF</div><div class="row">Minimum: 80 px · 20 mm</div></div>
+        <div class="ui__stage"><div class="ui__page"><span class="label" style="color:#1ab9e2">Logo</span><span class="t">Clear space en minimum formaat</span><span class="sw"><i style="background:#1ab9e2"></i><i style="background:#b61b50;flex:.4"></i><i style="background:#fff;flex:1.8"></i></span></div><div class="ui__strip"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:18px">
+    <div class="panel"><h4>Appbalk</h4><ul>
+      <li><strong>Zoeken</strong> door het hele brandbook (“magenta”, “clear space”, “je of u”) springt naar de juiste pagina.</li>
+      <li><strong>exporteer brandbook</strong> is de hoofdactie, dus magenta. Het menu ernaast biedt: PDF (alles), PDF (één hoofdstuk), logo-pakket (zip met SVG/PNG/PDF), kleurwaarden (ASE voor Adobe, JSON voor developers).</li>
+      <li><strong>hulp</strong> met de rondleiding en sneltoetsen, zoals in de andere makers.</li>
+    </ul></div>
+    <div class="panel"><h4>Rail, paneel en podium</h4><ul>
+      <li><strong>Rail:</strong> zeven hoofdstukken. Een hoofdstuk kiezen scrolt het podium en opent het paneel.</li>
+      <li><strong>Paneel:</strong> het werkgereedschap van dat hoofdstuk: kleurwaarden met één klik kopiëren, logo-varianten downloaden, de clear space aan/uit, contrast checken.</li>
+      <li><strong>Podium:</strong> de A4-pagina's onder elkaar, met een strook miniaturen onderaan. Op een telefoon wordt de rail een tabbalk en het paneel een blad van onderen.</li>
+    </ul></div>
+  </div>
+
+  <h3>Eén bron voor scherm en PDF</h3>
+  <p>Alle maten en kleuren staan één keer in <code>brand-tokens.js</code>. De CSS van de tool, de pagina's op het podium en de PDF-export lezen allemaal daaruit. Verandert de huisstijl, dan pas je één bestand aan.</p>
+<pre><code>// js/styleguide/brand-tokens.js
+window.PM_BRAND_TOKENS = {
+  font: { family: 'Pure Minds Sans', postscript: 'PureMindsSans', weights: [300, 400, 600, 700, 800] },
+  colors: {
+    primary: [
+      { id: 'cyaan',   name: 'Pure Cyaan',   hex: '#1AB9E2', rgb: [26, 185, 226], cmyk: [88, 18, 0, 11], role: 'Accenten, vlakken, lijnen en markeringen' },
+      { id: 'magenta', name: 'Pure Magenta', hex: '#B61B50', rgb: [182, 27, 80],  cmyk: [0, 85, 56, 29], role: 'Uitsluitend de hoofdactie en nadruk' },
+      { id: 'inkt',    name: 'Inkt',         hex: '#303030', rgb: [48, 48, 48],   cmyk: [0, 0, 0, 81],   role: 'Lopende tekst, koppen en donkere vlakken' },
+    ],
+    secondary: [
+      { id: 'blauw',     name: 'Blauw',      hex: '#1B71A8', rgb: [27, 113, 168], cmyk: [84, 33, 0, 34] },
+      { id: 'diepblauw', name: 'Diep blauw', hex: '#005AAF', rgb: [0, 90, 175],   cmyk: [100, 49, 0, 31] },
+      { id: 'groen',     name: 'Groen',      hex: '#009670', rgb: [0, 150, 112],  cmyk: [100, 0, 25, 41] },
+      { id: 'oranje',    name: 'Oranje',     hex: '#E0951F', rgb: [224, 149, 31], cmyk: [0, 33, 86, 12] },
+    ],
+  },
+  ratio: { neutral: 60, cyaan: 30, accent: 10 },
+  logo: { aspect: 2229.16 / 2568.97, clearSpace: 0.25, minDigitalPx: 80, minPrintMm: 20, hexRadius: 0.12 },
+  type: [ // px / regelhoogte / tracking, op 1440 breed scherm
+    { id: 'h1',      weight: 800, size: 52, line: 58, track: -0.02 },
+    { id: 'h2',      weight: 700, size: 34, line: 42, track: 0 },
+    { id: 'h3',      weight: 700, size: 24, line: 32, track: 0 },
+    { id: 'body',    weight: 400, size: 18, line: 31, track: 0 },
+    { id: 'small',   weight: 400, size: 15, line: 24, track: 0, color: '#5C6670' },
+    { id: 'label',   weight: 700, size: 13, line: 16, track: 0.1, upper: true },
+  ],
+};</code></pre>
+  <p>Pure Minds Sans laadt als eigen webfont, zoals al in de hub (<code>css/global.css</code>), met Open Sans alleen als vangnet:</p>
+<pre><code>@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+/* … Light 300, SemiBold 600, Bold 700, ExtraBold 800 en de cursieven … */
+:root { --font: "Pure Minds Sans", "Open Sans", ui-sans-serif, system-ui, Arial, sans-serif; }</code></pre>
+</section>
+
+<!-- ================================================================ 2 -->
+<section id="merk">
+  <h2>Merk en tone of voice<span class="dot">.</span></h2>
+  <p class="sub">Missie, visie en kernwaarden komen letterlijk uit brandbook v2.0 (alleen opgeschoond). De tone of voice is nieuw en bouwt direct op de vier waarden.</p>
+
+  <div class="grid2">
+    <div class="panel"><p class="label">Visie</p><p>Wij zijn ervan overtuigd dat in de essentie van elke onderneming nog verborgen groeikansen liggen. Met de juiste ondersteuning kunnen deze kansen worden benut, wat leidt tot authentieke groei en duurzame welvaart op eigen kracht.</p></div>
+    <div class="panel"><p class="label">Missie</p><p>Wij helpen ondernemers bij het vinden en benutten van on-aangetapt groeipotentieel.</p><p style="font-size:13px;color:var(--muted)">In v2.0 staat “on aangetapt” los. In de voorstellen staat “on-aangetapt”, en die schrijfwijze heb ik hier aangehouden. Correct Nederlands zou “onaangeboord” of “onbenut” zijn; dat blijft jullie keuze (zie hoofdstuk 9).</p></div>
+  </div>
+
+  <h3>Kernwaarden</h3>
+  <div class="grid4">
+    <div class="value" style="--vc:#1ab9e2"><span class="n">1</span><h4>Authentiek</h4><p>Streven naar eerlijke, oprechte relaties met klanten en partners.</p><div class="tov"><b>Zo klinkt het:</b> eerlijk over wat werkt en wat niet; geen beloftes die we niet waarmaken.</div></div>
+    <div class="value" style="--vc:#1b71a8"><span class="n">2</span><h4>Verbonden</h4><p>Het belang van menselijke interactie benadrukken in een technologiegedreven wereld.</p><div class="tov"><b>Zo klinkt het:</b> persoonlijk, met “je” en “we”; we praten mét de klant, niet over hem.</div></div>
+    <div class="value" style="--vc:#009670"><span class="n">3</span><h4>Duurzaam</h4><p>Waarde hechten aan een bestendig samenwerkingsverband met alle stakeholders, onder het oogmerk van maatschappelijk verantwoord ondernemen.</p><div class="tov"><b>Zo klinkt het:</b> nuchter en op lange termijn; liever één goed resultaat dan drie hypes.</div></div>
+    <div class="value" style="--vc:#b61b50"><span class="n">4</span><h4>Inventief</h4><p>Opvolgen van de technologische vooruitgang om deze creatief te implementeren in de diensten voor onze klanten.</p><div class="tov"><b>Zo klinkt het:</b> concreet over nieuwe techniek; we leggen uit wat het oplevert, zonder jargon.</div></div>
+  </div>
+
+  <h3>Tone of voice</h3>
+  <p>Pure Minds schrijft <strong>informeel-professioneel</strong>: zoals een ervaren collega die naast je zit. Warm en direct, maar altijd onderbouwd. We overtuigen met resultaat en uitleg, niet met superlatieven.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Schaal</th><th>Waar Pure Minds staat</th><th>In de praktijk</th></tr></thead>
+    <tbody>
+      <tr><td>Formeel ↔ informeel</td><td>Informeel, nooit amicaal</td><td>Altijd <strong>je/jij</strong>, ook in offertes. <em>U</em> alleen als de klant daar zelf om vraagt (bijvoorbeeld overheid, zorg).</td></tr>
+      <tr><td>Nuchter ↔ enthousiast</td><td>Nuchter met energie</td><td>Enthousiasme blijkt uit concrete resultaten (“+184% aanvragen in drie maanden”), niet uit uitroeptekens.</td></tr>
+      <tr><td>Overtuigend ↔ informerend</td><td>Overtuigend door uit te leggen</td><td>Eerst het probleem van de klant, dan wat we doen, dan wat het oplevert.</td></tr>
+      <tr><td>Technisch ↔ toegankelijk</td><td>Toegankelijk</td><td>Vaktermen alleen als de lezer ze kent; anders één zin uitleg (“GA4, de meetomgeving van Google”).</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>Schrijfregels</h4>
+  <ul>
+    <li>Korte zinnen, actieve vorm. Eén gedachte per zin.</li>
+    <li>Koppen met een hoofdletter en vaak een cyaan punt erachter (“Onze belofte.”). Knoppen en labels in kleine letters (“analyseer pagina”, “download pdf”).</li>
+    <li>De naam voluit: <strong>Pure Minds Marketing Group</strong> (met hoofdletters). In lopende tekst mag <strong>Pure Minds</strong>. Het webadres altijd klein: <strong>pureminds.nl</strong>.</li>
+    <li>Getallen als cijfers bij resultaten (3 maanden, 60%), bedragen als <strong>€ 1.500,-</strong>.</li>
+    <li>De slogan blijft Engels en ongewijzigd: <strong>We mind your business, for your peace of mind.</strong></li>
+    <li>Geen emoji in documenten en presentaties; op social spaarzaam (hooguit één, nooit in de kop).</li>
+  </ul>
+
+  <h4>Wel en niet</h4>
+  <div class="say"><div><span class="tag ok verdict">Wel</span>We hebben je Google Ads-account doorgelopen. Drie dingen kosten je nu klikken die niets opleveren.</div><div><span class="tag ko verdict">Niet</span>Wij hebben uw account aan een uitgebreide, state-of-the-art analyse onderworpen!</div></div>
+  <div class="say"><div><span class="tag ok verdict">Wel</span>Je website staat goed, maar bezoekers vinden de offerteknop niet. Dat lossen we op in fase 1.</div><div><span class="tag ko verdict">Niet</span>Wij gaan uw online aanwezigheid naar een next level tillen.</div></div>
+  <div class="say"><div><span class="tag ok verdict">Wel</span>Hulp nodig bij je campagnes? Plan een gratis adviesgesprek via pureminds.nl.</div><div><span class="tag ko verdict">Niet</span>Neem NU contact op voor de beste marketing van Nederland!!!</div></div>
+</section>
+
+<!-- ================================================================ 3 -->
+<section id="logo">
+  <h2>Logo en zeshoek<span class="dot">.</span></h2>
+  <p class="sub">Het primaire logo is de zeshoek met “pure minds.” en “marketing group”, als lijnvorm. Er zijn twee kleurvarianten: wit op donker en zwart (inkt) op licht.</p>
+
+  <div class="grid2">
+    <figure class="fig stage-dark"><svg viewBox="-700 -560 3629 3689" fill="#ffffff" role="img" aria-label="Wit logo op donker">{{LOGO}}</svg><figcaption style="color:#cfd8de">Primair: wit logo op Inkt of een donkere foto.</figcaption></figure>
+    <figure class="fig stage-light"><svg viewBox="-700 -560 3629 3689" fill="#303030" role="img" aria-label="Zwart logo op licht">{{LOGO}}</svg><figcaption style="color:#5c6670">Op lichte ondergrond: het logo in Inkt.</figcaption></figure>
+  </div>
+
+  <h3>Clear space (veiligheidsmarge)</h3>
+  <p>Rond het logo blijft aan alle kanten een vrije ruimte van <strong>X = ¼ van de logobreedte</strong>. In die zone staat niets: geen tekst, geen rand van de pagina, geen andere vorm. Bij een logo van 116 px breed (zoals op de slides) is X dus 29 px.</p>
+  <figure class="fig">
+    <svg viewBox="-1300 -800 4829 4169" role="img" aria-label="Logo met de vrije ruimte X aan alle kanten">
+      <rect x="-557.29" y="-557.29" width="3343.74" height="3683.55" fill="none" stroke="#1ab9e2" stroke-width="18" stroke-dasharray="60 40"/>
+      <rect x="-557.29" y="-557.29" width="3343.74" height="557.29" fill="#1ab9e2" fill-opacity=".14"/>
+      <rect x="-557.29" y="2568.97" width="3343.74" height="557.29" fill="#1ab9e2" fill-opacity=".14"/>
+      <rect x="-557.29" y="0" width="557.29" height="2568.97" fill="#1ab9e2" fill-opacity=".14"/>
+      <rect x="2229.16" y="0" width="557.29" height="2568.97" fill="#1ab9e2" fill-opacity=".14"/>
+      <g fill="#303030">{{LOGO}}</g>
+      <g font-family="Open Sans, sans-serif" font-weight="700" font-size="190" fill="#0f7fa0">
+        <text x="1114" y="-170" text-anchor="middle">X</text>
+        <text x="1114" y="2950" text-anchor="middle">X</text>
+        <text x="-279" y="1350" text-anchor="middle">X</text>
+        <text x="2507" y="1350" text-anchor="middle">X</text>
+        <text x="1114" y="3500" text-anchor="middle" font-size="150" font-weight="400" fill="#5c6670">X = ¼ × logobreedte</text>
+      </g>
+    </svg>
+  </figure>
+
+  <h3>Minimum formaat</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Medium</th><th>Minimaal (breedte van de zeshoek)</th><th>Waarom</th></tr></thead>
+    <tbody>
+      <tr><td>Digitaal (web, social, slides)</td><td class="num">80 px</td><td>Daaronder is “marketing group” niet meer leesbaar.</td></tr>
+      <tr><td>Print</td><td class="num">20 mm</td><td>Idem; de fijne letters lopen anders dicht in de druk.</td></tr>
+      <tr><td>Favicon en app-icoon</td><td class="num">16–64 px</td><td>Uitzondering: alleen het bestaande favicon (<code>assets/brand/favicon.png</code>), nooit een verkleind logo.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><p>De maten voor clear space en minimum zijn een voorstel op basis van het logo zoals het in de tools staat (116 px breed op een slide van 1920). Leg ze vast nadat jullie ze één keer in print hebben gezien.</p></div>
+
+  <h3>Do's en don'ts</h3>
+  <div class="grid3">
+    <figure class="fig stage-light"><svg viewBox="-500 -400 3229 3369" role="img" aria-label="Fout: logo op een gekleurd vlak"><path d="M1114.6 -160 L2389 575 L2389 1994 L1114.6 2729 L-160 1994 L-160 575 Z" fill="#1ab9e2"/><g fill="#303030">{{LOGO}}</g></svg><p class="verdict ko">Geen achtergrond achter het logo</p><p class="cap">Zet het logo direct op de foto of het vlak, zonder eigen kader of vlak erachter.</p></figure>
+    <figure class="fig stage-dark"><svg viewBox="-500 -400 3229 3369" role="img" aria-label="Fout: vervormd logo"><g fill="#ffffff" transform="translate(-300 500) scale(1.25 .6)">{{LOGO}}</g></svg><p class="verdict ko" style="color:#e0567f">Logo niet vervormen</p><p class="cap" style="color:#cfd8de">Altijd in de eigen verhouding schalen; niet uitrekken, kantelen of spiegelen.</p></figure>
+    <figure class="fig stage-dark"><svg viewBox="-500 -400 3229 3369" role="img" aria-label="Fout: vormen over het logo"><g fill="#ffffff">{{LOGO}}</g><path d="M2200 -120 L2560 88 L2560 504 L2200 712 L1840 504 L1840 88 Z" fill="#1ab9e2"/><path d="M100 1700 L460 1908 L460 2324 L100 2532 L-260 2324 L-260 1908 Z" fill="#1ab9e2"/></svg><p class="verdict ko" style="color:#e0567f">Niets over het logo heen</p><p class="cap" style="color:#cfd8de">Ook geen zeshoekjes, badges of tekst in de clear space.</p></figure>
+  </div>
+  <h4>Aangevuld</h4>
+  <ul>
+    <li><strong>Kleur:</strong> alleen wit of Inkt. Geen cyaan, magenta, verloop of schaduw op het logo.</li>
+    <li><strong>Contrast:</strong> op een foto alleen waar het rustig is; leg zo nodig een donker verloop onder de rand van de foto, nooit een kader om het logo.</li>
+    <li><strong>Plek:</strong> in documenten rechtsboven of rechtsonder, op slides altijd rechtsonder op dezelfde plek. Eén logo per pagina of slide.</li>
+    <li><strong>Bestanden:</strong> gebruik altijd de originelen uit de styleguide (SVG voor digitaal en print, PNG alleen als het programma geen SVG kent). Nooit overtrekken of een screenshot gebruiken.</li>
+  </ul>
+
+  <h3>De zeshoek als vorm</h3>
+  <p>De zeshoek komt uit het logo en is het herkenbaarste element na het logo zelf. Zo gebruik je hem goed:</p>
+  <div class="grid4">
+    <figure class="fig"><svg viewBox="0 0 120 120" aria-label="Zeshoek met punt boven"><path d="M60 8 L105 34 L105 86 L60 112 L15 86 L15 34 Z" fill="#1ab9e2"/></svg><p class="cap"><span class="ok">Punt boven</span>, zoals in het logo. Nooit plat liggend.</p></figure>
+    <figure class="fig"><svg viewBox="0 0 120 120" aria-label="Effen zeshoek met wit icoon"><path d="M60 8 L105 34 L105 86 L60 112 L15 86 L15 34 Z" fill="#1ab9e2"/><path d="M42 50h36v26H42z M42 50l18 13 18-13" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/></svg><p class="cap"><span class="ok">Effen</span> cyaan, donker of magenta met een wit icoon, of wit met een uitgesneden icoon.</p></figure>
+    <figure class="fig"><svg viewBox="0 0 120 120" aria-label="Zeshoek met verloop, fout"><defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1ab9e2"/><stop offset="1" stop-color="#1b71a8"/></linearGradient></defs><path d="M60 8 L105 34 L105 86 L60 112 L15 86 L15 34 Z" fill="url(#gr)"/></svg><p class="cap"><span class="ko">Geen verloop</span> en geen blauw (#1B71A8) als vlak.</p></figure>
+    <figure class="fig stage-dark"><svg viewBox="0 0 120 120" aria-label="Witte zeshoek met rand, fout"><path d="M60 8 L105 34 L105 86 L60 112 L15 86 L15 34 Z" fill="#fff" stroke="#9aa5ae" stroke-width="5"/></svg><p class="cap" style="color:#cfd8de"><span class="ko" style="color:#e0567f">Geen rand</span> om een witte zeshoek; zet hem op een donkere of gekleurde ondergrond.</p></figure>
+  </div>
+  <ul style="margin-top:14px">
+    <li><strong>Als opsommingsteken:</strong> een klein cyaan zeshoekje vóór een label of bullet (zoals in alle makers).</li>
+    <li><strong>Als fotokader:</strong> een foto in een zeshoek, eventueel met een tweede, iets verschoven cyaan lijn-zeshoek erachter (de “echo”).</li>
+    <li><strong>Als icoonhouder:</strong> de varianten uit de Icon Finder (<code>assets/icons/Zeshoek/</code>), met afgeronde hoeken van 12% van de straal.</li>
+    <li><strong>Als patroon:</strong> een fijn lijnpatroon van zeshoeken op de achtergrond, wit op 4–7% dekking. Nooit als drukke tegelvloer.</li>
+  </ul>
+</section>
+
+<!-- ================================================================ 4 -->
+<section id="kleur">
+  <h2>Kleur en 60/30/10<span class="dot">.</span></h2>
+  <p class="sub">Drie primaire kleuren en vier accenten, met vaste rollen. Klik een waarde om hem te kopiëren.</p>
+
+  <h3>Primaire kleuren</h3>
+  <div class="grid3" id="primary"></div>
+  <h3>Secundaire kleuren</h3>
+  <p>Alleen voor grafieken, datavisualisatie en het onderscheiden van categorieën. Nooit als achtergrond van een hele pagina en nooit voor het logo of een zeshoek.</p>
+  <div class="grid4" id="secondary"></div>
+
+  <h3>De 60/30/10-regel</h3>
+  <p>Brandbook v2.0 legt de verhouding vast als <strong>60% wit en neutraal (inclusief Inkt) · 30% Pure Cyaan · 10% magenta en accenten</strong>. In de tool laat een component die verhouding zien, en hoe een lichte en een donkere compositie hem toepassen.</p>
+  <div class="ratio" id="ratio">
+    <div class="ratio__ctrl" role="group" aria-label="Kies een compositie">
+      <button type="button" data-mode="licht" aria-pressed="true" id="ratio-licht">lichte compositie</button>
+      <button type="button" data-mode="donker" aria-pressed="false" id="ratio-donker">donkere compositie</button>
+    </div>
+    <div class="ratio__bar" id="ratioBar" aria-live="polite"></div>
+    <div class="ratio__legend" id="ratioLegend"></div>
+    <div class="mock" id="ratioMock" style="margin-top:16px"></div>
+  </div>
+  <p style="margin-top:14px">De code van het component in de tool. Hetzelfde blok tekent ook de pagina in de PDF (zie hoofdstuk 7):</p>
+<pre><code>// js/styleguide/ratio.js — de verhouding als balk, gevoed door de tokens
+function ratioBar(el, mode) {
+  const T = window.PM_BRAND_TOKENS;
+  const parts = mode === 'donker'
+    ? [{ name: 'Inkt en neutraal', hex: '#303030', p: T.ratio.neutral },
+       { name: 'Pure Cyaan', hex: '#1AB9E2', p: T.ratio.cyaan },
+       { name: 'Magenta en accenten', hex: '#B61B50', p: T.ratio.accent }]
+    : [{ name: 'Wit en neutraal', hex: '#FFFFFF', p: T.ratio.neutral },
+       { name: 'Pure Cyaan', hex: '#1AB9E2', p: T.ratio.cyaan },
+       { name: 'Magenta en accenten', hex: '#B61B50', p: T.ratio.accent }];
+  el.innerHTML = parts.map((x) =>
+    `&lt;div style="flex:0 0 ${x.p}%;background:${x.hex};color:${readable(x.hex)}"&gt;${x.p}% ${x.name}&lt;/div&gt;`).join('');
+}
+// Wit of inkt als tekstkleur: wat het meeste contrast geeft
+const readable = (hex) => contrast(hex, '#FFFFFF') >= contrast(hex, '#303030') ? '#FFFFFF' : '#303030';</code></pre>
+
+  <h3>Contrast en leesbaarheid</h3>
+  <p>De tool rekent het contrast (WCAG 2.1) uit voor elke combinatie. De belangrijkste uitkomsten:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Combinatie</th><th>Contrast</th><th>Tekst (≥ 4,5)</th><th>Grote tekst (≥ 3)</th></tr></thead>
+    <tbody>
+      <tr><td>Wit op Inkt</td><td class="num">13,2 : 1</td><td class="ok">ja</td><td class="ok">ja</td></tr>
+      <tr><td>Pure Cyaan op Inkt</td><td class="num">5,7 : 1</td><td class="ok">ja</td><td class="ok">ja</td></tr>
+      <tr><td>Inkt op Pure Cyaan</td><td class="num">5,7 : 1</td><td class="ok">ja</td><td class="ok">ja</td></tr>
+      <tr><td>Wit op Pure Magenta</td><td class="num">6,4 : 1</td><td class="ok">ja</td><td class="ok">ja</td></tr>
+      <tr><td>Wit op Blauw</td><td class="num">5,3 : 1</td><td class="ok">ja</td><td class="ok">ja</td></tr>
+      <tr><td>Wit op Pure Cyaan</td><td class="num">2,3 : 1</td><td class="ko">nee</td><td class="ko">nee</td></tr>
+      <tr><td>Pure Cyaan op wit</td><td class="num">2,3 : 1</td><td class="ko">nee</td><td class="ko">nee</td></tr>
+      <tr><td>Wit op Oranje</td><td class="num">2,5 : 1</td><td class="ko">nee</td><td class="ko">nee</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note note--warn"><p><strong>Let op:</strong> Pure Cyaan werkt als tekstkleur alleen op donker. Op wit is cyaan voor vlakken, lijnen en markeringen, niet voor tekst. Een cyaan knop krijgt tekst in Inkt; witte tekst op cyaan alleen in grote, korte koppen op beeld, waar de foto eronder donker is.</p></div>
+</section>
+
+<!-- ================================================================ 5 -->
+<section id="type">
+  <h2>Typografie<span class="dot">.</span></h2>
+  <p class="sub">Eén lettertype voor alles: Pure Minds Sans. De tool laadt het als eigen webfont en sluit het in elke export in.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Stijl</th><th>Gewicht</th><th>Korps / regel</th><th>Tracking</th><th>Gebruik</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:800;font-size:22px;letter-spacing:-.02em">Heading 1</td><td>ExtraBold 800</td><td class="num">52 / 58</td><td class="num">−2%</td><td>Grote titels, één per pagina</td></tr>
+      <tr><td style="font-weight:700;font-size:19px">Heading 2</td><td>Bold 700</td><td class="num">34 / 42</td><td class="num">0</td><td>Subtitels en secties</td></tr>
+      <tr><td style="font-weight:700;font-size:17px">Heading 3</td><td>Bold 700</td><td class="num">24 / 32</td><td class="num">0</td><td>Tussenkoppen</td></tr>
+      <tr><td>Body</td><td>Regular 400</td><td class="num">18 / 31</td><td class="num">0</td><td>Lopende tekst, regelhoogte ±1,7</td></tr>
+      <tr><td style="color:var(--muted);font-size:14px">Small</td><td>Regular 400</td><td class="num">15 / 24</td><td class="num">0</td><td>Hints, bronnen, metadata; kleur #5C6670</td></tr>
+      <tr><td class="label">Label</td><td>Bold 700</td><td class="num">13 / 16</td><td class="num">+10%</td><td>Overline, hoofdletters</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><strong>Gewichten in gebruik:</strong> Light 300, Regular 400, SemiBold 600, Bold 700, ExtraBold 800 (plus cursief). V2.0 noemt ook Medium 500, maar dat bestand zit niet in <code>assets/fonts/</code>. Advies: Medium schrappen of het bestand toevoegen.</li>
+    <li><strong>Nadruk in een kop:</strong> één of twee woorden in Pure Cyaan (op donker) of een cyaan punt achter de kop. Nooit onderstrepen.</li>
+    <li><strong>Fallback:</strong> Open Sans (zelfde vormen) als Pure Minds Sans ergens niet geïnstalleerd is, bijvoorbeeld in Google Slides.</li>
+  </ul>
+</section>
+
+<!-- ================================================================ 6 -->
+<section id="beeld">
+  <h2>Beeldtaal en fotografie<span class="dot">.</span></h2>
+  <p class="sub">Afgeleid van de social posts in v2.0 (standaard foto, foto met tekst, blog-, case- en carouselpost). De rode draad: echt werk, echte mensen, rustig beeld met ruimte voor tekst.</p>
+  <div class="grid2">
+    <div class="panel"><h4>Wat we fotograferen</h4><ul>
+      <li><strong>Werk in uitvoering:</strong> handen op een laptop, een scherm met data, een whiteboard, een overleg aan tafel.</li>
+      <li><strong>Mensen van de klant en van Pure Minds</strong>, in hun eigen omgeving (showroom, werkplaats, kantoor).</li>
+      <li><strong>Resultaat:</strong> het product of het project van de klant, zoals het er echt uitziet.</li>
+      <li><strong>Detail boven overzicht:</strong> dichtbij, met één duidelijk onderwerp.</li>
+    </ul></div>
+    <div class="panel"><h4>Sfeer en techniek</h4><ul>
+      <li><strong>Licht:</strong> natuurlijk en warm, liefst daglicht van opzij. Geen flits, geen harde studiobelichting.</li>
+      <li><strong>Diepte:</strong> kleine scherptediepte, zodat de achtergrond zacht wordt en tekst er goed op leest.</li>
+      <li><strong>Compositie:</strong> onderwerp uit het midden; laat een rustige kant vrij voor de kop.</li>
+      <li><strong>Kleur:</strong> natuurgetrouw, licht warm. Cyaan komt uit de vormgeving (balk, zeshoek, accentwoord), niet uit een filter.</li>
+    </ul></div>
+  </div>
+  <h4>Tekst op beeld</h4>
+  <ul>
+    <li>Leg onder de tekst een donker verloop van Inkt (onderste 40–60% van de foto). Witte kop, accentwoorden in cyaan.</li>
+    <li>Foto's in een zeshoekkader alleen als ondersteunend beeld (cover, case); de hoofdfoto vult het vlak.</li>
+    <li>Resultaten als groot cijfer in cyaan (“+184%”) met één regel uitleg.</li>
+  </ul>
+  <h4>Vermijden</h4>
+  <ul>
+    <li>Stockclichés: handdrukken, mensen die naar een leeg scherm wijzen, pijlen die omhoog gaan, gloeiende hersenen.</li>
+    <li>AI-beelden van mensen of producten die niet bestaan.</li>
+    <li>Zware filters, vignettering, zwart-wit als effect.</li>
+    <li>Logo's van andere merken groot in beeld, tenzij het om de klant gaat (zoals Google bij een Ads-post).</li>
+  </ul>
+</section>
+
+<!-- ================================================================ 7 -->
+<section id="export">
+  <h2>Export naar bewerkbare PDF<span class="dot">.</span></h2>
+  <p class="sub">“exporteer brandbook” maakt één PDF van alle pagina's: echte tekst in Pure Minds Sans, vormen en logo als vector, opgebouwd zodat Canva en Illustrator hem als losse, bewerkbare elementen openen.</p>
+
+  <h3>Gekozen aanpak: client-side, met wat de hub al heeft</h3>
+  <p>De hub exporteert al bewerkbare PDF's voor posts, documenten en slides die in Canva als losse lagen binnenkomen. De styleguide hergebruikt die keten in plaats van een nieuwe library of server:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Optie</th><th>Voor</th><th>Tegen</th><th>Besluit</th></tr></thead>
+    <tbody>
+      <tr><td><strong>jsPDF + <code>PMPdfCanvas</code></strong> (bestaand)</td><td>Al getest op Canva-import; tekst blijft tekst; fonts per gewicht met eigen PostScript-naam; exacte kleuren; draait offline in de browser.</td><td>Geen lagen (OCG) out of the box.</td><td class="ok">Basis</td></tr>
+      <tr><td><strong>pdf-lib</strong> als nabewerking</td><td>Kan op laag niveau lagen (Optional Content Groups) en metadata toevoegen aan de jsPDF-uitvoer.</td><td>Extra library (±500 kB), alleen geladen bij export.</td><td class="ok">Voor lagen</td></tr>
+      <tr><td>svg2pdf.js</td><td>SVG direct naar PDF.</td><td>Clip-paden en maskers worden in Canva één plaatje; minder controle.</td><td class="ko">Niet</td></tr>
+      <tr><td>Server-side (Puppeteer / Chrome)</td><td>Pixel-perfect.</td><td>Tekst wordt vaak losse glyph-runs, fonts als subset met willekeurige namen; Canva herkent het lettertype dan niet. Plus een server.</td><td class="ko">Niet</td></tr>
+    </tbody>
+  </table></div>
+
+  <pre class="mermaid">
+flowchart LR
+  A[brand-tokens.js + content.js] --> B[pages.js: tekenfuncties per pagina]
+  B --> C[Podium: canvas op scherm]
+  B --> D[PMPdfCanvas: zelfde tekenfuncties]
+  D --> E[jsPDF: tekst, vectoren, Pure Minds Sans ingesloten]
+  E --> F[pdf-lib: lagen per onderdeel + metadata]
+  F --> G[brandbook-pure-minds.pdf]
+  G --> H[Canva: losse bewerkbare elementen]
+  G --> I[Illustrator: tekst en paden bewerkbaar]
+  </pre>
+
+  <h3>Eisen aan de PDF, en hoe we ze halen</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Eis</th><th>Hoe</th></tr></thead>
+    <tbody>
+      <tr><td>Tekst blijft tekst</td><td><code>fillText</code> op <code>PMPdfCanvas</code> schrijft echte PDF-tekst per regel, met Pure Minds Sans ingesloten (insluiten is toegestaan: fsType 8).</td></tr>
+      <tr><td>Canva herkent het lettertype</td><td>Elk gewicht krijgt zijn eigen PostScript-naam (<code>PureMindsSans-Bold</code>, <code>PureMindsSans-ExtraBold</code>; al zo in <code>PM.pdfFonts</code>). Voorwaarde: Pure Minds Sans staat in de Brand Kit van Canva. Anders kiest Canva een vervanger.</td></tr>
+      <tr><td>Vormen blijven vector</td><td>Alleen paden en vlakken (<code>moveTo/lineTo/bezierCurveTo/fill</code>). Logo en iconen als echte paden uit de SVG, niet als plaatje.</td></tr>
+      <tr><td>Losse elementen in Canva</td><td>Geen clip-paden of maskers rond vectoren: Canva voegt die samen tot één plaatje. Foto's in een zeshoek krijgen het kader als aparte vorm erover, niet als clip.</td></tr>
+      <tr><td>Exacte kleuren</td><td>Kleuren als RGB met 4 decimalen (<code>PM.pdfColor</code>), zodat #1AB9E2 ook #1AB9E2 blijft en niet #1ABAE3 wordt.</td></tr>
+      <tr><td>Lagen</td><td>pdf-lib zet per pagina optionele inhoudsgroepen: <em>Achtergrond</em>, <em>Vormen</em>, <em>Tekst</em>, <em>Logo</em>, <em>Beeld</em>. Acrobat toont ze als lagen; Illustrator en Canva lezen de objecten los en in deze stapelvolgorde.</td></tr>
+      <tr><td>Canva-limiet</td><td>Hoogstens 1.400 elementen per bestand. De tool telt mee en splitst bij overschrijding in delen (hoofdstuk 1–4, 5–8). Verlopen worden één plaatje, dus het brandbook gebruikt effen vlakken.</td></tr>
+      <tr><td>Paginaformaat</td><td>A4 liggend, 842 × 595 pt. Canva maakt er een A4-ontwerp van; Illustrator opent elke pagina als artboard.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note note--warn"><p><strong>Eerlijk over lagen in Illustrator:</strong> Illustrator zet de lagen van een PDF die niet uit Illustrator zelf komt meestal in één laag, met groepen. De objecten blijven bewerkbaar en in de goede volgorde, maar echte Illustrator-lagen zijn niet te garanderen. Willen jullie die per se, dan voegen we een tweede export toe: SVG per pagina met benoemde groepen (<code>&lt;g id="Logo"&gt;</code>), die Illustrator wel als lagen opent.</p></div>
+
+  <h3>Code: de export</h3>
+<pre><code>// js/styleguide/export.js — zelfde tekenfuncties als het podium, nu naar PDF
+async function exportBrandbook(btn) {
+  return PM.run(btn, 'brandbook maken…', async () => {
+    const pages = PMStyleguide.pages();                 // [{ id, title, draw(ctx, layers) }]
+    const layers = new LayerLog();                      // onthoudt per pagina welk object in welke laag valt
+    const bytes = await PMPdfCanvas.build({
+      width: 1684, height: 1191,                        // ontwerp-px, A4 liggend
+      pageWidth: 842,                                   // pt
+      count: pages.length,
+      draw: (canvas, i) => pages[i].draw(canvas.getContext('2d'), layers.page(i)),
+      vectors: new Map([[PMStyleguide.logoImage, PM.brandSvg('logoWhiteSvg')]]),
+      title: 'Brandbook Pure Minds Marketing Group',
+      subject: 'Huisstijl en richtlijnen',
+      raw: true,                                        // bytes teruggeven voor de nabewerking
+    });
+    const pdf = await addLayers(bytes, layers);         // pdf-lib
+    PM.download(pdf, 'brandbook-pure-minds.pdf', 'application/pdf');
+  });
+}</code></pre>
+<pre><code>// Lagen toevoegen met pdf-lib (alleen geladen bij export)
+async function addLayers(bytes, log) {
+  const { PDFDocument, PDFName, PDFString } = await PM.lib('pdflib');
+  const doc = await PDFDocument.load(bytes);
+  const names = ['Achtergrond', 'Vormen', 'Tekst', 'Logo', 'Beeld'];
+  const ocgs = names.map((n) => doc.context.register(doc.context.obj({ Type: 'OCG', Name: PDFString.of(n) })));
+  doc.catalog.set(PDFName.of('OCProperties'), doc.context.obj({
+    OCGs: ocgs, D: { Order: ocgs, ON: ocgs },
+  }));
+  doc.getPages().forEach((page, i) => {
+    // Elke pagina kent de lagen als /OC-resources; de inhoudsstroom zet elk blok tussen
+    // /OC /Laag BDC … EMC (PMPdfCanvas schrijft die markeringen al tijdens het tekenen)
+    const props = {};
+    names.forEach((n, k) => { props[n] = ocgs[k]; });
+    page.node.Resources().set(PDFName.of('Properties'), doc.context.obj(props));
+  });
+  doc.setProducer('Pure Minds Styleguide');
+  return doc.save({ useObjectStreams: false });        // eenvoudige structuur: beste import in Canva
+}</code></pre>
+<pre><code>// In een paginafunctie: per laag tekenen, zodat de stapelvolgorde altijd klopt
+function pageKleur(ctx, L) {
+  L.begin(ctx, 'Achtergrond'); paintBackground(ctx, '#FFFFFF'); L.end(ctx);
+  L.begin(ctx, 'Vormen');
+  T.colors.primary.forEach((c, i) => { ctx.fillStyle = c.hex; ctx.fillRect(80 + i * 520, 220, 480, 270); });
+  L.end(ctx);
+  L.begin(ctx, 'Tekst');
+  drawLabel(ctx, 'Primaire kleuren'); drawText(ctx, 'Pure Cyaan', 100, 470, { weight: 700, size: 30 });
+  L.end(ctx);
+}</code></pre>
+
+  <h3>Hoe we weten dat het werkt</h3>
+  <ol class="steps">
+    <li><strong>Automatisch (node --test):</strong> de PDF bevat alleen fonts met de naam <code>PureMindsSans-*</code>, geen clip-paden rond vectoren, geen verlopen, kleuren exact gelijk aan de tokens, en minder dan 1.400 elementen per bestand.</li>
+    <li><strong>Visueel:</strong> elke PDF-pagina wordt naar PNG gerenderd en pixel voor pixel vergeleken met het podium in de browser.</li>
+    <li><strong>Canva:</strong> de PDF één keer in Canva slepen en uitlezen: elk tekstvak bewerkbaar in Pure Minds Sans, elk vlak een losse vorm. Canva kan geen lokale bestanden importeren via de koppeling, dus dit doet één van jullie één keer per release.</li>
+    <li><strong>Illustrator:</strong> openen, controleren dat tekst bewerkbaar is (niet omgezet in contouren) en dat de logo-paden één vorm zijn.</li>
+  </ol>
+</section>
+
+<!-- ================================================================ 8 -->
+<section id="plan">
+  <h2>Bouwvolgorde<span class="dot">.</span></h2>
+  <ol class="steps">
+    <li><strong>Tokens en teksten:</strong> <code>brand-tokens.js</code> en <code>content.js</code>, met tests die de waarden vergelijken met <code>global.css</code> en <code>brand.js</code> (geen tweede waarheid).</li>
+    <li><strong>Pagina's op het podium:</strong> de tekenfuncties per hoofdstuk, met de hub-shell (rail, paneel, appbalk).</li>
+    <li><strong>Interactie:</strong> kopiëren, logo-downloads, clear-space-overlay, 60/30/10-demo, contrastchecker, zoeken.</li>
+    <li><strong>Export:</strong> PDF via <code>PMPdfCanvas</code>, daarna lagen met pdf-lib, daarna het logo-pakket en de kleurbestanden (ASE/JSON).</li>
+    <li><strong>Controle en oplevering:</strong> de tests uit hoofdstuk 7, een import in Canva en Illustrator, rondleiding en README.</li>
+  </ol>
+  <h4>Open vragen</h4>
+  <ul>
+    <li>Kloppen de voorgestelde maten voor clear space (¼ logobreedte) en minimum (80 px, 20 mm)?</li>
+    <li>Medium 500: schrappen of het fontbestand toevoegen?</li>
+    <li>Zijn echte Illustrator-lagen nodig (extra SVG-export), of volstaan bewerkbare groepen in de PDF?</li>
+    <li>Mag de tool ook kleurbestanden voor Adobe (ASE) en een logo-pakket als zip aanbieden?</li>
+  </ul>
+</section>
+
+<!-- ================================================================ 9 -->
+<section id="fouten">
+  <h2>Correcties op brandbook v2.0<span class="dot">.</span></h2>
+  <p class="sub">Wat de styleguide anders doet dan de PDF, en waarom.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Pagina</th><th>In v2.0</th><th>In de styleguide</th></tr></thead>
+    <tbody>
+      <tr><td class="num">7</td><td>GEEN ACHTEGROND ACHTER LOGO</td><td>Geen achtergrond achter het logo</td></tr>
+      <tr><td class="num">5</td><td>Pure Minds Sans: “Google Fonts”</td><td>Eigen webfont, lokaal in <code>assets/fonts/</code> (Pure Minds Sans staat niet op Google Fonts)</td></tr>
+      <tr><td class="num">5</td><td>Hiërarchie in “Open Sans Bold/Regular”</td><td>Pure Minds Sans; H1 in ExtraBold 800, zoals de titels in de tools</td></tr>
+      <tr><td class="num">5</td><td>Gewicht Medium 500</td><td>Zit niet in de fontbestanden (zie open vragen)</td></tr>
+      <tr><td class="num">3</td><td>“technologiege-dreven”, dubbele spaties</td><td>technologiegedreven, enkele spaties</td></tr>
+      <tr><td class="num">3</td><td>“on aangetapt groeipotentieel”</td><td>Ongewijzigd gelaten; suggestie: “onaangeboord” of “onbenut”</td></tr>
+      <tr><td class="num">4</td><td>Secundaire / Accent Kleuren</td><td>Secundaire kleuren, met een vaste rol (grafieken en categorieën)</td></tr>
+      <tr><td class="num">1</td><td>“Pure Minds.”</td><td>Pure Minds Marketing Group voluit op de cover</td></tr>
+    </tbody>
+  </table></div>
+  <footer>Bouwplan voor de Pure Minds Tool Hub · gebaseerd op PureMinds-Brandbook-v2.0.pdf en de bestaande hub (fonts, exportketen, Icon Finder).</footer>
+</section>
+
+  </main>
+</div>
+
+<script>
+(() => {
+  const P = [
+    { name: 'Pure Cyaan', hex: '#1AB9E2', rgb: '26, 185, 226', cmyk: '88, 18, 0, 11', role: 'Accenten, vlakken, lijnen en markeringen.', fg: '#303030' },
+    { name: 'Pure Magenta', hex: '#B61B50', rgb: '182, 27, 80', cmyk: '0, 85, 56, 29', role: 'Uitsluitend voor de hoofdactie en nadruk.', fg: '#FFFFFF' },
+    { name: 'Inkt', hex: '#303030', rgb: '48, 48, 48', cmyk: '0, 0, 0, 81', role: 'Lopende tekst, koppen en donkere vlakken.', fg: '#FFFFFF' },
+  ];
+  const S = [
+    { name: 'Blauw', hex: '#1B71A8', rgb: '27, 113, 168', cmyk: '84, 33, 0, 34', fg: '#FFFFFF' },
+    { name: 'Diep blauw', hex: '#005AAF', rgb: '0, 90, 175', cmyk: '100, 49, 0, 31', fg: '#FFFFFF' },
+    { name: 'Groen', hex: '#009670', rgb: '0, 150, 112', cmyk: '100, 0, 25, 41', fg: '#FFFFFF' },
+    { name: 'Oranje', hex: '#E0951F', rgb: '224, 149, 31', cmyk: '0, 33, 86, 12', fg: '#303030' },
+  ];
+  const card = (c) => `<div class="swatch"><div class="chip" style="background:${c.hex};color:${c.fg}">${c.name}</div>
+    <div class="vals">HEX <button type="button" class="copy" data-v="${c.hex}">${c.hex}</button><br>RGB <button type="button" class="copy" data-v="${c.rgb}">${c.rgb}</button><br>CMYK <button type="button" class="copy" data-v="${c.cmyk}">${c.cmyk}</button></div>
+    ${c.role ? `<div class="role">${c.role}</div>` : ''}</div>`;
+  document.getElementById('primary').innerHTML = P.map(card).join('');
+  document.getElementById('secondary').innerHTML = S.map(card).join('');
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.copy');
+    if (!b) return;
+    const v = b.dataset.v, old = b.textContent;
+    const done = () => { b.textContent = 'gekopieerd'; setTimeout(() => { b.textContent = old; }, 1100); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(done, () => select(b));
+    else select(b);
+  });
+  function select(el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+  const modes = {
+    licht: { parts: [['Wit en neutraal', '#FFFFFF', '#303030', 60], ['Pure Cyaan', '#1AB9E2', '#303030', 30], ['Magenta en accenten', '#B61B50', '#FFFFFF', 10]],
+      mock: `<div class="mock__a" style="background:#fff;color:#303030"><span class="label" style="color:#5c6670">Pure blog</span><h5>5 signalen dat je landingspagina conversies laat liggen<span style="color:#1ab9e2">.</span></h5><p style="color:#5c6670">Lees in vijf minuten waar je bezoekers afhaken.</p><span class="btn" style="background:#b61b50">lees de blog</span></div><div class="mock__b" style="background:#1ab9e2"><svg viewBox="0 0 200 160" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true"><path d="M140 10 L190 39 L190 97 L140 126 L90 97 L90 39 Z" fill="none" stroke="#fff" stroke-width="4"/><path d="M60 70 L85 84.5 L85 113.5 L60 128 L35 113.5 L35 84.5 Z" fill="#303030"/></svg></div>` },
+    donker: { parts: [['Inkt en neutraal', '#303030', '#FFFFFF', 60], ['Pure Cyaan', '#1AB9E2', '#303030', 30], ['Magenta en accenten', '#B61B50', '#FFFFFF', 10]],
+      mock: `<div class="mock__a" style="background:#303030;color:#fff"><span class="label" style="color:#1ab9e2">Pure case</span><h5>Voor Studio Noord hebben wij <span style="color:#1ab9e2">Google Ads</span> en een nieuwe landingspagina gedaan.</h5><p style="color:#cfd8de"><b style="color:#1ab9e2;font-size:20px">+184%</b> meer aanvragen binnen drie maanden</p><span class="btn" style="background:#b61b50">bekijk de case</span></div><div class="mock__b" style="background:#1ab9e2"><svg viewBox="0 0 200 160" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true"><path d="M100 20 L160 54.6 L160 123.9 L100 158.5 L40 123.9 L40 54.6 Z" fill="#303030"/></svg></div>` },
+  };
+  function show(mode) {
+    const m = modes[mode];
+    document.getElementById('ratioBar').innerHTML = m.parts.map(([n, bg, fg, p]) => `<div style="flex:0 0 ${p}%;background:${bg};color:${fg}" title="${p}% ${n}">${p}%</div>`).join('');
+    document.getElementById('ratioLegend').innerHTML = m.parts.map(([n, bg, , p]) => `<span><i style="background:${bg};outline:1px solid var(--line)"></i>${p}% ${n}</span>`).join('');
+    document.getElementById('ratioMock').innerHTML = m.mock;
+    document.querySelectorAll('#ratio [data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  }
+  document.querySelectorAll('#ratio [data-mode]').forEach((b) => b.addEventListener('click', () => show(b.dataset.mode)));
+  show('licht');
+})();
+</script>

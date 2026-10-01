@@ -166,6 +166,20 @@ window.PM_TOOLS = [
     newUntil: '2026-12-01',
   },
   {
+    id: 'styleguide',
+    name: 'Brand Styleguide',
+    short: 'styleguide',
+    href: 'tools/styleguide.html',
+    group: 'design',
+    description: 'Het brandbook van Pure Minds, digitaal: kleuren kopiëren, logo’s downloaden en alles exporteren als bewerkbare PDF.',
+    exports: ['PDF', 'SVG', 'PNG', 'ASE'],
+    cta: 'zoek in de huisstijl',
+    search: { param: 'q', placeholder: 'bijv. magenta, clear space of je of u' },   // js/styleguide/app.js leest ?q=
+    tour: 'het brandbook',
+    status: 'nieuw',
+    newUntil: '2026-12-01',
+  },
+  {
     id: 'consent-check',
     name: 'Consent Check',
     group: 'techniek',
