@@ -340,7 +340,8 @@
 
     <!-- Gegevens: alleen bij een positionering. Het formulier heeft alleen de klant, de datum en het
          aanbod (js/presentation/positionering.js); de canvassen en de toelichting schrijf je per slide,
-         bij Inhoud. Wat je zelf op een slide aanpast, blijft staan -->
+         bij Inhoud. Wat je zelf op een slide aanpast, blijft staan. De opbouw is vast:
+         geen schakelaars en geen "zet terug" -->
     <section class="panel" data-section="gegevens" data-form-deck="positionering">
       <div class="panel__body">
         <div class="pos-intro">
@@ -353,9 +354,6 @@
           <h3 class="pos-check__title"><span id="psCheckTitle">Klaar om te versturen?</span> <button type="button" class="help" data-help="checklist-positionering"></button><span class="pos-check__count" id="psCheckCount"></span></h3>
           <ul class="pos-check__list" id="psCheckList"></ul>
         </section>
-
-        <!-- Slides die je uit de positionering verwijderde: hier zet je ze terug (bovenaan, dus meteen te zien) -->
-        <p class="notice pos-note" id="psRestore" role="status" hidden><span id="psRestoreText"></span> <button type="button" class="linkbtn" id="psRestoreBtn">zet terug</button></p>
 
         <h3 class="pos-h">Klant</h3>
         <div class="field" data-tour="gegevens-klant">
@@ -381,30 +379,7 @@
           </div>
         </div>
 
-        <h3 class="pos-h" id="psPartsLabel">Onderdelen <button type="button" class="help" data-help="onderdelen-positionering"></button></h3>
-        <div class="pos-parts" role="group" aria-labelledby="psPartsLabel" data-tour="gegevens-onderdelen">
-          <label class="switch">
-            <input type="checkbox" data-form-on="bmcOverzicht">
-            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
-            <span class="switch__txt">Business Model Canvas <span class="muted">overzicht, invullen bij Inhoud</span></span>
-          </label>
-          <label class="switch">
-            <input type="checkbox" data-form-on="vpcOverzicht">
-            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
-            <span class="switch__txt">Waarde Propositie Canvas <span class="muted">overzicht, invullen bij Inhoud</span></span>
-          </label>
-          <label class="switch">
-            <input type="checkbox" data-form-on="bmcUitleg">
-            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
-            <span class="switch__txt">Toelichting Business Model Canvas <span class="muted">zeven slides</span></span>
-          </label>
-          <label class="switch">
-            <input type="checkbox" data-form-on="vpcUitleg">
-            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
-            <span class="switch__txt">Toelichting Waarde Propositie Canvas <span class="muted">zes slides</span></span>
-          </label>
-        </div>
-        <p class="field-hint">Tip: vul eerst beide canvassen in met trefwoorden en schrijf daarna per blok de toelichting.</p>
+        <p class="field-hint">De opbouw ligt vast: elke slide hoort erin, in deze volgorde. Tip: vul eerst beide canvassen in met trefwoorden en schrijf daarna per blok de toelichting.</p>
 
         <div class="panel__foot">
           <span>Alles wordt in deze browser onthouden.</span>

@@ -24,9 +24,11 @@
    zelf op een slide aanpast, blijft staan (sync houdt per veld bij wat de
    generator schreef). De canvassen (waardepropositie, business model
    canvas) en de toelichting van een positionering vul je in op de slide
-   zelf, bij Inhoud. Een slide uit het formulier verwijderen zet die slide
+   zelf, bij Inhoud. Een slide uit het voorstel verwijderen zet die slide
    uit en parkeert hem (state.parked): zet je hem weer aan, dan komt hij
-   terug zoals hij was, met logo, foto en eigen tekst. Bovenaan het formulier
+   terug zoals hij was, met logo, foto en eigen tekst. De positionering heeft
+   een vaste opbouw (fixed): zijn slides verwijder je niet, alleen je eigen
+   extra slides. Bovenaan het formulier
    staat wat nog ontbreekt ("Klaar om te versturen?"), en elke soort heeft
    een eigen rondleiding (PM_HELP.voorstel, PM_HELP.positionering). De Emerce
    100-badge (state.badge, schakelaar boven de slide) staat klein rechtsonder
@@ -74,7 +76,7 @@
     positionering: {
       tabs: ['gegevens'], panel: 'gegevens', panelName: 'Gegevens', klant: '#psKlant',
       check: '#psCheck', checkList: '#psCheckList', checkCount: '#psCheckCount',
-      restore: '#psRestore', restoreText: '#psRestoreText', restoreBtn: '#psRestoreBtn',
+      // Een vaste opbouw: geen "zet terug"
       noun: 'de positionering', newLabel: 'nieuwe positionering', go: 'naar gegevens',
     },
   };
@@ -141,6 +143,18 @@
   const isGen = () => !!deck();
   // Prijzen, klantlogo en "wat wij gaan doen" horen alleen bij een voorstel
   const isVoorstel = () => state.type === 'voorstel' && isGen();
+  // Een vaste opbouw (de positionering): zijn eigen slides verwijder je niet, anders klopt
+  // hij niet meer. Een kopie of een eigen extra slide (role '') wel
+  const isLocked = (slide = current()) => isGen() && deck().fixed === true && !!slide && !!slide.role && deck().ROLES.includes(slide.role);
+  const LOCKED_TITLE = 'Hoort bij de vaste opbouw van de positionering';
+  const ORDER_TITLE = 'De volgorde van de positionering ligt vast';
+  // Een vaste opbouw: verplaatsen mag alleen als de vaste slides hun onderlinge volgorde houden
+  // (een eigen slide mag wel tussen twee vaste slides schuiven)
+  function orderKept(from, to) {
+    if (!isGen() || deck().fixed !== true) return true;
+    const roles = (list) => list.map((s) => s.role).filter((r) => r && deck().ROLES.includes(r)).join();
+    return roles(D.move(state.slides, from, to)) === roles(state.slides);
+  }
   const clampIndex = (i, list) => Math.min(Math.max(0, i | 0), list.length - 1);
 
   // De voorbeeldslides van een nieuwe gewone presentatie
@@ -266,7 +280,7 @@
     if (!state.slides.length) state.slides = state.form ? deckSlides(state.type, state.form) : exampleSlides();
     // Nog steeds leeg (alles uitgezet): de vaste slides terug, met wat er geparkeerd stond
     if (!state.slides.length && state.form) {
-      state.form.hidden = [];
+      if (!R.fixed) state.form.hidden = [];
       const res = R.sync([], R.build(state.form), make, state.parked);
       state.slides = res.slides;
       if (isObj(res.parked)) state.parked = res.parked;
@@ -391,10 +405,12 @@
     priceRows: Object.fromEntries(PRICE_GROUPS.map((g) => [g, $(`[data-price-rows="${g}"]`)])),
   };
   // De tabs en het formulier van elke gegenereerde soort (DECK_UI): klantnaam, checklist, "zet terug"
+  // (alleen het voorstel; de positionering heeft een vaste opbouw)
   const deckEl = Object.fromEntries(Object.entries(DECK_UI).map(([t, u]) => [t, {
     tabs: u.tabs.map((id) => $(`.rail__item[data-section="${id}"]`)),
     klant: $(u.klant), check: $(u.check), checkList: $(u.checkList), checkCount: $(u.checkCount),
-    restore: $(u.restore), restoreText: $(u.restoreText), restoreBtn: $(u.restoreBtn),
+    restore: u.restore ? $(u.restore) : null, restoreText: u.restoreText ? $(u.restoreText) : null,
+    restoreBtn: u.restoreBtn ? $(u.restoreBtn) : null,
   }]));
 
   // Logo en Emerce 100-badge (wit), en de foto's per sleutel: { file, img, url }
@@ -646,9 +662,16 @@
     el.slideAdd.title = full ? `Hoogstens ${MAX_SLIDES} slides` : 'Nieuwe slide na deze';
     const set = (sel, off) => $$(sel).forEach((b) => { b.disabled = off; });
     set('#slideDup, [data-action="slide-dupliceer"]', full);
-    set('#slideLeft, [data-action="slide-voren"]', i === 0);
-    set('#slideRight, [data-action="slide-achteren"]', i === n - 1);
-    set('#slideDel, [data-action="slide-verwijder"]', n === 1);
+    const left = i > 0 && !orderKept(i, i - 1);
+    const right = i < n - 1 && !orderKept(i, i + 1);
+    set('#slideLeft, [data-action="slide-voren"]', i === 0 || left);
+    set('#slideRight, [data-action="slide-achteren"]', i === n - 1 || right);
+    $$('#slideLeft, [data-action="slide-voren"]').forEach((b) => { b.title = left ? ORDER_TITLE : ''; });
+    $$('#slideRight, [data-action="slide-achteren"]').forEach((b) => { b.title = right ? ORDER_TITLE : ''; });
+    set('#slideDel, [data-action="slide-verwijder"]', n === 1 || isLocked());
+    // Uit: waarom, zoals bij andere knoppen die uit staan
+    const why = n === 1 ? 'Een presentatie heeft minstens één slide' : isLocked() ? LOCKED_TITLE : '';
+    $$('#slideDel, [data-action="slide-verwijder"]').forEach((b) => { b.title = why; });
     set('[data-browse="-1"]', i === 0);
     set('[data-browse="1"]', i === n - 1);
   }
@@ -700,6 +723,11 @@
   el.strip.addEventListener('dragstart', (e) => {
     const item = e.target.closest('.strip__item');
     if (!item) return;
+    // Een vaste slide van de positionering sleep je niet
+    if (isLocked(state.slides[Number(item.dataset.index)])) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData('text/x-pm-slide', item.dataset.index);
     e.dataTransfer.effectAllowed = 'move';
     item.classList.add('is-dragging');
@@ -743,6 +771,10 @@
 
   function moveSlideTo(from, to) {
     if (from === to || from < 0 || to < 0 || from >= state.slides.length || to >= state.slides.length) return;
+    if (!orderKept(from, to)) {
+      toast('De volgorde van de positionering ligt vast; eigen slides kun je wel verplaatsen.');
+      return;
+    }
     state.slides = D.move(state.slides, from, to);
     state.active = to;
     syncAll();
@@ -796,6 +828,10 @@
   function deleteSlide() {
     if (state.slides.length === 1) {
       toast('Een presentatie heeft minstens één slide.');
+      return;
+    }
+    if (isLocked()) {
+      toast('Deze slide hoort bij de vaste opbouw van de positionering; vul hem in bij Inhoud.');
       return;
     }
     const index = state.active;
@@ -1337,6 +1373,7 @@
   function syncRestore() {
     for (const [t, e] of Object.entries(deckEl)) {
       const R = DECKS[t];
+      if (!e.restore) continue;
       const gone = t === state.type && state.form && R ? R.hiddenRoles(state.form) : [];
       e.restore.hidden = !gone.length;
       if (gone.length) e.restoreText.textContent = `Uit ${DECK_UI[t].noun} gehaald: ${gone.map((r) => R.ROLE_NAMES[r]).join(', ')}.`;
@@ -1362,7 +1399,7 @@
     if (spot) spot.focus({ preventScroll: true });
     toast(`Terug in ${DECK_UI[state.type].noun}: ${names.join(', ')}.`, false, { label: 'ongedaan maken', run: () => history.undo() });
   }
-  Object.values(deckEl).forEach((e) => e.restoreBtn.addEventListener('click', restoreHidden));
+  Object.values(deckEl).forEach((e) => { if (e.restoreBtn) e.restoreBtn.addEventListener('click', restoreHidden); });
 
   // In Inhoud: deze slide komt uit het formulier, en of je hem zelf hebt aangepast. Bij een
   // canvas en een toelichting (positionering) schrijf je de inhoud juist hier
@@ -1868,14 +1905,11 @@
       vpc: '[data-form-on="vpc"]', website: '[data-form-on="website"]', ga4: '[data-form-on="ga4"]', gbp: '[data-form-on="gbp"]',
       uitvoering: '[data-form-on="uitvoering"]', meetbaar: '[data-form-on="meetbaar"]',
     },
-    // De onderdelen: de eerste schakelaar (een groep is geen veld dat focus krijgt); de afsluiter: het gekozen aanbod
+    // Een vaste opbouw zonder schakelaars: de sectieslides volgen de klantnaam, de afsluiter het
+    // gekozen aanbod. De slide Onderdelen heeft geen veld: dan opent Gegevens gewoon
     positionering: {
-      cover: '#psKlant', agenda: '[data-form-on="bmcOverzicht"]', afsluiter: '[data-form="aanbod"]:checked',
-      sectieBmc: '[data-form-on="bmcOverzicht"]', bmc: '[data-form-on="bmcOverzicht"]',
-      sectieVpc: '[data-form-on="vpcOverzicht"]', vpc: '[data-form-on="vpcOverzicht"]',
-      sectieBmcUitleg: '[data-form-on="bmcUitleg"]', sectieVpcUitleg: '[data-form-on="vpcUitleg"]',
-      ...Object.fromEntries(Object.entries(DECKS.positionering ? DECKS.positionering.LINKS : {})
-        .map(([role, link]) => [role, `[data-form-on="${link.role}Uitleg"]`])),
+      cover: '#psKlant', afsluiter: '[data-form="aanbod"]:checked',
+      sectieBmc: '#psKlant', sectieVpc: '#psKlant', sectieBmcUitleg: '#psKlant', sectieVpcUitleg: '#psKlant',
     },
   };
 

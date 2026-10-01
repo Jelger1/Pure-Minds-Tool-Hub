@@ -622,11 +622,12 @@ strook met alle slides eronder.
     bij *Inhoud* zegt dat, met *terugzetten* om de slide weer helemaal het
     formulier te laten volgen. Eigen slides tussendoor en je volgorde blijven
     ook staan.
-  - **Uitzetten gooit niets weg:** een slide die je uitzet of verwijdert,
-    wordt geparkeerd, met zijn foto, eigen vakken en aanpassingen. Zet je hem
-    weer aan bij *Onderdelen*, dan komt precies die slide terug; een vaste
-    slide haal je terug met *zet terug* bovenaan bij *Voorstel* of
-    *Gegevens*.
+  - **Uitzetten gooit niets weg (voorstel):** een slide die je uitzet of
+    verwijdert, wordt geparkeerd, met zijn foto, eigen vakken en aanpassingen.
+    Zet je hem weer aan bij *Onderdelen*, dan komt precies die slide terug;
+    een vaste slide haal je terug met *zet terug* bovenaan bij *Voorstel*. De
+    positionering heeft een vaste opbouw: daar gaat niets uit (zie
+    hieronder).
   - **Klaar om te versturen?** Bovenaan *Voorstel* en *Gegevens* een lijst
     die meeloopt terwijl je invult, met wat vaak vergeten wordt (per soort
     hieronder), invulplekken ("3 invulplekken over, zoals [klantnaam]") en
@@ -700,9 +701,9 @@ strook met alle slides eronder.
     het formulier: een kopie (*dupliceer*) heeft zijn eigen vakken, voor een
     tweede doelgroep. Of de slide erin zit, zet je bij *Onderdelen*.
 - **Positionering:** een "Positionering ‹klant›" na het traject, in de vaste
-  opbouw van de positioneringen van Pure Minds; 22 slides met alles aan. De
+  opbouw van de positioneringen van Pure Minds: altijd dezelfde 22 slides. De
   titelslide met de vaste inleiding over het positioneringsinterview en een
-  foto in de zeshoek, Onderdelen (genummerd, alleen wat aan staat), het
+  foto in de zeshoek, Onderdelen (genummerd, altijd alle drie), het
   Business Model Canvas en het Waarde Propositie Canvas als overzicht, per
   blok of vak een toelichting (zeven en zes slides), elke groep na een eigen
   sectieslide, en de afsluiter *Van gesprek naar positionering* met de
@@ -710,16 +711,20 @@ strook met alle slides eronder.
   - **Gegevens:** alleen wat voor de hele positionering geldt: de klantnaam
     (op de titelslide, de sectieslides en in de afsluiter), de datum (op de
     titelslide), het aanbod (*diensten* of *producten & diensten*, in de
-    afsluiter), een foto op de titelslide (optioneel) en de onderdelen. Een
+    afsluiter) en een foto op de titelslide (optioneel). Een
     nieuwe positionering opent hier, met de cursor in de klantnaam. De
     canvassen en de toelichting schrijf je per slide, bij *Inhoud*; de
     lange inleiding en de afsluiter pas je daar ook aan.
-  - **Onderdelen:** vier schakelaars, standaard allemaal aan: Business Model
-    Canvas, Waarde Propositie Canvas, Toelichting Business Model Canvas
-    (zeven slides) en Toelichting Waarde Propositie Canvas (zes slides). Een
-    schakelaar zet zijn hele groep aan of uit, de sectieslide inbegrepen, en
-    de slide Onderdelen telt mee. Verwijder je een losse slide in de strook,
-    dan zet je hem terug met *zet terug* bovenaan *Gegevens*.
+  - **Vaste opbouw:** er kan niets uit, anders klopt de positionering niet
+    meer. Geen schakelaars en geen *zet terug*: het recept heeft `fixed: true`
+    (`setOn` en `markRemoved` doen niets). *Verwijder* staat uit op een slide
+    van de positionering (Delete geeft een melding); een kopie (*dupliceer*)
+    of een eigen extra slide verwijder je wel. Een oud concept met een
+    onderdeel uit of een verwijderde slide krijgt bij het laden alle 22
+    slides terug, met je tekst (`parts` en `hidden` vallen weg).
+    Ook de volgorde ligt vast: een vaste slide sleep of verschuif je niet
+    (*naar voren*/*naar achteren* staan dan uit); een eigen slide mag wel
+    tussen twee vaste slides staan.
   - **Business Model Canvas:** de zeven blokken in vijf kolommen, zoals op
     het canvas: Key Partners met Key Resources eronder, Kernactiviteiten,
     Waardeproposities, Klantrelaties boven Kanalen (verdeeld naar hoeveel

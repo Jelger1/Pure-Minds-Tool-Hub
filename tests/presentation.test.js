@@ -430,9 +430,16 @@ test('app.js kent de panelen, checklists en canvassen van elke soort', () => {
     assert.deepEqual(u.tabs, own.map((p) => p.section), `${type}: tabs`);
     assert.equal(u.panel, u.tabs[0], `${type}: het eerste paneel opent`);
     const body = own.map((p) => p.html).join('');
-    for (const k of ['klant', 'check', 'checkList', 'checkCount', 'restore', 'restoreText', 'restoreBtn']) {
+    // Een vaste opbouw (de positionering) heeft geen schakelaars en geen "zet terug"
+    const fixed = DECKS[type].fixed === true;
+    const keys = ['klant', 'check', 'checkList', 'checkCount', ...(fixed ? [] : ['restore', 'restoreText', 'restoreBtn'])];
+    for (const k of keys) {
       assert.ok(body.includes(`id="${u[k].slice(1)}"`), `${type}: ${k} ${u[k]} in zijn paneel`);
     }
+    if (fixed) {
+      for (const k of ['restore', 'restoreText', 'restoreBtn']) assert.equal(u[k], undefined, `${type}: geen ${k}`);
+      assert.ok(!/data-form-on=|>zet terug</.test(body), `${type}: geen schakelaars of zet terug in zijn paneel`);
+    } else assert.ok(/data-form-on=/.test(body), `${type}: schakelaars`);
   }
   // De controle vóór het downloaden meldt lege canvassen met de checklist-punten van het recept
   const CANVAS_CHECK = appConst('CANVAS_CHECK');

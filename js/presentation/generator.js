@@ -11,6 +11,7 @@
      get(input, pad), set(...)   velden van het formulier (alleen bekende paden)
      isOn, setOn, markRemoved    welke slides erin zitten (PARTS: de schakelaars)
      hiddenRoles(input)          vaste slides die je verwijderde ("zet terug")
+     fixed                       true: een vaste opbouw (de positionering), zie hieronder
      build(input)                de slides als specs: [{ role, layout, ...velden }]
      specFor(input, role)        de spec van één slide, of null
      FEEDS, fieldFor(role, key)  welk veld welke slide voedt, en andersom
@@ -39,6 +40,11 @@
 
    Een onderdeel dat uitgaat, wordt geparkeerd (parked): zet je het weer
    aan, dan komt precies die slide terug, met foto en eigen aanpassingen.
+
+   Een recept met fixed: true (de positionering) heeft een vaste opbouw: elke
+   slide zit er altijd in, zonder schakelaars en zonder "zet terug". parts en
+   hidden van een oud formulier vallen weg, setOn en markRemoved doen niets
+   (false), en sync zet geparkeerde slides terug, met je tekst.
 
    In de browser: window.PMGenerator. In Node: require('js/presentation/generator.js').
    ============================================================================= */
@@ -269,7 +275,8 @@
 
   /**
    * Maakt de api van één soort gegenereerde presentatie. Het recept:
-   *   id, ROLES (vaste volgorde), OPTIONAL ({ onderdeel: standaardstand }), PARTS
+   *   id, ROLES (vaste volgorde), fixed (optioneel: true = alles altijd aan, geen
+   *   OPTIONAL, PARTS of GROUP_OF), OPTIONAL ({ onderdeel: standaardstand }), PARTS
    *   (schakelaars in de volgorde van het formulier), GROUP_OF ({ rol: onderdeel },
    *   optioneel), CONTENT ({ rol: [velden die de generator alleen laat beginnen] },
    *   optioneel), LINKS (optioneel), ROLE_NAMES, TEXT, FEEDS, FIELD_OF,
@@ -280,8 +287,11 @@
    */
   function create(recipe) {
     if (!isObj(recipe)) throw new Error('PMGenerator.create: geen recept');
-    const { ROLES, OPTIONAL, PARTS, ROLE_NAMES, TEXT, FEEDS, FIELD_OF, BUILD } = recipe;
-    const GROUP_OF = recipe.GROUP_OF || EMPTY;
+    const { ROLES, ROLE_NAMES, TEXT, FEEDS, FIELD_OF, BUILD } = recipe;
+    const fixed = recipe.fixed === true;
+    const OPTIONAL = fixed ? EMPTY : recipe.OPTIONAL || EMPTY;
+    const PARTS = fixed ? Object.freeze([]) : recipe.PARTS || Object.freeze([]);
+    const GROUP_OF = fixed ? EMPTY : recipe.GROUP_OF || EMPTY;
     const CONTENT = recipe.CONTENT || EMPTY;
     const LINKS = recipe.LINKS || EMPTY;
     for (const role of ROLES) {
@@ -291,8 +301,10 @@
 
     /* --- Het formulier ----------------------------------------------------- */
 
+    // Een vaste opbouw heeft geen parts en hidden
     function defaults(datum = '') {
-      return { ...recipe.defaults(datum), parts: { ...OPTIONAL }, hidden: [] };
+      const out = recipe.defaults(datum);
+      return fixed ? { ...out } : { ...out, parts: { ...OPTIONAL }, hidden: [] };
     }
 
     // Na laden of ongedaan maken: onbekende sleutels vallen weg, de rest krijgt het goede type
@@ -300,6 +312,7 @@
       const out = defaults(datum);
       if (!isObj(raw)) return out;
       recipe.normalizeFields(raw, out, datum);
+      if (fixed) return out;
       if (isObj(raw.parts)) {
         for (const r of PARTS) if (typeof raw.parts[r] === 'boolean') out.parts[r] = raw.parts[r];
       }
@@ -323,6 +336,7 @@
 
     // Een slide in een groep (GROUP_OF) zit er alleen in zolang zijn onderdeel aan staat
     function isOn(input, role) {
+      if (fixed) return ROLES.includes(role);
       const inp = isObj(input) ? input : {};
       if (typeof role === 'string' && has(GROUP_OF, role) && !isOn(inp, GROUP_OF[role])) return false;
       if (isFixed(role)) return !(Array.isArray(inp.hidden) && inp.hidden.includes(role));
@@ -330,8 +344,9 @@
       return false;
     }
 
+    // Bij een vaste opbouw kan niets uit: false
     function setOn(input, role, on) {
-      if (!isObj(input)) return false;
+      if (fixed || !isObj(input)) return false;
       if (isOptional(role)) {
         if (!isObj(input.parts)) input.parts = { ...OPTIONAL };
         input.parts[role] = !!on;
@@ -351,6 +366,7 @@
 
     // Vaste slides die je verwijderde, in de vaste volgorde; niet die van een onderdeel dat uit staat
     function hiddenRoles(input) {
+      if (fixed) return [];
       const inp = isObj(input) ? input : {};
       const hidden = Array.isArray(inp.hidden) ? inp.hidden : [];
       return ROLES.filter((r) => hidden.includes(r) && (!has(GROUP_OF, r) || isOn(inp, GROUP_OF[r])));
@@ -545,7 +561,7 @@
     }
 
     const api = {
-      id: recipe.id, ROLES, OPTIONAL, PARTS, FIXED, GROUP_OF, CONTENT, LINKS, ROLE_NAMES, OWNED, TEXT, FEEDS,
+      id: recipe.id, fixed, ROLES, OPTIONAL, PARTS, FIXED, GROUP_OF, CONTENT, LINKS, ROLE_NAMES, OWNED, TEXT, FEEDS,
       VPC_KEYS, VPC_INFO, BMC_KEYS, BMC_INFO,
       defaults, normalizeInput, get, set, isOn, setOn, markRemoved, hiddenRoles, build, specFor, fieldFor,
       sync, touched, resetSlide, checklist, emptyVpc, normalizeVpc, emptyBmc, normalizeBmc, normalizeGen,

@@ -1,4 +1,4 @@
-/* Tests voor js/presentation/positionering.js: de opbouw van de positionering, de vaste teksten, de schakelaars, de toelichting en de checklist */
+/* Tests voor js/presentation/positionering.js: de vaste opbouw van de positionering, de vaste teksten, de toelichting en de checklist */
 'use strict';
 
 const test = require('node:test');
@@ -62,17 +62,17 @@ function normalizeSlide(raw) {
 const values = (s, key) => (key === 'vpc' || key === 'bmc' ? Object.values(s[key] || {}) : [s[key]]);
 const counted = (slides) => slides.reduce((n, s) => n + D.fields(s).reduce((m, f) => m + values(s, f.key).reduce((k, v) => k + D.placeholders(String(v == null ? '' : v)).length, 0), 0), 0);
 
-test('een nieuwe positionering: klant, datum, aanbod en vier onderdelen aan', () => {
+test('een nieuwe positionering: klant, datum en aanbod, en een vaste opbouw', () => {
   const d = P.defaults('oktober 2026');
-  assert.deepEqual(d, {
-    klant: '', datum: 'oktober 2026', aanbod: 'diensten',
-    parts: { bmcOverzicht: true, vpcOverzicht: true, bmcUitleg: true, vpcUitleg: true }, hidden: [],
-  });
+  assert.deepEqual(d, { klant: '', datum: 'oktober 2026', aanbod: 'diensten' }, 'geen parts en hidden');
   assert.equal(P.id, 'positionering');
-  assert.deepEqual(P.PARTS, ['bmcOverzicht', 'vpcOverzicht', 'bmcUitleg', 'vpcUitleg']);
-  assert.deepEqual(P.PARTS, Object.keys(P.OPTIONAL), 'elke schakelaar heeft een standaardstand');
+  assert.equal(P.fixed, true);
+  assert.deepEqual(P.PARTS, [], 'geen schakelaars');
+  assert.deepEqual(P.OPTIONAL, {});
+  assert.deepEqual(P.GROUP_OF, {});
   assert.ok(Object.isFrozen(P.PARTS) && Object.isFrozen(P.OPTIONAL) && Object.isFrozen(P.ROLES));
-  assert.deepEqual(P.FIXED, P.ROLES, 'geen schakelaar is een slide: elke slide is vast');
+  assert.deepEqual(P.FIXED, P.ROLES, 'elke slide is vast');
+  assert.equal(P.ROLES.length, 22);
   assert.equal(P.defaults().datum, '');
   for (const raw of [null, undefined, [], 'tekst', 42]) assert.deepEqual(P.normalizeInput(raw, 'mei 2026'), P.defaults('mei 2026'));
   // De datum: alleen de standaard als er nog geen datum was
@@ -80,16 +80,15 @@ test('een nieuwe positionering: klant, datum, aanbod en vier onderdelen aan', ()
   assert.equal(P.normalizeInput({ datum: '' }, 'mei 2026').datum, '', 'bewust leeg gemaakt blijft leeg');
   assert.equal(P.normalizeInput({ datum: null }, 'mei 2026').datum, '');
   assert.equal(P.normalizeInput({ datum: 'januari 2027' }, 'mei 2026').datum, 'januari 2027');
-  // Rare invoer; onbekende velden (ook die van het voorstel) vallen weg
+  // Rare invoer; onbekende velden (ook die van het voorstel, en parts en hidden van vroeger) vallen weg
   const n = P.normalizeInput({ klant: 5, aanbod: 'alles', traject: 'x', eenmalig: [], parts: { bmcUitleg: false, vpc: false }, hidden: ['bmcKanalen', 'nope', 'cover'] }, 'mei');
   assert.equal(n.klant, '');
   assert.equal(n.aanbod, 'diensten');
-  assert.deepEqual(n.parts, { ...P.OPTIONAL, bmcUitleg: false });
-  assert.deepEqual(n.hidden, ['cover', 'bmcKanalen'], 'in de vaste volgorde');
+  assert.ok(!('parts' in n) && !('hidden' in n));
   assert.deepEqual(Object.keys(n), Object.keys(P.defaults()));
   assert.equal(P.normalizeInput({ aanbod: 'producten' }).aanbod, 'producten');
   assert.equal(P.normalizeInput({ klant: 'x'.repeat(500) }).klant.length, 200);
-  const full = input({ klant: 'Eurosit', aanbod: 'producten', parts: { ...P.OPTIONAL, vpcUitleg: false }, hidden: ['agenda'] });
+  const full = input({ klant: 'Eurosit', aanbod: 'producten' });
   assert.deepEqual(P.normalizeInput(JSON.parse(JSON.stringify(full)), 'x'), full, 'heen en terug via JSON');
   assert.doesNotThrow(() => P.build({ parts: null, hidden: 'x', aanbod: 5 }));
   assert.doesNotThrow(() => P.build(null));
@@ -163,10 +162,10 @@ test('de opbouw: 22 slides in de vaste volgorde, met layout, label en titel', ()
   assert.equal(spec(input({ klant: '  **EEZZ** ' }), 'cover').title, 'Positionering **EEZZ**', 'één regel, zonder eigen nadruk');
   const last = specs[specs.length - 1];
   assert.equal(last.photoFit, 'cover');
-  // Namen voor meldingen: elke slide en elke schakelaar; de toelichting heet naar zijn titel
-  for (const r of [...P.ROLES, ...P.PARTS]) assert.equal(typeof P.ROLE_NAMES[r], 'string', r);
+  // Namen voor meldingen: elke slide; de toelichting heet naar zijn titel
+  for (const r of P.ROLES) assert.equal(typeof P.ROLE_NAMES[r], 'string', r);
+  assert.deepEqual(Object.keys(P.ROLE_NAMES).sort(), P.ROLES.slice().sort(), 'geen namen van schakelaars meer');
   for (const s of specs.filter((x) => x.layout === 'toelichting')) assert.equal(P.ROLE_NAMES[s.role], s.title);
-  assert.equal(P.ROLE_NAMES.bmcUitleg, 'Toelichting Business Model Canvas');
   // Eén schrijfwijze in dit deck: Producten & Diensten, ook als naam van het vak
   assert.equal(P.VPC_NAMES.producten, 'Producten & Diensten');
   assert.deepEqual(Object.keys(P.VPC_NAMES), Object.keys(G.VPC_INFO));
@@ -198,15 +197,13 @@ test('vaste teksten staan er letterlijk in', () => {
   assert.ok(!/[a-z]'s\b/i.test(json), 'risico’s met een krulapostrof');
 });
 
-test('de onderdelen op de agenda volgen de schakelaars', () => {
-  const agenda = (parts) => spec(input({ parts: { ...P.OPTIONAL, ...parts } }), 'agenda').body;
-  assert.equal(agenda({}), 'Overzicht Business Model Canvas\nOverzicht Waarde Propositie Canvas\nUitwerking Business Model Canvas & Waarde Propositie Canvas');
-  assert.equal(agenda({ vpcUitleg: false }), 'Overzicht Business Model Canvas\nOverzicht Waarde Propositie Canvas\nUitwerking Business Model Canvas');
-  assert.equal(agenda({ bmcUitleg: false }), 'Overzicht Business Model Canvas\nOverzicht Waarde Propositie Canvas\nUitwerking Waarde Propositie Canvas');
-  assert.equal(agenda({ bmcOverzicht: false, vpcUitleg: false }), 'Overzicht Waarde Propositie Canvas\nUitwerking Business Model Canvas');
-  assert.equal(agenda({ bmcOverzicht: false, vpcOverzicht: false, bmcUitleg: false, vpcUitleg: false }), '');
+test('de onderdelen op de agenda: altijd alle drie, ook met oude schakelaars uit', () => {
+  const full = 'Overzicht Business Model Canvas\nOverzicht Waarde Propositie Canvas\nUitwerking Business Model Canvas & Waarde Propositie Canvas';
+  assert.equal(spec(input(), 'agenda').body, full);
+  const old = { bmcOverzicht: false, vpcOverzicht: false, bmcUitleg: false, vpcUitleg: false };
+  assert.equal(spec(input({ parts: old, hidden: ['agenda'] }), 'agenda').body, full);
   // De layout Genummerd leest elke regel als één punt, zonder vraag
-  const q = G.parseQuestions(agenda({}));
+  const q = G.parseQuestions(full);
   assert.deepEqual(q.items.map((i) => i.text), ['', '', '']);
   assert.equal(q.outro, '');
 });
@@ -280,72 +277,57 @@ test('de toelichting: een vraag tussen blokhaken, daarna jouw tekst', () => {
   assert.equal(byRole(slides, 'bmcPartners').body, P.TEXT.uitleg.bmcPartners);
 });
 
-test('schakelaars: elk onderdeel haalt precies zijn slides weg en brengt dezelfde terug', () => {
-  const groups = {
-    bmcOverzicht: ['sectieBmc', 'bmc'],
-    vpcOverzicht: ['sectieVpc', 'vpc'],
-    bmcUitleg: ['sectieBmcUitleg', ...UITLEG_BMC],
-    vpcUitleg: ['sectieVpcUitleg', ...UITLEG_VPC],
-  };
-  assert.deepEqual(Object.keys(groups), P.PARTS);
-  for (const [part, members] of Object.entries(groups)) {
-    for (const r of members) assert.equal(P.GROUP_OF[r], part, r);
+test('een vaste opbouw: setOn en markRemoved halen niets weg', () => {
+  const inp = input({ klant: 'Eurosit' });
+  const before = JSON.stringify(inp);
+  for (const role of [...P.ROLES, 'bmcOverzicht', 'vpcOverzicht', 'bmcUitleg', 'vpcUitleg', 'onbekend']) {
+    assert.equal(P.markRemoved(inp, role), false, role);
+    assert.equal(P.setOn(inp, role, false), false, role);
+    assert.equal(P.setOn(inp, role, true), false, role);
   }
-  assert.deepEqual(Object.keys(P.GROUP_OF).sort(), Object.values(groups).flat().sort(), 'titelslide, agenda en afsluiter horen bij geen groep');
-  for (const [part, members] of Object.entries(groups)) {
-    const inp = input({ klant: 'Eurosit' });
-    const slides = deck(inp);
-    // Eigen werk op de slides van de groep
-    for (const s of slides) {
-      if (s.role === 'bmc') s.bmc = { ...G.emptyBmc(), partners: '- China' };
-      if (s.role === 'vpc') s.vpc = { ...G.emptyVpc(), taken: '- Inrichten' };
-      if (UITLEG.includes(s.role)) s.body = `Eigen tekst bij ${s.role}.`;
-    }
-    const ids = Object.fromEntries(slides.map((s) => [s.role, s.id]));
-    P.setOn(inp, part, false);
-    const off = P.sync(slides, P.build(inp), make, {});
-    assert.deepEqual(off.removed, members, part);
-    assert.deepEqual(roles(off.slides), P.ROLES.filter((r) => !members.includes(r)));
-    assert.deepEqual(inp.hidden, [], 'een schakelaar raakt hidden niet');
-    assert.deepEqual(P.hiddenRoles(inp), []);
-    // Na opslaan en herladen: weer aan brengt precies die slides terug, op hun plek, met je werk
-    const parked = Object.fromEntries(Object.entries(JSON.parse(JSON.stringify(off.parked))).map(([k, s]) => [k, normalizeSlide(s)]));
-    P.setOn(inp, part, true);
-    const on = P.sync(off.slides.map(normalizeSlide), P.build(inp), make, parked);
-    assert.deepEqual(on.added, members);
-    assert.deepEqual(on.parked, {});
-    assert.deepEqual(roles(on.slides), P.ROLES);
-    for (const r of members) assert.equal(byRole(on.slides, r).id, ids[r], `${part}: dezelfde slide ${r}`);
-    if (part === 'bmcOverzicht') assert.equal(byRole(on.slides, 'bmc').bmc.partners, '- China');
-    if (part === 'vpcOverzicht') assert.equal(byRole(on.slides, 'vpc').vpc.taken, '- Inrichten');
-    for (const r of members.filter((x) => UITLEG.includes(x))) assert.equal(byRole(on.slides, r).body, `Eigen tekst bij ${r}.`);
-  }
-  // Alles uit: titelslide, agenda en afsluiter blijven
-  assert.deepEqual(roles(P.build(input({ parts: { bmcOverzicht: false, vpcOverzicht: false, bmcUitleg: false, vpcUitleg: false } }))), ['cover', 'agenda', 'afsluiter']);
+  assert.equal(JSON.stringify(inp), before, 'het formulier blijft zoals het was');
+  for (const role of P.ROLES) assert.equal(P.isOn(inp, role), true, role);
+  assert.equal(P.isOn(inp, 'bmcUitleg'), false, 'een oude schakelaar is geen slide');
+  assert.deepEqual(P.hiddenRoles(inp), []);
+  assert.deepEqual(P.hiddenRoles({ hidden: ['bmcKanalen'] }), []);
+  // Ook een formulier dat nog parts en hidden heeft: alle 22 slides
+  assert.deepEqual(roles(P.build({ ...inp, parts: { bmcUitleg: false }, hidden: ['cover', 'bmcKanalen'] })), P.ROLES);
+  // Een slide die toch uit de presentatie is: de volgende sync zet hem terug op zijn plek
+  const slides = deck(inp).filter((s) => s.role !== 'bmcKanalen');
+  const r = P.sync(slides, P.build(inp), make, {});
+  assert.deepEqual(r.added, ['bmcKanalen']);
+  assert.deepEqual(roles(r.slides), P.ROLES);
 });
 
-test('één slide verwijderen: alleen die slide, en hij staat in "zet terug"', () => {
-  const inp = input();
+test('een oude positionering met een onderdeel uit en een verwijderde slide: alles terug, met je tekst', () => {
+  // Zoals hij vroeger bewaard werd: de toelichting BMC uitgezet en de agenda verwijderd (beide geparkeerd)
+  const inp = input({ klant: 'Eurosit' });
   const slides = deck(inp);
-  assert.equal(P.markRemoved(inp, 'bmcKanalen'), true);
-  assert.deepEqual(inp.hidden, ['bmcKanalen']);
-  assert.deepEqual(inp.parts, P.OPTIONAL, 'de schakelaar blijft aan');
-  const r = P.sync(slides, P.build(inp), make, {});
-  assert.deepEqual(r.removed, ['bmcKanalen']);
-  assert.deepEqual(roles(r.slides), P.ROLES.filter((x) => x !== 'bmcKanalen'));
-  assert.deepEqual(P.hiddenRoles(inp), ['bmcKanalen']);
-  // De groep uit: dan niets terug te zetten; weer aan: de slide blijft weg tot "zet terug"
-  P.setOn(inp, 'bmcUitleg', false);
-  assert.deepEqual(P.hiddenRoles(inp), []);
-  P.setOn(inp, 'bmcUitleg', true);
-  assert.ok(!roles(P.build(inp)).includes('bmcKanalen'));
-  assert.deepEqual(P.hiddenRoles(inp), ['bmcKanalen']);
-  const back = P.sync(r.slides, P.build({ ...inp, hidden: [] }), make, r.parked);
-  assert.deepEqual(back.added, ['bmcKanalen']);
-  assert.deepEqual(roles(back.slides), P.ROLES, 'op zijn plek');
-  // Een vaste slide buiten een groep kan ook weg
-  P.markRemoved(inp, 'agenda');
-  assert.deepEqual(P.hiddenRoles(inp), ['agenda', 'bmcKanalen']);
+  for (const s of slides) {
+    if (s.role === 'bmc') s.bmc = { ...G.emptyBmc(), partners: '- China' };
+    if (UITLEG.includes(s.role)) s.body = `Eigen tekst bij ${s.role}.`;
+  }
+  byRole(slides, 'agenda').title = 'Eigen titel';
+  const ids = Object.fromEntries(slides.map((s) => [s.role, s.id]));
+  const gone = ['sectieBmcUitleg', ...UITLEG_BMC, 'agenda'];
+  const saved = JSON.parse(JSON.stringify({
+    form: { ...inp, parts: { bmcOverzicht: true, vpcOverzicht: true, bmcUitleg: false, vpcUitleg: true }, hidden: ['agenda'] },
+    slides: slides.filter((s) => !gone.includes(s.role)),
+    parked: Object.fromEntries(slides.filter((s) => gone.includes(s.role)).map((s) => [s.role, s])),
+  }));
+  // Laden zoals de app: formulier en slides gezond maken, dan bijwerken met de geparkeerde slides
+  const form = P.normalizeInput(saved.form, 'mei');
+  assert.deepEqual(form, { klant: 'Eurosit', datum: 'oktober 2026', aanbod: 'diensten' });
+  const parked = Object.fromEntries(Object.entries(saved.parked).map(([k, s]) => [k, normalizeSlide(s)]));
+  const r = P.sync(saved.slides.map(normalizeSlide), P.build(form), make, parked);
+  assert.equal(r.slides.length, 22);
+  assert.deepEqual(roles(r.slides), P.ROLES, 'op hun vaste plek');
+  assert.deepEqual(r.parked, {});
+  assert.deepEqual(r.added.slice().sort(), gone.slice().sort());
+  for (const role of gone) assert.equal(byRole(r.slides, role).id, ids[role], `dezelfde slide ${role}`);
+  for (const role of UITLEG) assert.equal(byRole(r.slides, role).body, `Eigen tekst bij ${role}.`, role);
+  assert.equal(byRole(r.slides, 'agenda').title, 'Eigen titel', 'je eigen aanpassing blijft');
+  assert.equal(byRole(r.slides, 'bmc').bmc.partners, '- China');
 });
 
 test('klaar om te versturen: de checklist van de positionering', () => {
@@ -409,15 +391,13 @@ test('klaar om te versturen: de checklist van de positionering', () => {
   assert.ok(list.every((x) => x.hint === ''));
   assert.deepEqual(byId(list, 'toelichting').go, { role: 'bmcPartners', section: 'inhoud', field: '#sBody' });
 
-  // Onderdelen uit, een verwijderde titelslide, een canvas met een andere layout: niet in de lijst
-  const off = input({ parts: { ...P.OPTIONAL, bmcOverzicht: false, bmcUitleg: false }, hidden: ['cover'] });
+  // Oude schakelaars uit tellen niet (alles staat erin); een canvas met een andere layout: niet in de lijst
+  const off = input({ parts: { bmcOverzicht: false, bmcUitleg: false }, hidden: ['cover'] });
   const offSlides = deck(off);
-  assert.deepEqual(ids(check(off, offSlides)), ['klant', 'vpc', 'toelichting', 'invulplekken', 'past']);
-  assert.equal(byId(check(off, offSlides), 'toelichting').label, 'Toelichting: 0 van 6 slides geschreven');
+  assert.deepEqual(ids(check(off, offSlides)), ['klant', 'foto', 'bmc', 'vpc', 'toelichting', 'invulplekken', 'past']);
+  assert.equal(byId(check(off, offSlides), 'toelichting').label, 'Toelichting: 0 van 13 slides geschreven');
   byRole(offSlides, 'vpc').layout = 'tekst';
   assert.ok(!ids(check(off, offSlides)).includes('vpc'));
-  const none = input({ parts: { bmcOverzicht: false, vpcOverzicht: false, bmcUitleg: false, vpcUitleg: false } });
-  assert.deepEqual(ids(P.checklist(none, deck(none), {})), ['klant', 'foto', 'invulplekken', 'past']);
   // Zonder slides (nog niet gemaakt): de canvassen en de toelichting staan open
   assert.deepEqual(ids(P.checklist(input(), [], {})), ['klant', 'foto', 'bmc', 'vpc', 'toelichting', 'invulplekken', 'past']);
   assert.doesNotThrow(() => P.checklist(null, [null, 5, 'x'], 'x'));

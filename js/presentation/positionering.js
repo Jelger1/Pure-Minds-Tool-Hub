@@ -11,9 +11,9 @@
    Inhoud. De toelichting begint met een vraag tussen blokhaken (CONTENT): die
    vervang je door je eigen tekst, en die tekst blijft altijd van jou.
 
-   Vier schakelaars (PARTS) zetten een groep slides aan of uit (GROUP_OF);
-   elke slide is verder vast: verwijder je er een, dan zet je hem bij
-   Gegevens terug.
+   De opbouw is vast (fixed): alle 22 slides zitten er altijd in, in deze
+   volgorde. Niets kan uit, anders klopt de positionering niet meer; een
+   oude opgeslagen positionering met iets uit krijgt alles terug, met je tekst.
 
    In de browser: window.PMDecks.positionering. In Node: require('js/presentation/positionering.js').
    ============================================================================= */
@@ -52,7 +52,7 @@
   const UITLEG_BMC = UITLEG.filter((u) => u[3] === 'bmc').map((u) => u[0]);
   const UITLEG_VPC = UITLEG.filter((u) => u[3] === 'vpc').map((u) => u[0]);
 
-  // De vaste volgorde; ook de plek waar een slide terugkomt
+  // De vaste volgorde (altijd allemaal); ook de plek waar een oude, geparkeerde slide terugkomt
   const ROLES = Object.freeze([
     'cover', 'agenda',
     'sectieBmc', 'bmc', 'sectieVpc', 'vpc',
@@ -60,16 +60,6 @@
     'sectieVpcUitleg', ...UITLEG_VPC,
     'afsluiter',
   ]);
-  // De schakelaars (standaard alles aan), in de volgorde van het formulier. Geen
-  // ervan is een slide: elk zet een groep slides aan of uit
-  const OPTIONAL = Object.freeze({ bmcOverzicht: true, vpcOverzicht: true, bmcUitleg: true, vpcUitleg: true });
-  const PARTS = Object.freeze(['bmcOverzicht', 'vpcOverzicht', 'bmcUitleg', 'vpcUitleg']);
-  const GROUP_OF = Object.freeze({
-    sectieBmc: 'bmcOverzicht', bmc: 'bmcOverzicht',
-    sectieVpc: 'vpcOverzicht', vpc: 'vpcOverzicht',
-    sectieBmcUitleg: 'bmcUitleg', ...Object.fromEntries(UITLEG_BMC.map((r) => [r, 'bmcUitleg'])),
-    sectieVpcUitleg: 'vpcUitleg', ...Object.fromEntries(UITLEG_VPC.map((r) => [r, 'vpcUitleg'])),
-  });
   // De tekst van een toelichting laat de generator alleen beginnen: daarna is hij van jou
   const CONTENT = Object.freeze(Object.fromEntries(UITLEG.map(([role]) => [role, Object.freeze(['body'])])));
   // Van de toelichting naar zijn blok op het canvas ("naar het canvas")
@@ -81,9 +71,6 @@
     sectieBmcUitleg: 'Sectie toelichting BMC', sectieVpcUitleg: 'Sectie toelichting VPC',
     afsluiter: 'Afsluiter',
     ...Object.fromEntries(UITLEG.map(([role, title]) => [role, title])),
-    // De schakelaars (voor meldingen)
-    bmcOverzicht: 'Business Model Canvas', vpcOverzicht: 'Waarde Propositie Canvas',
-    bmcUitleg: 'Toelichting Business Model Canvas', vpcUitleg: 'Toelichting Waarde Propositie Canvas',
   });
   // De namen van de vakken in deze presentatie: Producten & Diensten zoals op de toelichting
   const VPC_NAMES = Object.freeze(Object.fromEntries(Object.keys(G.VPC_INFO).map((k) => {
@@ -102,14 +89,12 @@
     intro: (k) => `Om een duidelijk beeld te hebben van het merkverhaal en de kernwaarden van ${k} hebben we een positioneringsinterview gehouden. Tijdens dit interview zijn we samen op zoek gegaan naar de kern van het bedrijf. Daarmee zijn we aan de slag gegaan en creëren we een verhaal waarmee je je doelgroepen kunt bereiken en raken. Vanuit dit fundament bepaal je verder de strategie. Bovendien dient het als basis voor de te ontwikkelen creatieve concepten: de ‘storytelling’ en je boodschap die je gebruikt op je online kanalen.`,
     // In de referenties "Aan de rechterzijde": in de layout Genummerd staan de onderdelen eronder
     agendaIntro: 'Hieronder zijn de verschillende onderdelen van deze positionering neergezet.',
-    // De onderdelen, alleen wat aan staat (één regel per punt)
-    agenda: Object.freeze({
-      bmc: 'Overzicht Business Model Canvas',
-      vpc: 'Overzicht Waarde Propositie Canvas',
-      beide: 'Uitwerking Business Model Canvas & Waarde Propositie Canvas',
-      bmcUitleg: 'Uitwerking Business Model Canvas',
-      vpcUitleg: 'Uitwerking Waarde Propositie Canvas',
-    }),
+    // De onderdelen, altijd alle drie (één regel per punt)
+    agenda: Object.freeze([
+      'Overzicht Business Model Canvas',
+      'Overzicht Waarde Propositie Canvas',
+      'Uitwerking Business Model Canvas & Waarde Propositie Canvas',
+    ]),
     // Een witregel tussen de twee alinea's, zoals in de referentie (gemeten: past ook met een
     // klantnaam van 40 tekens). Eindigt de naam op een punt (Groep B.V.), dan geen tweede punt
     afsluiter: (k, aanbod) => `Deze positionering biedt een helder en onderbouwd inzicht in de positie van ${k} in de markt. Door het in kaart brengen van klantbehoeften, pijnpunten, voordelen en de huidige dienstverlening ontstaat een duidelijk beeld van waar de grootste kansen en knelpunten liggen voor ${zin(k)}\n\nDe positionering laat zien hoe de ${aanbod === 'producten' ? 'producten & diensten' : 'diensten'} van ${k} aansluiten op de behoeften van hun klanten, waar de onderscheidende kracht ligt en welke strategische richtingen het meest kansrijk zijn om de waardepropositie verder te versterken en uiteindelijk de marketingdoelstellingen te realiseren met de juiste boodschap en doelgroep.`,
@@ -141,7 +126,7 @@
   const AANBOD = ['diensten', 'producten'];   // "diensten" of "producten & diensten" in de afsluiter
   const PATHS = new Set([...LINE_FIELDS, 'aanbod']);
 
-  // De eigen velden; de generator zet parts en hidden erachter
+  // De eigen velden; een vaste opbouw heeft geen parts en hidden
   function defaults(datum = '') {
     return { klant: '', datum: str(datum).slice(0, MAX_LINE), aanbod: 'diensten' };
   }
@@ -192,20 +177,7 @@
      Van formulier naar slides
      ------------------------------------------------------------------------- */
 
-  const context = (inp, api) => ({ K: oneLine(inp.klant) || '[klantnaam]', isOn: api.isOn });
-
-  // De punten van de slide Onderdelen, alleen wat aan staat
-  function agendaOf(isOn) {
-    const out = [];
-    if (isOn('bmcOverzicht')) out.push(TEXT.agenda.bmc);
-    if (isOn('vpcOverzicht')) out.push(TEXT.agenda.vpc);
-    const bmc = isOn('bmcUitleg');
-    const vpc = isOn('vpcUitleg');
-    if (bmc && vpc) out.push(TEXT.agenda.beide);
-    else if (bmc) out.push(TEXT.agenda.bmcUitleg);
-    else if (vpc) out.push(TEXT.agenda.vpcUitleg);
-    return out.join('\n');
-  }
+  const context = (inp) => ({ K: oneLine(inp.klant) || '[klantnaam]' });
 
   const section = (label, title, sub) => ({ layout: 'section', label, title, subtitle: sub });
 
@@ -217,7 +189,7 @@
         meta: datum ? `Pure Minds Marketing Group · ${datum}` : 'Pure Minds Marketing Group', photoFit: 'cover',
       };
     },
-    agenda: (inp, c) => ({ layout: 'vragen', label: 'inhoud', title: 'Positionering', subtitle: TEXT.agendaIntro, body: agendaOf(c.isOn) }),
+    agenda: (inp, c) => ({ layout: 'vragen', label: 'inhoud', title: 'Positionering', subtitle: TEXT.agendaIntro, body: TEXT.agenda.join('\n') }),
     sectieBmc: (inp, c) => section('business model canvas', 'Business Model Canvas', `**${c.K}**`),
     // Alleen de layout: de blokken vul je op de slide zelf in (een nieuwe begint leeg)
     bmc: () => ({ layout: 'bmc', label: 'business model canvas', title: '' }),
@@ -243,16 +215,15 @@
   const VAKKEN = Object.keys(G.VPC_INFO);
   const UITLEG_ROLES = UITLEG.map((u) => u[0]);
 
-  function checklist(inp, slides, { isOn, slideOf, written, item }) {
+  // Alle slides zitten er altijd in (een vaste opbouw)
+  function checklist(inp, slides, { slideOf, written, item }) {
     item('klant', 'Klantnaam ingevuld', !!oneLine(inp.klant), { section: 'gegevens', field: '#psKlant' });
-    if (isOn('cover')) {
-      const s = slideOf('cover');
-      item('foto', 'Foto op de titelslide', !!(s && str(s.photoKey)), { section: 'gegevens', field: '#psFotoBtn' }, { optional: true });
-    }
+    const cover = slideOf('cover');
+    item('foto', 'Foto op de titelslide', !!(cover && str(cover.photoKey)), { section: 'gegevens', field: '#psFotoBtn' }, { optional: true });
     // Een canvas zolang de slide het canvas toont (een andere layout gekozen: dan niet); af als elk vak iets heeft
     const canvas = (role, keys, name, what) => {
       const s = slideOf(role);
-      if (!isOn(role) || (s && s.layout !== role)) return;
+      if (s && s.layout !== role) return;
       const box = s && isObj(s[role]) ? s[role] : {};
       const n = keys.filter((k) => written(box[k])).length;
       const all = n === keys.length;
@@ -260,21 +231,18 @@
     };
     canvas('bmc', G.BMC_KEYS, 'Business Model Canvas', 'blokken');
     canvas('vpc', VAKKEN, 'Waarde Propositie Canvas', 'vakken');
-    // De toelichting: elke slide die aan staat, met eigen tekst in plaats van de vraag
-    const on = UITLEG_ROLES.filter(isOn);
-    if (on.length) {
-      const open = on.filter((role) => {
-        const s = slideOf(role);
-        return !(s && CONTENT[role].every((k) => written(s[k])));
-      });
-      const n = on.length - open.length;
-      item('toelichting', open.length ? `Toelichting: ${n} van ${on.length} slides geschreven` : 'Toelichting geschreven', !open.length,
-        { role: open[0] || on[0], section: 'inhoud', field: '#sBody' }, { hint: 'vervang de tekst tussen blokhaken' });
-    }
+    // De toelichting: elke slide met eigen tekst in plaats van de vraag
+    const open = UITLEG_ROLES.filter((role) => {
+      const s = slideOf(role);
+      return !(s && CONTENT[role].every((k) => written(s[k])));
+    });
+    const n = UITLEG_ROLES.length - open.length;
+    item('toelichting', open.length ? `Toelichting: ${n} van ${UITLEG_ROLES.length} slides geschreven` : 'Toelichting geschreven', !open.length,
+      { role: open[0] || UITLEG_ROLES[0], section: 'inhoud', field: '#sBody' }, { hint: 'vervang de tekst tussen blokhaken' });
   }
 
   const recipe = {
-    id: 'positionering', ROLES, OPTIONAL, PARTS, GROUP_OF, CONTENT, LINKS, ROLE_NAMES, TEXT, FEEDS, FIELD_OF, BUILD,
+    id: 'positionering', fixed: true, ROLES, CONTENT, LINKS, ROLE_NAMES, TEXT, FEEDS, FIELD_OF, BUILD,
     defaults, normalizeFields, get, set, context, checklist,
     exports: () => ({ VPC_NAMES }),
   };

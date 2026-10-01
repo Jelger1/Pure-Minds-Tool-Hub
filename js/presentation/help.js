@@ -93,18 +93,12 @@
     // Gegevens (de positionering): alleen wat voor de hele presentatie geldt
     'gegevens': {
       title: 'De positionering',
-      text: 'De klantnaam komt op de titelslide, de sectieslides en de afsluiter. De canvassen en de toelichting schrijf je per slide, bij Inhoud. Wat je op een slide zelf aanpast, blijft staan.',
+      text: 'De opbouw ligt vast: elke slide hoort erin, in deze volgorde. De klantnaam komt op de titelslide, de sectieslides en de afsluiter. De canvassen en de toelichting schrijf je per slide, bij Inhoud.',
     },
     // Dezelfde kaart als bij Voorstel, met de punten van de positionering
     'checklist-positionering': {
       title: 'Klaar om te versturen?',
       text: 'De lijst loopt na wat vaak vergeten wordt: klantnaam, beide canvassen, elke toelichting, invulplekken en tekst die niet past. Klik op een punt om ernaartoe te gaan; optioneel mag open blijven. Bij downloaden kijkt de tool nog één keer.',
-    },
-    // Een schakelaar parkeert een hele groep slides; een losse slide komt terug via
-    // "zet terug" (#psRestore, direct onder de checklist)
-    'onderdelen-positionering': {
-      title: 'Onderdelen',
-      text: 'Vier onderdelen, standaard allemaal aan. Uitzetten gooit niets weg: weer aan brengt de slides terug, met je tekst. Een losse slide verwijder je in de strook; bovenaan staat dan zet terug.',
     },
 
     // Layout
@@ -392,7 +386,7 @@ window.PM_HELP.positionering = {
     {
       id: 'welkom',
       title: 'Maak je eerste positionering',
-      text: 'De positionering volgt na het traject, op het voorstel. De opbouw en vaste teksten van Pure Minds staan klaar: jij vult de klant, de canvassen en de toelichting in.',
+      text: 'De positionering volgt na het traject, op het voorstel. De vaste opbouw en teksten van Pure Minds staan klaar; er kan niets uit. Jij vult de klant, de canvassen en de toelichting in.',
     },
     // Geen doe-stap: komt de positionering na een voorstel, dan staat de naam er al
     {
@@ -400,12 +394,7 @@ window.PM_HELP.positionering = {
       title: 'Typ de klantnaam',
       text: 'Maakte je eerst het voorstel, dan staat de naam er al. Zo niet, typ hem hier: de titelslide, de sectieslides en de afsluiter nemen hem meteen over.',
     },
-    {
-      id: 'onderdelen', section: 'gegevens', target: 'gegevens-onderdelen',
-      title: 'Vier vaste onderdelen',
-      text: 'Standaard staat alles aan, in de vaste volgorde. Uitzetten gooit niets weg: weer aan brengt de slides terug, met je tekst. Een losse slide verwijderen kan ook; bovenaan staat dan zet terug.',
-    },
-    // Zonder doel: app.js kiest de slide Business Model Canvas (als die aan staat)
+    // Zonder doel: app.js kiest de slide Business Model Canvas
     {
       id: 'canvas', section: 'inhoud',
       title: 'Vul de canvassen in',
