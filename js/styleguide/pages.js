@@ -12,6 +12,12 @@
    lijnpatroon op 6% wit is gewoon een effen, iets lichtere kleur. Logo,
    badge en iconen zijn paden (js/styleguide/svg-path.js), geen afbeeldingen.
 
+   Beelden alleen via raster(): een foto of een echte post of slide uit een maker
+   (env.raster, js/styleguide/mockups.js), in de PDF één afbeelding in de laag
+   Beeld. Het verloop van Inkt onder tekst op een foto zit in dat beeld gebakken;
+   de tekst erop is echte tekst, erna getekend. Zolang een beeld er niet is (en in
+   de tests zonder browser) staat er het lege fotovlak.
+
    Lagen: elk blok zit in een laag (Achtergrond, Vormen, Tekst, Logo, Beeld).
    Op het scherm doet dat niets; in de PDF worden het lagen (OCG).
 
@@ -27,8 +33,9 @@
      PMStyleguide.composition(ctx, x, y, w, h, mode)  een lichte of donkere compositie
      PMStyleguide.overlay(ctx, boxes)             clear space om elk logo (alleen podium)
 
-   env: { logo, badgeWhite, badgeBlack (geparste SVG's), boxes: [] (vult zich met
-   de plek van elk logo, voor de clear-space-laag) }
+   env: { logo, badgeWhite, badgeBlack (geparste SVG's), raster(id, w, h) (een
+   canvas van dat beeld, of null zolang het laadt), boxes: [] (vult zich met de
+   plek van elk logo, voor de clear-space-laag) }
    ============================================================================= */
 (function (global) {
   'use strict';
@@ -67,14 +74,14 @@
   const PATTERN = '#3C3C3C';
   const TILE = '#3B3B3B';          // iets lichter vlak op Inkt (tegels)
   const RULE_DARK = '#4A4A4A';     // lijn op Inkt
-  const BAR_DARK = '#6A6A6A';      // tekstbalkjes en fotovlak in een donker ontwerp in het klein
-  const DEEP = '#262626';          // het donkere vlak van een post of slide in het klein
+  const BAR_DARK = '#6A6A6A';      // tekstbalkjes in de donkere compositie van 60/30/10
+  // Het lege fotovlak, zolang een foto laadt (of als hij niet laadt)
   const PHOTO = '#3A4652';         // het lege fotovlak uit de makers (canvas-kit)
   const PHOTO_DARK = '#262D35';    // de donkere onderkant van een foto, onder tekst op beeld
   const PHOTO_LINE = '#4C5A67';    // hulplijnen op een foto
   const PHOTO_SUBJECT = '#6F7E8B'; // het onderwerp op een foto
   const PHOTO_ICON = '#7D8A96';    // het beeldicoon op een fotovlak
-  const NEUTRALS = [LINE, CANVAS, TINT, TRACK, EDGE, DIM, PATTERN, TILE, RULE_DARK, BAR_DARK, DEEP, PHOTO, PHOTO_DARK, PHOTO_LINE, PHOTO_SUBJECT, PHOTO_ICON];
+  const NEUTRALS = [LINE, CANVAS, TINT, TRACK, EDGE, DIM, PATTERN, TILE, RULE_DARK, BAR_DARK, PHOTO, PHOTO_DARK, PHOTO_LINE, PHOTO_SUBJECT, PHOTO_ICON];
 
   const { CAP, SQRT3 } = K;
 
@@ -187,22 +194,23 @@
     return h;
   }
 
-  // Iconen via de zeshoek van de Icon Finder (js/icons/hex.js), één keer omgezet per variant
+  // Iconen via de zeshoek van de Icon Finder (js/icons/hex.js), één keer omgezet per variant.
+  // Uitgesneden in de witte zeshoek de volle stijl (Fill), net als in de Icon Finder; style
+  // 'line' alleen voor het fout-voorbeeld. Bij check en close zijn beide stijlen gelijk
   const iconCache = new Map();
-  function iconSvg(name, opts) {
-    const key = `${name}|${JSON.stringify(opts)}`;
-    if (!iconCache.has(key)) {
-      const d = C.iconPaths[name].d;
-      iconCache.set(key, SVG.parseSvg(global.PMHex.svg(d, opts)));
-    }
+  function iconSvg(name, opts, style) {
+    const icon = C.iconPaths[name];
+    const fill = opts.shape === 'hex' && opts.knockout && style !== 'line' && icon.fill;
+    const key = `${name}|${fill ? 'fill' : 'line'}|${JSON.stringify(opts)}`;
+    if (!iconCache.has(key)) iconCache.set(key, SVG.parseSvg(global.PMHex.svg(fill || icon.d, opts)));
     return iconCache.get(key);
   }
 
   // Icoon in een afgeronde zeshoek, h hoog (de breedte volgt de vorm)
-  function hexIcon(ctx, name, x, y, h, preset) {
+  function hexIcon(ctx, name, x, y, h, preset, style) {
     const opts = { shape: 'hex', ...global.PMHex.presets[preset] };
     const w = (h * global.PMHex.WIDTH) / global.PMHex.HEIGHT;
-    layer(ctx, 'Beeld', () => SVG.draw(ctx, iconSvg(name, opts), { x, y, w, h }));
+    layer(ctx, 'Beeld', () => SVG.draw(ctx, iconSvg(name, opts, style), { x, y, w, h }));
     return w;
   }
 
@@ -224,6 +232,26 @@
     });
     const s = Math.min(48, h * 0.22);
     looseIcon(ctx, 'image', corner === 'right' ? x + w - s - 16 : x + 14, corner === 'right' ? y + 16 : y + h - s - 14, s, PHOTO_ICON);
+  }
+
+  // Een foto of een echt ontwerp uit een maker (env.raster): in de PDF één afbeelding in de
+  // laag Beeld. Zolang het beeld er niet is het lege fotovlak (fallback). De enige drawImage
+  // in de pagina's; geeft terug of het beeld er stond
+  function raster(ctx, env, id, x, y, w, h, fallback = () => photoFrame(ctx, x, y, w, h)) {
+    const img = env && env.raster ? env.raster(id, w, h) : null;
+    if (img) layer(ctx, 'Beeld', () => ctx.drawImage(img, x, y, w, h));
+    else fallback();
+    return !!img;
+  }
+
+  // Uitleg in een cyaan getint vlak met een cyaan balk links (zoals de Icon Finder op Iconen)
+  function explainBox(ctx, x, y, w, h) {
+    layer(ctx, 'Vormen', () => {
+      ctx.fillStyle = TINT;
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = CYAN;
+      ctx.fillRect(x, y, 6, h);
+    });
   }
 
   /* ---------------------------------------------------------------------------
@@ -253,8 +281,16 @@
 
   const FOOT = H - 64;                          // basislijn van de voetregel
   const LOGO_BOX = { x: W - MX - LOGO_W, y: H - 56 - LOGO_H, w: LOGO_W, h: LOGO_H };
+  // Tekst en vlakken rechts onderaan blijven links van de clear space van dat logo
+  const SAFE_RIGHT = LOGO_BOX.x - LOGO_W * T.logo.clearSpace;
+  // Het uitlegvlak onderaan Kleur en Typografie: van de marge tot vóór de clear space. Op
+  // Typografie iets hoger (zelfde onderkant): de uitleg per maat loopt daar over vier regels
+  const EXPLAIN = { x: MX, y: 930, w: SAFE_RIGHT - 26 - MX, h: 146 };
+  const LEGEND = { ...EXPLAIN, y: EXPLAIN.y + EXPLAIN.h - 170, h: 170 };
+  const LEGEND_COL = 470;                       // waar de drie kolommen van de type-uitleg beginnen
 
-  // Cyaan balk, voetregel en het logo rechtsonder (niet op een pagina die zelf een logo toont)
+  // Cyaan balk, voetregel en het logo rechtsonder (niet op een pagina die zelf een logo toont).
+  // De voet is tijdloos: alleen het webadres en het paginanummer (de inhoud verwijst ernaar)
   function chrome(ctx, P, env) {
     const c = pal(P.dark);
     layer(ctx, 'Vormen', () => {
@@ -266,8 +302,6 @@
       [['pureminds', c.text], ['.', CYAN], ['nl', c.text]].forEach(([part, color]) => {
         x += line(ctx, part, x, FOOT, { size: 18, weight: 700, color, track: 0.02 });
       });
-      const chapter = C.chapters.find((ch) => ch.id === P.chapter);
-      line(ctx, `${C.version} · ${chapter ? chapter.label : ''}`, MX + 190, FOOT, { size: 16, weight: 600, color: c.sub, track: 0.02 });
       const no = String(P.index + 1).padStart(2, '0');
       line(ctx, no, P.logo ? W - MX : LOGO_BOX.x - LOGO_W * T.logo.clearSpace - 6, FOOT, { size: 16, weight: 700, color: c.sub, align: 'right', track: 0.04 });
     });
@@ -284,7 +318,6 @@
       text(ctx, 'BRANDBOOK', MX - 6, 452, 1000, { size: 150, weight: 800, track: -0.01, lh: 1, color: WHITE });
       text(ctx, C.company, MX, 640, 1000, { size: 50, weight: 400, lh: 1.15, color: WHITE, dot: true });
       line(ctx, C.slogan, MX, 760, { size: 26, weight: 400, color: DIM, italic: true });
-      line(ctx, `Versie ${T.version} · ${C.date}`, MX, 950, { size: 18, weight: 600, color: DIM, track: 0.04 });
     });
     const w = 340;
     logo(ctx, env, 1200, (H - w / T.logo.aspect) / 2, w, WHITE);
@@ -335,7 +368,7 @@
       text(ctx, C.vision, 920, top + 52, 660, vSt);
       const sy = Math.max(top + barH + 110, 820);
       label(ctx, 'Slogan', MX, sy, { color: WHITE });
-      // Bold: de PDF kent geen SemiBold Italic (die wordt BoldItalic), zo zijn scherm en PDF gelijk
+      // Bold cursief: zo zijn scherm en PDF gelijk (BoldItalic)
       line(ctx, C.slogan, MX, sy + 70, { size: 36, weight: 700, color: WHITE, italic: true });
     });
   }
@@ -361,7 +394,7 @@
         line(ctx, v.name, x, y + 140, { size: 36, weight: 800, color: INK, track: -0.01 });
         text(ctx, v.text, x, y + 172, w, tSt);
         label(ctx, 'Zo klinkt het', x, yy, { color: MUTED, size: 15 });
-        text(ctx, v.sound, x, yy + 42, w, { size: 22, weight: 600, lh: 1.5, color: INK });
+        text(ctx, v.sound, x, yy + 42, w, { size: 22, weight: 700, lh: 1.5, color: INK });
       });
     });
   }
@@ -409,7 +442,7 @@
         mark(ctx, ok, 840, y - 8, 44);
         let h = 0;
         layer(ctx, 'Tekst', () => {
-          h = text(ctx, str, 910, y, 670, { size: 22, lh: 1.45, color: ok ? INK : MUTED, weight: ok ? 600 : 400 });
+          h = text(ctx, str, 910, y, 670, { size: 22, lh: 1.45, color: ok ? INK : MUTED, weight: ok ? 700 : 400 });
         });
         y += Math.max(h, 36) + 26;
       });
@@ -505,7 +538,7 @@
     const top = head(ctx, P, 'Logo', 'Zo gebruik je het logo.') + 50;
     const colW = 420;
     layer(ctx, 'Tekst', () => {
-      label(ctx, 'Aangevuld in 2.1', MX, top, { color: WHITE });
+      label(ctx, 'Vuistregels', MX, top, { color: WHITE });
       let y = top + 50;
       C.logo.added.forEach((a) => {
         line(ctx, a.title, MX, y + 18, { size: 21, weight: 700, color: CYAN });
@@ -549,7 +582,8 @@
       } else if (t.id === 'kleur') {
         logo(ctx, env, lx, ly, lw, CYAN, { example: true });
       } else if (t.id === 'kader') {
-        photoFrame(ctx, x + 20, y + 20, tw - 40, th - 40, { corner: 'left' });
+        // Een drukke, echte foto: juist daar is een kader verleidelijk
+        raster(ctx, env, 'logo-kader', x + 20, y + 20, tw - 40, th - 40, () => photoFrame(ctx, x + 20, y + 20, tw - 40, th - 40, { corner: 'left' }));
         layer(ctx, 'Vormen', () => {
           ctx.strokeStyle = WHITE;
           ctx.lineWidth = 3;
@@ -559,7 +593,8 @@
       } else if (t.id === 'kantelen') {
         logo(ctx, env, lx, ly, lw, WHITE, { example: true, rotate: -0.26 });
       }
-      mark(ctx, false, x + tw - 50, y + 12, 38, true);
+      // Het teken rechtsboven; op de foto de donkere variant (een uitgesneden kruis toont de foto)
+      mark(ctx, false, x + tw - 50, y + 12, 38, t.id !== 'kader');
       layer(ctx, 'Tekst', () => {
         const h = text(ctx, t.title, x, y + th + 24, tw, { size: 19, weight: 700, lh: 1.25, color: WHITE });
         text(ctx, t.text, x, y + th + 24 + h + 12, tw, { size: 15, lh: 1.4, color: DIM });
@@ -567,7 +602,7 @@
     });
   }
 
-  function zeshoek(ctx, P) {
+  function zeshoek(ctx, P, env) {
     const top = head(ctx, P, 'Logo', 'De zeshoek.') + 30;
     layer(ctx, 'Tekst', () => text(ctx, C.hexagon.intro, MX, top, 900, { size: 23, lh: 1.5, color: INK }));
     // Links: vier regels, elk met een voorbeeld
@@ -629,7 +664,7 @@
       if (i === 3) mark(ctx, false, ex + 76, rowTop + 64, 34);
       let h = 0;
       layer(ctx, 'Tekst', () => {
-        h = text(ctx, r.text, tx, rowTop + 18, 460, { size: 20, weight: r.ok ? 600 : 400, lh: 1.45, color: INK });
+        h = text(ctx, r.text, tx, rowTop + 18, 460, { size: 20, weight: r.ok ? 700 : 400, lh: 1.45, color: INK });
       });
       y = rowTop + Math.max(100, h + 20) + 40;
     });
@@ -647,16 +682,19 @@
           bullets(ctx, ['Korte zinnen', 'Eén gedachte per zin', 'Knoppen in kleine letters'], x, vy + 6, gw, { size: 20, color: INK, gap: 0.5 });
         });
       } else if (u.id === 'frame') {
+        // De echo eerst, dan de foto in de zeshoek (in de PDF een PNG met doorzichtige hoeken)
         const r = 62;
         const cx = x + 80;
         const cy = vy + 70;
         layer(ctx, 'Vormen', () => K.hexEcho(ctx, cx, cy, r, 4));
-        layer(ctx, 'Beeld', () => {
-          K.hexPath(ctx, cx, cy, r);
-          ctx.fillStyle = PHOTO;
-          ctx.fill();
+        raster(ctx, env, 'zeshoek-foto', cx - (r * SQRT3) / 2, cy - r, r * SQRT3, 2 * r, () => {
+          layer(ctx, 'Beeld', () => {
+            K.hexPath(ctx, cx, cy, r);
+            ctx.fillStyle = PHOTO;
+            ctx.fill();
+          });
+          looseIcon(ctx, 'image', cx - 18, cy - 18, 36, PHOTO_ICON);
         });
-        looseIcon(ctx, 'image', cx - 18, cy - 18, 36, PHOTO_ICON);
       } else if (u.id === 'holder') {
         hexIcon(ctx, 'line-chart', x, vy, 128, 'cyaan');
       } else if (u.id === 'pattern') {
@@ -691,7 +729,7 @@
         const vals = [['HEX', c.hex], ['RGB', c.rgb.join(', ')], ['CMYK', c.cmyk.join(', ')]];
         vals.forEach(([k, v], j) => {
           line(ctx, k, x, y + sh + 40 + j * 32, { size: 15, weight: 700, color: MUTED, track: 0.1 });
-          line(ctx, v, x + 76, y + sh + 40 + j * 32, { size: 20, weight: 600, color: INK });
+          line(ctx, v, x + 76, y + sh + 40 + j * 32, { size: 20, weight: 700, color: INK });
         });
         text(ctx, c.role, x, y + sh + 136, w, { size: 18, lh: 1.4, color: MUTED });
       });
@@ -714,7 +752,7 @@
         line(ctx, c.name, x + 18, y3 + 46, { size: 20, weight: 700, color: M.readable(c.hex) });
         [['HEX', c.hex], ['RGB', c.rgb.join(', ')], ['CMYK', c.cmyk.join(', ')]].forEach(([k, v], j) => {
           line(ctx, k, x, y3 + 104 + j * 26, { size: 13, weight: 700, color: MUTED, track: 0.1 });
-          line(ctx, v, x + 62, y3 + 104 + j * 26, { size: 16, weight: 600, color: INK });
+          line(ctx, v, x + 62, y3 + 104 + j * 26, { size: 16, weight: 700, color: INK });
         });
       });
     });
@@ -766,7 +804,8 @@
     layer(ctx, 'Tekst', () => {
       parts.forEach((p, i) => {
         const last = i === parts.length - 1;
-        line(ctx, p.name, last ? x + w : cx, y, { size: 15, weight: 600, color, align: last ? 'right' : 'left' });
+        // Regular: de namen staan dicht op elkaar (Pure Cyaan en Magenta en accenten)
+        line(ctx, p.name, last ? x + w : cx, y, { size: 15, weight: 400, color, align: last ? 'right' : 'left' });
         cx += (w * p.p) / 100;
       });
     });
@@ -845,7 +884,7 @@
       });
       layer(ctx, 'Tekst', () => {
         line(ctx, 'Aa', x + 30, ry + 36, { size: 20, weight: 800, color: hex(fg), align: 'center' });
-        line(ctx, name, cols[0] + 76, ry + 36, { size: 19, weight: 600, color: INK });
+        line(ctx, name, cols[0] + 76, ry + 36, { size: 19, weight: 700, color: INK });
         line(ctx, M.ratioText(n), cols[1], ry + 36, { size: 19, weight: 700, color: INK });
         line(ctx, v.text ? 'ja' : 'nee', cols[2], ry + 36, { size: 19, weight: v.text ? 700 : 400, color: v.text ? INK : MUTED });
         line(ctx, v.large ? 'ja' : 'nee', cols[3], ry + 36, { size: 19, weight: v.large ? 700 : 400, color: v.large ? INK : MUTED });
@@ -854,25 +893,36 @@
     layer(ctx, 'Tekst', () => {
       text(ctx, C.colors.contrastNote, x, top + 90 + C.colors.contrast.length * rh + 30, w - 20, { size: 17, lh: 1.45, color: MUTED });
     });
+    // Waarom: rust en herkenbaarheid, en leesbaar voor iedereen (WCAG). Rechts gelijk met de tabel
+    explainBox(ctx, EXPLAIN.x, EXPLAIN.y, EXPLAIN.w, EXPLAIN.h);
+    C.colors.why.forEach((part) => {
+      const right = part.id === 'contrast';
+      const cx = right ? x : EXPLAIN.x + 40;
+      const cw = right ? EXPLAIN.x + EXPLAIN.w - 34 - x : lw - 70;
+      layer(ctx, 'Tekst', () => {
+        label(ctx, part.title, cx, EXPLAIN.y + 30, { color: INK, size: 15 });
+        text(ctx, part.text, cx, EXPLAIN.y + 60, cw, { size: 17, lh: 1.45, color: INK });
+      });
+    });
   }
 
   function typografie(ctx, P) {
-    const top = head(ctx, P, 'Type', 'Typografie.') + 50;
+    const top = head(ctx, P, 'Type', 'Typografie.') + 36;
     const lw = 620;
     layer(ctx, 'Tekst', () => {
       line(ctx, 'Aa', MX - 8, top + 190, { size: 250, weight: 800, color: INK, track: -0.02 });
       line(ctx, T.font.family, MX, top + 262, { size: 36, weight: 700, color: INK });
       text(ctx, C.type.intro, MX, top + 292, lw, { size: 20, lh: 1.5, color: MUTED });
-      line(ctx, C.type.alphabet, MX, top + 418, { size: 22, weight: 400, color: INK, track: 0.08 });
-      line(ctx, C.type.lower, MX, top + 452, { size: 22, weight: 400, color: INK, track: 0.08 });
-      line(ctx, C.type.digits, MX, top + 486, { size: 22, weight: 400, color: INK, track: 0.08 });
-      label(ctx, 'Gewichten', MX, top + 540, { color: INK });
+      line(ctx, C.type.alphabet, MX, top + 404, { size: 22, weight: 400, color: INK, track: 0.08 });
+      line(ctx, C.type.lower, MX, top + 436, { size: 22, weight: 400, color: INK, track: 0.08 });
+      line(ctx, C.type.digits, MX, top + 468, { size: 22, weight: 400, color: INK, track: 0.08 });
+      label(ctx, 'Gewichten', MX, top + 514, { color: INK });
       const cw = lw / T.font.weights.length;
       T.font.weights.forEach((wt, i) => {
         const x = MX + i * cw;
-        line(ctx, 'Aa', x, top + 630, { size: 50, weight: wt.weight, color: INK });
-        line(ctx, wt.name, x, top + 664, { size: 16, weight: 700, color: INK });
-        line(ctx, String(wt.weight), x, top + 688, { size: 16, color: MUTED });
+        line(ctx, 'Aa', x, top + 598, { size: 50, weight: wt.weight, color: INK });
+        line(ctx, wt.name, x, top + 630, { size: 16, weight: 700, color: INK });
+        line(ctx, String(wt.weight), x, top + 652, { size: 16, color: MUTED });
       });
     });
 
@@ -886,82 +936,139 @@
       const rowH = Math.max(66, t.line + 36);
       layer(ctx, 'Vormen', () => rule(ctx, x, y, w, LINE, 1.5));
       const name = t.upper ? t.name.toUpperCase() : t.name;
-      const wName = T.font.weights.find((f) => f.weight === t.weight).name;
       layer(ctx, 'Tekst', () => {
         line(ctx, name, x, y + 14 + t.size * CAP + (rowH - 14 - t.size * CAP) / 2 - 4, { size: t.size, weight: t.weight, color: t.color || INK, track: t.track });
-        line(ctx, `${wName} ${t.weight} · ${t.size}/${t.line}${t.track ? ` · ${t.track > 0 ? '+' : '−'}${Math.abs(t.track * 100)}%` : ''}`, sx, y + rowH / 2 + 2, { size: 16, weight: 700, color: INK });
+        line(ctx, M.typeSpec(t, T).text, sx, y + rowH / 2 + 2, { size: 16, weight: 700, color: INK });
         line(ctx, C.type.usage[t.id], sx, y + rowH / 2 + 24, { size: 15, color: MUTED });
       });
       y += rowH;
     });
-    layer(ctx, 'Tekst', () => bullets(ctx, C.type.notes, x, y + 40, w, { size: 18, lh: 1.45, color: INK, gap: 0.7 }));
+    layer(ctx, 'Tekst', () => bullets(ctx, C.type.notes, x, y + 34, w, { size: 18, lh: 1.42, color: INK, gap: 0.5 }));
+    typeLegend(ctx, LEGEND.x, LEGEND.y, LEGEND.w, LEGEND.h);
   }
 
-  // Drie kaders die de opbouw van een foto laten zien, zonder foto
-  function imageFrame(ctx, f, x, y, w, h) {
-    photoFrame(ctx, x, y, w, h);
+  // Zo lees je de maten: het voorbeeld (de maat van Heading 1) met een genummerde zeshoek boven
+  // elk deel, en rechts per nummer de uitleg, ook voor Canva
+  function typeLegend(ctx, x, y, w, h) {
+    const L = C.type.legend;
+    const spec = M.typeSpec(T.type[0], T);
+    explainBox(ctx, x, y, w, h);
+    const sx = x + 40;
+    layer(ctx, 'Tekst', () => label(ctx, L.title, sx, y + 32, { color: INK, size: 15 }));
+    const base = y + h - 46;
+    const sep = ' · ';
+    let px = sx;
+    [spec.weight, spec.size, spec.track].forEach((part, i) => {
+      font(ctx, 700, 24);
+      const pw = ctx.measureText(part).width;
+      // Bij "ExtraBold 800" staat het nummer boven het getal
+      const key = L.parts[i].key;
+      const kx = part.endsWith(key) ? px + pw - ctx.measureText(key).width / 2 : px + pw / 2;
+      layer(ctx, 'Vormen', () => numberHex(ctx, kx, base - 44, 13, i + 1));
+      layer(ctx, 'Tekst', () => {
+        line(ctx, part, px, base, { size: 24, weight: 700, color: INK });
+        if (i < 2) line(ctx, sep, px + pw, base, { size: 24, weight: 700, color: MUTED });
+      });
+      font(ctx, 700, 24);
+      px += pw + ctx.measureText(sep).width;
+    });
+    // Rechts: drie kolommen, elk met zijn nummer, de naam en de uitleg
+    const cx0 = x + LEGEND_COL;
+    const gap = 30;
+    const colW = (x + w - 34 - cx0 - 2 * gap) / 3;
+    L.parts.forEach((part, i) => {
+      const cx = cx0 + i * (colW + gap);
+      layer(ctx, 'Vormen', () => numberHex(ctx, cx + 12, y + 38, 13, i + 1));
+      layer(ctx, 'Tekst', () => {
+        line(ctx, part.title, cx + 34, y + 45, { size: 18, weight: 700, color: INK });
+        text(ctx, part.text, cx, y + 68, colW, { size: 15, lh: 1.4, color: INK });
+      });
+    });
+  }
+
+  // Drie voorbeelden op een echte foto. Het verloop van Inkt onder de tekst zit in de foto
+  // gebakken (één beeld in de PDF); de tekst staat er als echte tekst op. Zonder foto (nog aan
+  // het laden, of in de tests) de opbouw in vlakken, zoals voorheen
+  function imageFrame(ctx, env, f, x, y, w, h) {
+    const photo = raster(ctx, env, `beeld-${f.id}`, x, y, w, h);
     if (f.id === 'compositie') {
-      layer(ctx, 'Vormen', () => {
-        ctx.fillStyle = PHOTO_LINE;
-        [1, 2].forEach((k) => {
-          ctx.fillRect(x + (w * k) / 3 - 1, y, 2, h);
-          ctx.fillRect(x, y + (h * k) / 3 - 1, w, 2);
+      if (!photo) {
+        layer(ctx, 'Vormen', () => {
+          ctx.fillStyle = PHOTO_LINE;
+          [1, 2].forEach((k) => {
+            ctx.fillRect(x + (w * k) / 3 - 1, y, 2, h);
+            ctx.fillRect(x, y + (h * k) / 3 - 1, w, 2);
+          });
+          K.hexPath(ctx, x + (w * 2) / 3, y + h * 0.55, h * 0.22);
+          ctx.fillStyle = PHOTO_SUBJECT;
+          ctx.fill();
         });
-        K.hexPath(ctx, x + (w * 2) / 3, y + h * 0.55, h * 0.22);
-        ctx.fillStyle = PHOTO_SUBJECT;
-        ctx.fill();
+      }
+      // De rustige kant: hier komt de kop, met de cyaan balk ervoor
+      layer(ctx, 'Vormen', () => {
+        ctx.fillStyle = CYAN;
+        ctx.fillRect(x + 28, y + h * 0.36, 6, 66);
       });
       layer(ctx, 'Tekst', () => {
-        line(ctx, 'ruimte voor', x + 28, y + h * 0.42, { size: 22, weight: 800, color: WHITE });
-        line(ctx, 'de kop', x + 28, y + h * 0.42 + 28, { size: 22, weight: 800, color: WHITE });
+        line(ctx, 'ruimte voor', x + 48, y + h * 0.36 + 25, { size: 24, weight: 800, color: WHITE });
+        line(ctx, 'de kop', x + 48, y + h * 0.36 + 55, { size: 24, weight: 800, color: WHITE });
       });
     } else if (f.id === 'tekst') {
-      // De donkere onderkant van de foto (in een echt ontwerp een verloop van Inkt): een tint
-      // donkerder dan de pagina, zodat het kader op deze donkere pagina heel blijft
-      layer(ctx, 'Vormen', () => {
-        ctx.fillStyle = PHOTO_DARK;
-        ctx.fillRect(x, y + h * 0.5, w, h * 0.5);
-      });
+      if (!photo) {
+        layer(ctx, 'Vormen', () => {
+          ctx.fillStyle = PHOTO_DARK;
+          ctx.fillRect(x, y + h * 0.5, w, h * 0.5);
+        });
+      }
+      // Onderaan, 26 px boven de rand van de foto
       layer(ctx, 'Tekst', () => {
-        text(ctx, 'Onze nieuwe **Ads-audit** is live.', x + 28, y + h * 0.62, w - 56, { size: 26, weight: 800, emWeight: 800, lh: 1.15, color: WHITE, em: CYAN });
+        const str = 'Onze nieuwe **Ads-audit** is live';
+        const st = { size: 28, weight: 800, emWeight: 800, lh: 1.12, track: -0.02, color: WHITE, em: CYAN, dot: true };
+        const block = plan(ctx, str, w - 56, st);
+        text(ctx, str, x + 28, y + h - 26 - block.height, w - 56, st);
       });
     } else {
-      layer(ctx, 'Vormen', () => {
-        ctx.fillStyle = INK;
-        ctx.fillRect(x + 24, y + h - 92, w - 48, 68);
-      });
+      if (!photo) {
+        layer(ctx, 'Vormen', () => {
+          ctx.fillStyle = PHOTO_DARK;
+          ctx.fillRect(x, y + h * 0.5, w, h * 0.5);
+        });
+      }
       layer(ctx, 'Tekst', () => {
-        line(ctx, '+184%', x + 44, y + h - 40, { size: 38, weight: 800, color: CYAN });
-        text(ctx, 'meer aanvragen in drie maanden', x + 220, y + h - 70, w - 270, { size: 15, lh: 1.3, color: WHITE });
+        const nw = line(ctx, '+184%', x + 28, y + h - 30, { size: 52, weight: 800, color: CYAN, track: -0.02 });
+        text(ctx, 'meer aanvragen in drie maanden', x + 28 + nw + 20, y + h - 72, w - 76 - nw, { size: 17, lh: 1.3, color: WHITE });
       });
     }
   }
 
-  function beeldtaal(ctx, P) {
+  function beeldtaal(ctx, P, env) {
     const top = head(ctx, P, 'Beeld', 'Beeldtaal en fotografie.') + 26;
     layer(ctx, 'Tekst', () => text(ctx, C.imagery.intro, MX, top, CW, { size: 20, lh: 1.45, color: DIM }));
     const gap = 36;
     const fw = (CW - 2 * gap) / 3;
     const fy = top + 90;
-    const fh = 220;
+    const fh = 280;
     C.imagery.frames.forEach((f, i) => {
       const x = MX + i * (fw + gap);
-      imageFrame(ctx, f, x, fy, fw, fh);
+      imageFrame(ctx, env, f, x, fy, fw, fh);
       layer(ctx, 'Tekst', () => {
         line(ctx, f.title, x, fy + fh + 30, { size: 18, weight: 700, color: WHITE });
         line(ctx, f.text, x + ctx.measureText(f.title).width + 12, fy + fh + 30, { size: 16, color: DIM });
       });
     });
-    const sy = fy + fh + 84;
+    const sy = fy + fh + 76;
     const g2 = 32;
     const sw = (CW - 3 * g2) / 4;
+    let bottom = sy;
     C.imagery.sections.forEach((s, i) => {
       const x = MX + i * (sw + g2);
       layer(ctx, 'Tekst', () => {
         line(ctx, s.title, x, sy + 15, { size: 20, weight: 700, color: CYAN });
-        bullets(ctx, s.items, x, sy + 44, sw, { size: 17, lh: 1.42, color: WHITE, gap: 0.5 });
+        bottom = Math.max(bottom, sy + 44 + bullets(ctx, s.items, x, sy + 44, sw, { size: 17, lh: 1.4, color: WHITE, gap: 0.45 }));
       });
     });
+    // Waar de voorbeeldfoto's vandaan komen: één regel eronder, links van het logo
+    layer(ctx, 'Tekst', () => text(ctx, C.imagery.photoNote, MX, bottom + 30, SAFE_RIGHT - 20 - MX, { size: 15, lh: 1.4, color: DIM }));
   }
 
   function iconen(ctx, P) {
@@ -997,6 +1104,32 @@
       line(ctx, 'Inkt, cyaan, blauw, magenta, wit', MX, y + 48, { size: 15, color: MUTED });
     });
 
+    // Wel en niet: hetzelfde icoon uitgesneden in de volle stijl en in de lijnstijl. Elk op een
+    // eigen vlak van Inkt met het teken rechtsboven, zoals de voorbeelden bij het logo
+    const ko = C.icons.knockout;
+    y += 108;
+    const gapT = 20;
+    const tw = (names.length * step + 22 - gapT) / 2;   // samen zo breed als de rij van de witte zeshoek
+    const th = 104;
+    const kh = 76;
+    const kw = (kh * global.PMHex.WIDTH) / global.PMHex.HEIGHT;
+    [[true, ko.wel], [false, ko.niet]].forEach(([ok, caption], k) => {
+      const tx = ix - 20 + k * (tw + gapT);
+      const ty = y - 14;
+      layer(ctx, 'Vormen', () => {
+        ctx.fillStyle = INK;
+        ctx.fillRect(tx, ty, tw, th);
+      });
+      hexIcon(ctx, ko.icon, tx + (tw - kw) / 2, ty + (th - kh) / 2, kh, 'wit', ok ? 'fill' : 'line');
+      mark(ctx, ok, tx + tw - 42, ty + 10, 32, true);
+      // De stijl vet, de uitleg erachter: "Volle stijl (Fill): een rustig silhouet."
+      layer(ctx, 'Tekst', () => text(ctx, caption.replace(/^([^:]+:)/, '**$1**'), tx, ty + th + 22, tw, { size: 15, lh: 1.4, color: INK }));
+    });
+    layer(ctx, 'Tekst', () => {
+      line(ctx, ko.title, MX, y + 26, { size: 20, weight: 700, color: INK });
+      line(ctx, ko.sub, MX, y + 52, { size: 15, color: MUTED });
+    });
+
     const x = 1020;
     const w = W - MX - x;
     let rh = 0;
@@ -1019,122 +1152,217 @@
     });
   }
 
-  // Een ontwerp in het klein: vlak, cyaan balk, tekstbalkjes en de plek van het logo
-  function miniDesign(ctx, x, y, w, h, kind) {
-    const dark = kind !== 'document';
-    layer(ctx, 'Vormen', () => {
-      ctx.fillStyle = dark ? DEEP : WHITE;
-      ctx.fillRect(x, y, w, h);
-      if (kind === 'foto' || kind === 'tekst') {
-        ctx.fillStyle = PHOTO;
-        ctx.fillRect(x, y, w, kind === 'foto' ? h : h * 0.62);
-      }
-      ctx.fillStyle = CYAN;
-      ctx.fillRect(x, y, w, Math.max(3, h * 0.025));
-      const u = w / 10;
-      // Een slide heeft rechts een fotovlak (6 tot 9): de kop en de regels blijven links ervan
-      const slide = kind === 'slide';
-      if (kind !== 'foto') {
-        ctx.fillStyle = dark ? WHITE : INK;
-        ctx.fillRect(x + u, y + h * (kind === 'tekst' ? 0.68 : 0.22), u * (slide ? 4.4 : 6), h * 0.05);
-        ctx.fillStyle = dark ? BAR_DARK : TRACK;
-        [0.33, 0.4, 0.47].forEach((f, i) => {
-          if (kind === 'tekst') return;
-          ctx.fillRect(x + u, y + h * f, u * (i === 2 ? (slide ? 2.6 : 4) : (slide ? 4.4 : 7)), h * 0.022);
-        });
-      }
-      if (kind === 'blog' || kind === 'carousel') {
-        ctx.fillStyle = MAGENTA;
-        ctx.fillRect(x + u, y + h * 0.6, u * 3, h * 0.06);
-      }
-      if (kind === 'case') {
-        ctx.fillStyle = CYAN;
-        ctx.fillRect(x + u, y + h * 0.6, u * 4, h * 0.08);
-      }
-      if (kind === 'slide') {
-        ctx.fillStyle = BAR_DARK;
-        ctx.fillRect(x + u * 6, y + h * 0.22, u * 3, h * 0.5);
-      }
-      // De plek van het logo: een lijn-zeshoekje rechtsonder (rechtsboven op het briefpapier)
-      const r = Math.min(w, h) * 0.06;
-      const lx = x + w - r * 2.2;
-      const ly = kind === 'document' ? y + r * 2.6 : y + h - r * 2.2;
-      K.hexPath(ctx, lx, ly, r);
-      ctx.strokeStyle = dark ? WHITE : INK;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+  // Naam van de toepassing met de maker erachter, op één regel
+  function caption(ctx, m, x, base) {
+    layer(ctx, 'Tekst', () => {
+      const w = line(ctx, m.name, x, base, { size: 23, weight: 700, color: INK });
+      line(ctx, m.tool, x + w + 16, base, { size: 15, weight: 700, color: MUTED, track: 0.04 });
     });
   }
 
+  // Echte posts en slides, getekend door de makers zelf met hun voorbeeldteksten
+  // (js/styleguide/mockups.js). Een lichte pagina: daarop vallen de donkere ontwerpen op
   function toepassingen(ctx, P, env) {
     const top = head(ctx, P, 'Gebruik', 'Toepassingen.') + 30;
-    layer(ctx, 'Tekst', () => text(ctx, C.usage.intro, MX, top, 1100, { size: 21, lh: 1.5, color: DIM }));
-    const gap = 48;
-    // Kolommen naar wat erin staat: vijf posts, één A4, één slide
-    const cols = [640, 300, CW - 640 - 300 - 2 * gap];
-    const y = top + 90;
-    const vh = 190;
-    let x = MX;
-    C.usage.makers.forEach((m, i) => {
-      const cw = cols[i];
-      if (m.id === 'insta') {
-        const fw = (cw - 4 * 14) / 5;
-        ['foto', 'tekst', 'blog', 'case', 'carousel'].forEach((k, j) => miniDesign(ctx, x + j * (fw + 14), y + vh - fw * 1.25, fw, fw * 1.25, k));
-      } else if (m.id === 'document') {
-        miniDesign(ctx, x, y, vh / 1.414, vh, 'document');
-      } else {
-        miniDesign(ctx, x, y + vh - 180, 320, 180, 'slide');
-      }
-      layer(ctx, 'Tekst', () => {
-        line(ctx, m.name, x, y + vh + 46, { size: 23, weight: 700, color: WHITE });
-        line(ctx, m.tool, x, y + vh + 74, { size: 15, weight: 700, color: CYAN, track: 0.04 });
-        text(ctx, m.text, x, y + vh + 94, cw, { size: 17, lh: 1.45, color: DIM });
-      });
-      x += cw + gap;
-    });
-    // De Emerce 100-badge: wit op donker, zwart op licht
-    const by = y + vh + 250;
+    layer(ctx, 'Tekst', () => text(ctx, C.usage.intro, MX, top, 1100, { size: 21, lh: 1.5, color: MUTED }));
+    const maker = (id) => C.usage.makers.find((m) => m.id === id);
+    // Rij 1: de vijf templates van de Insta Post Maker (4:5)
+    const gap = 34;
+    const pw = (CW - 4 * gap) / 5;
+    const ph = pw * 1.25;
+    const py = top + 104;
+    caption(ctx, maker('insta'), MX, py - 24);
+    ['photo', 'overlay', 'blog', 'case', 'carousel'].forEach((id, i) => raster(ctx, env, `post-${id}`, MX + i * (pw + gap), py, pw, ph));
+    layer(ctx, 'Tekst', () => text(ctx, maker('insta').text, MX, py + ph + 22, CW, { size: 17, lh: 1.45, color: MUTED }));
+    // Rij 2: twee slides uit de Presentation Maker (16:9), de uitleg ernaast, links van het logo
+    const sw = (CW - 2 * gap) / 3;
+    const sh = (sw * 9) / 16;
+    const sy = py + ph + 128;
+    caption(ctx, maker('presentation'), MX, sy - 24);
+    ['title', 'split'].forEach((id, i) => raster(ctx, env, `slide-${id}`, MX + i * (sw + gap), sy, sw, sh));
+    const tx = MX + 2 * (sw + gap);
+    layer(ctx, 'Tekst', () => text(ctx, maker('presentation').text, tx, sy, SAFE_RIGHT - 20 - tx, { size: 17, lh: 1.45, color: MUTED }));
+  }
+
+  /**
+   * De brief uit de Document Maker als vector: de maten van het A4 in
+   * css/document.css (794 × 1123 px, gemeten in de tool), geschaald naar hoogte h.
+   * Logo in Inkt linksboven, de afzender rechts, de teksten uit content.js
+   * (C.usage.letter). Het zeshoekpatroon rechtsboven in twee effen tinten (geen
+   * doorzichtigheid), geometrisch afgesneden op de pagina: geen uitknippad.
+   */
+  function letter(ctx, env, x, y, h) {
+    const L = C.usage.letter;
+    const s = h / 1123;
+    const X = (v) => x + v * s;
+    const Y = (v) => y + v * s;
     layer(ctx, 'Vormen', () => {
-      rule(ctx, MX, by - 34, 1290, RULE_DARK, 2);
       ctx.fillStyle = WHITE;
-      ctx.fillRect(MX + 300, by, 290, 150);
+      ctx.fillRect(x, y, 794 * s, h);
+      ctx.fillStyle = CYAN;
+      ctx.fillRect(x, y, 794 * s, 8 * s);
+      // Het patroon vervaagt vanuit de hoek rechtsboven (PATTERN_SVG in js/document/app.js):
+      // de sterke zeshoeken als lijn, de zwakke als vlak licht, de zwakste niet
+      const r = 34;
+      const cw = Math.sqrt(3) * r;
+      const box = { x0: 434, y0: 8, x1: 794, y1: 240 };
+      const strong = [];
+      const light = [];
+      for (let row = -1; row < 7; row++) {
+        const cy = row * 1.5 * r;
+        const shift = row % 2 ? cw / 2 : 0;
+        for (let cx = -cw + shift; cx < 360 + cw; cx += cw) {
+          const a = 0.42 * (1 - Math.hypot(360 - cx, cy) / 380);
+          if (a < 0.06) continue;
+          const pts = [];
+          for (let k = 0; k < 6; k++) {
+            const ang = (Math.PI / 3) * k - Math.PI / 2;
+            pts.push([434 + cx + r * Math.cos(ang), cy + r * Math.sin(ang)]);
+          }
+          (a >= 0.2 ? strong : light).push(pts);
+        }
+      }
+      [[light, CANVAS], [strong, LINE]].forEach(([list, color]) => {
+        ctx.beginPath();
+        for (const pts of list) {
+          for (let k = 0; k < 6; k++) {
+            const seg = clipSeg(pts[k], pts[(k + 1) % 6], box);
+            if (!seg) continue;
+            ctx.moveTo(X(seg[0][0]), Y(seg[0][1]));
+            ctx.lineTo(X(seg[1][0]), Y(seg[1][1]));
+          }
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(1, 1.2 * s);
+        ctx.stroke();
+      });
     });
-    if (env && env.badgeWhite) layer(ctx, 'Beeld', () => SVG.draw(ctx, env.badgeWhite, { x: MX, y: by + 25, w: 260, h: 100 }));
-    if (env && env.badgeBlack) layer(ctx, 'Beeld', () => SVG.draw(ctx, env.badgeBlack, { x: MX + 315, y: by + 25, w: 260, h: 100 }));
+    // Het logo in Inkt linksboven, 64 px hoog (zoals .a4__logo)
+    logo(ctx, env, X(72), Y(48), 64 * T.logo.aspect * s, INK, { example: true });
+    // Eén regel op een basislijn, of tekst met regelval vanaf een basislijn (maten in A4-px)
+    const L1 = (str, ax, base, size, o = {}) => line(ctx, str, X(ax), Y(base), { size: size * s, weight: o.weight || 400, color: o.color || INK, track: o.track || 0, align: o.align || 'left' });
+    const T1 = (str, ax, base, size, maxW, o = {}) => text(ctx, str, X(ax), Y(base) - size * s * CAP, maxW * s, {
+      size: size * s, weight: o.weight || 400, emWeight: o.emWeight || 700, lh: o.lh || 1.65, track: o.track || 0, color: o.color || INK, dot: o.dot,
+    });
     layer(ctx, 'Tekst', () => {
-      const bx = MX + 650;
-      line(ctx, C.usage.badge.title, bx, by + 18, { size: 23, weight: 700, color: WHITE });
-      const h = text(ctx, C.usage.badge.intro, bx, by + 40, 640, { size: 17, lh: 1.45, color: DIM });
-      bullets(ctx, C.usage.badge.rules, bx, by + 40 + h + 22, 640, { size: 17, lh: 1.4, color: WHITE, gap: 0.4 });
+      // Afzender rechtsboven
+      L1(C.company, 722, 61.1, 11, { weight: 700, align: 'right' });
+      L1(C.domain, 722, 78.1, 10.5, { color: MUTED, align: 'right' });
+      // Adres links, datum rechts
+      L.recipient.forEach((t, i) => L1(t, 72, 183.1 + i * 20.15, 13));
+      const dw = L1(L.date, 722, 182.6, 12, { weight: 700, align: 'right' }) / s;
+      L1('DATUM', 722 - dw - 18, 181.6, 9.5, { weight: 700, color: MUTED, align: 'right', track: 0.12 });
+      // Label en titel (het label in Blauw, zoals in de Document Maker)
+      L1(L.label.toUpperCase(), 91, 301.3, 10.5, { weight: 700, color: hex('blauw'), track: 0.12 });
+      T1(L.title, 72, 338.9, 28, 650, { weight: 800, emWeight: 800, track: -0.02, lh: 1.15, dot: true });
+      // De brief
+      L1(L.salutation, 72, 386.5, 13.5);
+      T1(L.intro, 72, 420.7, 13.5, 650);
+      L1(L.heading, 72, 489, 17, { weight: 700, track: -0.01 });
+      L.bullets.forEach((t, i) => T1(t, 94, 510.2 + i * 26.3, 13.5, 628));
+      L1(L.outro, 72, 585, 13.5);
+      L1(L.closing, 72, 635.3, 13.5);
+      L1(L.signature, 72, 699.7, 12, { color: MUTED });
+      // Voetregel: de bedrijfsgegevens
+      const fw = L1(C.company, 72, 1079.1, 9.5, { weight: 700 }) / s;
+      L1(` · ${C.domain}`, 72 + fw, 1079.1, 9.5, { color: MUTED });
+    });
+    layer(ctx, 'Vormen', () => {
+      // Zeshoekjes voor het label en de opsomming (cyaan, punt boven), en de lijn boven de voet
+      K.hexPath(ctx, X(77.5), Y(297.25), 6.35 * s);
+      ctx.fillStyle = CYAN;
+      ctx.fill();
+      ctx.beginPath();
+      L.bullets.forEach((_, i) => K.addHex(ctx, X(79.5), Y(505.95 + i * 26.3), 4.05 * s));
+      ctx.fill();
+      rule(ctx, X(72), Y(1054.8), 650 * s, LINE, Math.max(1, s));
     });
   }
 
-  function colofon(ctx, P, env) {
-    const w = 230;
-    const h = w / T.logo.aspect;
-    logo(ctx, env, (W - w) / 2, 150, w, WHITE);
-    layer(ctx, 'Tekst', () => {
-      text(ctx, C.company, MX, 150 + h + 70, CW, { size: 48, weight: 800, track: -0.01, lh: 1.1, color: WHITE, dot: true, align: 'center' });
-      line(ctx, C.slogan, W / 2, 150 + h + 170, { size: 26, color: DIM, align: 'center', italic: true });
-      // pureminds.nl in het midden, met de cyaan punt
-      font(ctx, 700, 30, 0.02);
-      let x = (W - ctx.measureText('pureminds.nl').width) / 2;
-      [['pureminds', WHITE], ['.', CYAN], ['nl', WHITE]].forEach(([part, color]) => {
-        x += line(ctx, part, x, 150 + h + 230, { size: 30, weight: 700, color, track: 0.02 });
-      });
+  // Een lijnstuk afsnijden op een rechthoek (Liang-Barsky): zo is er geen uitknippad nodig
+  function clipSeg(a, b, r) {
+    let t0 = 0;
+    let t1 = 1;
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    for (const [p, q] of [[-dx, a[0] - r.x0], [dx, r.x1 - a[0]], [-dy, a[1] - r.y0], [dy, r.y1 - a[1]]]) {
+      if (p === 0) {
+        if (q < 0) return null;
+      } else {
+        const t = q / p;
+        if (p < 0) t0 = Math.max(t0, t);
+        else t1 = Math.min(t1, t);
+      }
+    }
+    if (t0 > t1) return null;
+    return [[a[0] + t0 * dx, a[1] + t0 * dy], [a[0] + t1 * dx, a[1] + t1 * dy]];
+  }
+
+  // De brief uit de Document Maker, en de Emerce 100-badge
+  function documenten(ctx, P, env) {
+    head(ctx, P, 'Gebruik', 'Documenten en keurmerk.');
+    // Links: de brief op een licht vlak (een wit vlak krijgt geen rand)
+    const bx = MX;
+    const by = 236;
+    const bw = 640;
+    const bh = 836;
+    layer(ctx, 'Vormen', () => {
+      ctx.fillStyle = CANVAS;
+      ctx.fillRect(bx, by, bw, bh);
     });
-    const y = 820;
-    layer(ctx, 'Vormen', () => rule(ctx, MX, y - 30, CW, RULE_DARK, 2));
+    const lh = bh - 72;
+    letter(ctx, env, bx + (bw - (794 * lh) / 1123) / 2, by + 36, lh);
+    // Rechts: wat de Document Maker doet, en de badge
+    const x = 820;
+    const w = W - MX - x;
+    const doc = C.usage.makers.find((m) => m.id === 'document');
+    let y = 262;
+    caption(ctx, doc, x, y + 18);
     layer(ctx, 'Tekst', () => {
-      label(ctx, 'Colofon', MX, y, { color: WHITE });
-      let yy = y + 40;
-      C.colophon.lines.forEach((l) => {
-        yy += text(ctx, l, MX, yy, 640, { size: 16, lh: 1.45, color: DIM }) + 10;
-      });
-      label(ctx, 'Nieuw in 2.1', 860, y, { color: WHITE });
-      const half = Math.ceil(C.colophon.news.length / 2);
-      bullets(ctx, C.colophon.news.slice(0, half), 860, y + 40, 390, { size: 16, lh: 1.4, color: WHITE, gap: 0.35 });
-      bullets(ctx, C.colophon.news.slice(half), 1270, y + 40, W - MX - 1270, { size: 16, lh: 1.4, color: WHITE, gap: 0.35 });
+      y += 44 + text(ctx, doc.text, x, y + 44, w, { size: 20, lh: 1.5, color: INK });
+    });
+    y += 70;
+    layer(ctx, 'Vormen', () => rule(ctx, x, y - 34, w));
+    // De badge: wit op Inkt, zwart op de witte pagina
+    layer(ctx, 'Vormen', () => {
+      ctx.fillStyle = INK;
+      ctx.fillRect(x, y, 300, 130);
+    });
+    if (env && env.badgeWhite) layer(ctx, 'Beeld', () => SVG.draw(ctx, env.badgeWhite, { x: x + 25, y: y + 22, w: 250, h: 86 }));
+    if (env && env.badgeBlack) layer(ctx, 'Beeld', () => SVG.draw(ctx, env.badgeBlack, { x: x + 340, y: y + 22, w: 250, h: 86 }));
+    y += 130 + 52;
+    layer(ctx, 'Tekst', () => {
+      line(ctx, C.usage.badge.title, x, y + 16, { size: 23, weight: 700, color: INK });
+      const h = text(ctx, C.usage.badge.intro, x, y + 40, w, { size: 18, lh: 1.45, color: MUTED });
+      bullets(ctx, C.usage.badge.rules, x, y + 40 + h + 22, SAFE_RIGHT - 20 - x, { size: 18, lh: 1.42, color: INK, gap: 0.45 });
+    });
+  }
+
+  // Het colofon, tijdloos: logo, naam en slogan; daaronder contact, over dit brandbook en de
+  // bronnen (met de fotografen). Geen versie of datum: de styleguide is altijd actueel
+  function colofon(ctx, P, env) {
+    const w = 210;
+    const h = w / T.logo.aspect;
+    const ly = 128;
+    logo(ctx, env, (W - w) / 2, ly, w, WHITE);
+    layer(ctx, 'Tekst', () => {
+      text(ctx, C.company, MX, ly + h + 64, CW, { size: 48, weight: 800, track: -0.01, lh: 1.1, color: WHITE, dot: true, align: 'center' });
+      line(ctx, C.slogan, W / 2, ly + h + 160, { size: 26, color: DIM, align: 'center', italic: true });
+      line(ctx, C.colophon.signoff, W / 2, ly + h + 212, { size: 20, color: DIM, align: 'center' });
+    });
+    const y = 700;
+    layer(ctx, 'Vormen', () => rule(ctx, MX, y - 40, CW, RULE_DARK, 2));
+    const cols = [MX, 640, 1110];
+    const K2 = C.colophon;
+    layer(ctx, 'Tekst', () => {
+      label(ctx, 'Contact', cols[0], y, { color: WHITE });
+      [C.contact.web, C.contact.phone, C.contact.email].forEach((t, i) => line(ctx, t, cols[0], y + 66 + i * 40, { size: 24, weight: 700, color: WHITE }));
+      label(ctx, 'Over dit brandbook', cols[1], y, { color: WHITE });
+      const ah = text(ctx, K2.about, cols[1], y + 44, 430, { size: 17, lh: 1.5, color: DIM });
+      text(ctx, K2.rights, cols[1], y + 44 + ah + 24, 430, { size: 15, lh: 1.45, color: DIM });
+      label(ctx, 'Bronnen', cols[2], y, { color: WHITE });
+      const sh = text(ctx, K2.sources, cols[2], y + 44, W - MX - cols[2], { size: 17, lh: 1.5, color: DIM });
+      text(ctx, M.photoLine(C), cols[2], y + 44 + sh + 14, W - MX - cols[2], { size: 17, lh: 1.5, color: DIM });
     });
   }
 
@@ -1158,7 +1386,8 @@
     typografie: { fn: typografie },
     beeldtaal: { fn: beeldtaal, dark: true },
     iconen: { fn: iconen },
-    toepassingen: { fn: toepassingen, dark: true },
+    toepassingen: { fn: toepassingen },
+    documenten: { fn: documenten },
     colofon: { fn: colofon, dark: true, pattern: true, logo: true },
   };
 

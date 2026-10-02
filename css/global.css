@@ -10,14 +10,12 @@
  * (A4-briefpapier, slides) hoort ook daar, niet in dit bestand.
  */
 
-@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Light.ttf") format("truetype"); font-weight: 300; font-display: swap; }
+/* Alleen Regular 400, Bold 700 en ExtraBold 800, met cursief: elke snede is een download.
+   De andere bestanden in assets/fonts laden we niet; vraagt iets toch 600, dan kiest de browser Bold. */
 @font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
 @font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-ExtraBold.ttf") format("truetype"); font-weight: 800; font-display: swap; }
-@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-LightItalic.ttf") format("truetype"); font-weight: 300; font-style: italic; font-display: swap; }
 @font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-Italic.ttf") format("truetype"); font-weight: 400; font-style: italic; font-display: swap; }
-@font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-SemiBoldItalic.ttf") format("truetype"); font-weight: 600; font-style: italic; font-display: swap; }
 @font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-BoldItalic.ttf") format("truetype"); font-weight: 700; font-style: italic; font-display: swap; }
 @font-face { font-family: "Pure Minds Sans"; src: url("../assets/fonts/PureMindsSans-ExtraBoldItalic.ttf") format("truetype"); font-weight: 800; font-style: italic; font-display: swap; }
 
@@ -99,7 +97,7 @@ kbd {
 .topstrip {
   background: var(--pm-cyan); color: var(--pm-ink);
   padding: .375rem 1rem; text-align: center;
-  font-size: .75rem; font-weight: 600;
+  font-size: .75rem; font-weight: 700;
 }
 .topstrip a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .topstrip a:hover { text-decoration: none; }
@@ -164,7 +162,7 @@ kbd {
 .field-hint { font-size: .75rem; color: var(--pm-muted); }
 .label { display: flex; align-items: baseline; gap: .375rem; flex-wrap: wrap; font-size: .8125rem; font-weight: 700; }
 .label i { font-style: normal; font-weight: 400; font-size: .75rem; color: var(--pm-muted); }
-.label output { margin-left: auto; font-weight: 600; color: var(--pm-blue); font-variant-numeric: tabular-nums; }
+.label output { margin-left: auto; font-weight: 700; color: var(--pm-blue); font-variant-numeric: tabular-nums; }
 .label__slide { font-size: .6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--pm-blue); background: var(--pm-tint); padding: 0 .4rem; }
 
 .field-badge {
@@ -188,7 +186,7 @@ kbd {
   border-top: 1px solid var(--pm-line); padding-top: 1rem;
   font-size: .75rem; color: var(--pm-muted);
 }
-.linkbtn { background: none; border: 0; padding: .375rem .5rem; margin-right: -.5rem; font-weight: 600; color: var(--pm-muted); white-space: nowrap; }
+.linkbtn { background: none; border: 0; padding: .375rem .5rem; margin-right: -.5rem; font-weight: 700; color: var(--pm-muted); white-space: nowrap; }
 .linkbtn:hover { color: var(--pm-magenta); }
 
 /* --- Invoervelden --- */
@@ -204,7 +202,7 @@ textarea.input { resize: vertical; line-height: 1.5; min-height: 2.75rem; }
 .input::placeholder { color: #8d99a3; }
 .input:focus { outline: none; border-color: var(--pm-cyan); box-shadow: 0 0 0 4px rgba(26, 185, 226, .18); }
 .input--select {
-  width: auto; padding: .45rem 2rem .45rem .75rem; font-size: .8125rem; font-weight: 600;
+  width: auto; padding: .45rem 2rem .45rem .75rem; font-size: .8125rem; font-weight: 700;
   appearance: none; -webkit-appearance: none;
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c6670' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right .6rem center / .85rem no-repeat;
 }
@@ -402,7 +400,7 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
   font-size: .75rem; line-height: 1.5;
   background: var(--pm-track); color: var(--pm-muted); font-variant-numeric: tabular-nums;
 }
-.pill-info { background: var(--pm-tint); color: var(--pm-blue); font-weight: 600; }
+.pill-info { background: var(--pm-tint); color: var(--pm-blue); font-weight: 700; }
 
 /* --- Toast --- */
 
@@ -411,7 +409,7 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
   transform: translate(-50%, 1rem); opacity: 0; pointer-events: none;
   max-width: calc(100vw - 2rem);
   background: var(--pm-ink); color: #fff; border-left: 4px solid var(--pm-cyan);
-  padding: .6rem 1rem; font-size: .8125rem; font-weight: 600;
+  padding: .6rem 1rem; font-size: .8125rem; font-weight: 700;
   box-shadow: 0 18px 40px -16px rgba(16, 40, 60, .5);
   transition: opacity .2s, transform .2s;
 }
@@ -453,7 +451,7 @@ input[type="range"] { width: 100%; margin: .25rem 0; accent-color: var(--pm-cyan
   display: flex; align-items: center; gap: .625rem; flex: 1; min-width: 0;
   min-height: 2.75rem; padding: .3rem .75rem .3rem .3rem;
   border: 1px dashed var(--pm-border); background: var(--pm-soft);
-  font-size: .8125rem; font-weight: 600; color: var(--pm-blue); text-align: left; cursor: pointer;
+  font-size: .8125rem; font-weight: 700; color: var(--pm-blue); text-align: left; cursor: pointer;
   transition: border-color .15s, background-color .15s;
 }
 .file-tile__btn:hover, .file-tile__btn.is-over { border-color: var(--pm-cyan); background: var(--pm-tint); }
@@ -534,7 +532,7 @@ canvas.needs-photo { cursor: pointer; }
 .toolnav { display: flex; align-items: center; gap: .25rem; flex: none; }
 .toolnav a {
   display: inline-flex; align-items: center; gap: .4rem;
-  padding: .4rem .65rem; font-size: .8125rem; font-weight: 600;
+  padding: .4rem .65rem; font-size: .8125rem; font-weight: 700;
   color: var(--pm-muted); text-decoration: none;
   border-bottom: 3px solid transparent;
   transition: color .15s, border-color .15s, background-color .15s;
@@ -564,7 +562,7 @@ canvas.needs-photo { cursor: pointer; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
-.noscript { margin: 1rem; padding: 1rem; border-left: 4px solid var(--pm-magenta); background: #fbe8ee; color: #9e1744; font-weight: 600; }
+.noscript { margin: 1rem; padding: 1rem; border-left: 4px solid var(--pm-magenta); background: #fbe8ee; color: #9e1744; font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }

@@ -8,12 +8,17 @@
    het paneel (alleen op een breed scherm, en alleen als er een paneel open staat).
 
    Panelen: teksten en kleurwaarden kopiëren, logo's downloaden, de clear space
-   tonen, contrast checken, de 60/30/10-regel, de typeschaal als CSS, een
-   fotocheck, de icoonvarianten en de Emerce-badge. Zoeken (appbalk) doorzoekt
-   alle teksten (js/styleguide/model.js) en springt naar de pagina.
+   tonen, contrast checken (met waarom), de 60/30/10-regel (met waarom), de
+   typeschaal als CSS met de uitleg voor Canva, een fotocheck, de icoonvarianten
+   en de Emerce-badge. Zoeken (appbalk) doorzoekt alle teksten
+   (js/styleguide/model.js) en springt naar de pagina.
+
+   Beelden: foto's en echte posts en slides komen uit js/styleguide/mockups.js
+   (env.raster). Tot ze geladen zijn, staat op die plek het lege fotovlak; daarna
+   tekenen de pagina's en miniaturen opnieuw. De export wacht erop.
 
    Opslag in PM.store 'pm-styleguide-v1': variant, clear space, compositie,
-   contrastkleuren, logobreedte en de fotocheck.
+   contrastkleuren, logobreedte, de fotocheck en of de type-uitleg open staat.
    ============================================================================= */
 (function () {
   'use strict';
@@ -50,17 +55,23 @@
       logoW: Number.isFinite(Number(s.logoW)) && Number(s.logoW) > 0 ? Math.round(Number(s.logoW)) : 116,
       checks: Array.isArray(s.checks) ? [...new Set(s.checks.filter((n) => Number.isInteger(n) && n >= 0 && n < C.imagery.checks.length))] : [],
       page: Number.isInteger(s.page) ? Math.max(0, Math.min(S.pages.length - 1, s.page)) : 0,
+      typeExplain: s.typeExplain !== false,
     };
   }
   const state = load();
-  const save = PM.debounce(() => PM.store.set(KEY, state), 250);
+  const save = PM.debounce(() => PM.store.set(KEY, state), 250, { flushOnHide: true });
 
-  // Logo en badge één keer als paden (ingebedde kopie: werkt ook vanaf schijf)
+  // Logo en badge één keer als paden (ingebedde kopie: werkt ook vanaf schijf); foto's en
+  // echte posts en slides als beeld (null zolang ze laden: dan het lege fotovlak)
   const env = {
     logo: SVG.parseSvg(PM.brandSvg('logoWhiteSvg')),
     badgeWhite: SVG.parseSvg(PM.brandSvg('badgeWhite')),
     badgeBlack: SVG.parseSvg(PM.brandSvg('badgeBlack')),
+    raster: (id, w, h) => window.PMStyleguideMockups.raster(id, w, h),
   };
+  // Fonts, foto's en het logo voor de posts: { ok, missing }. Faalt nooit
+  const imagesReady = window.PMStyleguideMockups.ready();
+  const MISSING = 'Niet alle foto’s zijn geladen; op die plek staat een leeg fotovlak.';
 
   const chapterOf = (i) => S.pages[i].chapter;
   const firstOf = (chapter) => S.pages.find((p) => p.chapter === chapter).index;
@@ -417,6 +428,12 @@
     copy(M.copyValue(c, b.dataset.kind), `${b.dataset.kind.toUpperCase()} van ${c.name}`, b);
   });
 
+  // Waarom contrast en waarom 60/30/10: dezelfde uitleg als onderaan de pagina
+  $$('[data-why]').forEach((p) => {
+    const part = C.colors.why.find((w) => w.id === p.dataset.why);
+    if (part) p.innerHTML = `<b>${esc(part.title)}?</b> ${esc(part.text)}`;
+  });
+
   // Contrast tussen twee merkkleuren
   const fg = $('#contrastFg');
   const bg = $('#contrastBg');
@@ -495,11 +512,49 @@
     t.upper ? 'text-transform: uppercase;' : '',
     t.color ? `color: ${t.color};` : '',
   ].filter(Boolean).join(' ');
+  // Uitleg: zo lees je de maten. Het voorbeeld is de maat van Heading 1 (dezelfde als op de
+  // pagina, uit model.js), met een nummer per deel; de lijst legt elk nummer uit, ook voor Canva
+  const explain = $('#typeExplain');
+  const spec = M.typeSpec(T.type[0], T);
+  $('#typeSample').innerHTML = [spec.weight, spec.size, spec.track]
+    .map((p, i) => `<span class="sg-explain__part" data-part="${i + 1}">${esc(p)}<i aria-hidden="true">${i + 1}</i></span>`)
+    .join('<span class="sg-explain__sep" aria-hidden="true">·</span>');
+  $('#typeLegend').innerHTML = C.type.legend.parts.map((p, i) => `
+    <li data-part="${i + 1}"><i class="sg-explain__no" aria-hidden="true">${i + 1}</i><span><b>${esc(p.key)}</b> = ${esc(p.title.toLowerCase())}<span class="sg-explain__text">${esc(p.text)}</span></span></li>`).join('');
+  explain.open = state.typeExplain;
+  explain.addEventListener('toggle', () => {
+    state.typeExplain = explain.open;
+    save();
+  });
+  // Een deel aanwijzen licht het nummer in het voorbeeld en de uitleg samen op: met de muis bij
+  // hover, op een aanraakscherm met een tik (nog een tik zet het uit)
+  let pointer = 'mouse';
+  const markPart = (n) => $$('[data-part]', explain).forEach((el) => el.classList.toggle('is-on', el.dataset.part === n));
+  const partOf = (e) => e.target.closest('[data-part]');
+  explain.addEventListener('pointerdown', (e) => { pointer = e.pointerType; });
+  explain.addEventListener('pointerover', (e) => {
+    if (e.pointerType === 'touch') return;
+    const el = partOf(e);
+    markPart(el ? el.dataset.part : null);
+  });
+  explain.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') markPart(null); });
+  explain.addEventListener('click', (e) => {
+    if (pointer !== 'touch') return;
+    const el = partOf(e);
+    markPart(el && !el.classList.contains('is-on') ? el.dataset.part : null);
+  });
+
+  // De typeschaal: elke maat met een tooltip per deel, en zoals je hem in Canva invult
   $('#typeScale').innerHTML = T.type.map((t, i) => {
-    const wName = T.font.weights.find((f) => f.weight === t.weight).name;
+    const s = M.typeSpec(t, T);
+    const parts = [
+      `<abbr title="letterdikte (font weight)">${esc(s.weight)}</abbr>`,
+      `<abbr title="lettergrootte / regelafstand">${esc(s.size)}</abbr>`,
+      s.track ? `<abbr title="letterafstand (tracking)">${esc(s.track)}</abbr>` : '',
+    ].filter(Boolean).join(' · ');
     return `<li class="sg-scale__row">
       <span class="sg-scale__sample" style="font-weight:${t.weight};font-size:${Math.min(t.size, 40)}px;line-height:1.15;letter-spacing:${t.track}em;${t.upper ? 'text-transform:uppercase;' : ''}${t.color ? `color:${t.color};` : ''}">${esc(t.name)}</span>
-      <span class="sg-scale__spec">${wName} ${t.weight} · ${t.size}/${t.line}${t.track ? ` · ${t.track > 0 ? '+' : '−'}${Math.abs(t.track * 100)}%` : ''}</span>
+      <span class="sg-scale__spec">${parts}<span class="sg-scale__canva">${esc(M.canvaSpec(t).text)}</span></span>
       <span class="sg-scale__use">${esc(C.type.usage[t.id])}${t.size > 40 ? ' · hier verkleind' : ''}</span>
       <button type="button" class="btn btn-quiet btn-xs" data-copy-css="${i}" aria-label="kopieer css van ${esc(t.name)}">kopieer css</button>
     </li>`;
@@ -540,12 +595,16 @@
      Iconen: de vier zeshoeken met een voorbeeld, zoals in de Icon Finder
      ------------------------------------------------------------------------- */
 
-  const sample = C.iconPaths.lightbulb.d;
-  $('#iconVariants').innerHTML = C.icons.variants.map((v) => `
+  // Uitgesneden in de witte zeshoek de volle stijl (Fill), in de andere de lijnstijl
+  const bulb = C.iconPaths.lightbulb;
+  $('#iconVariants').innerHTML = C.icons.variants.map((v) => {
+    const preset = window.PMHex.presets[v.preset];
+    return `
     <li class="sg-variant${v.preset === 'wit' ? ' is-dark' : ''}">
-      <span class="sg-variant__art" aria-hidden="true">${window.PMHex.svg(sample, { shape: 'hex', ...window.PMHex.presets[v.preset], height: 40 })}</span>
+      <span class="sg-variant__art" aria-hidden="true">${window.PMHex.svg(preset.knockout ? bulb.fill : bulb.d, { shape: 'hex', ...preset, height: 40 })}</span>
       <span class="sg-variant__txt"><b>${esc(v.name)}</b><i>${esc(v.sub)}</i></span>
-    </li>`).join('');
+    </li>`;
+  }).join('');
 
   /* ---------------------------------------------------------------------------
      Gebruik: de badge downloaden
@@ -563,23 +622,28 @@
 
   const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
+  // Na een PDF: de melding, met een waarschuwing als er foto's ontbreken (dan staat er een leeg vlak)
+  const pdfToast = (msg, images) => (images && images.missing.length ? toast(`${msg}. ${MISSING}`, true) : toast(msg));
+
   const EXPORTS = {
     pdf: {
       busy: 'pdf maken…',
-      async task(progress) {
+      images: true,
+      async task(progress, images) {
         const r = await X.pdf(null, env, progress);
-        toast(r.parts > 1
+        pdfToast(r.parts > 1
           ? `Gedownload: ${r.name}, ${r.parts} PDF's (samen ${fmt(r.elements)} elementen, te veel voor één import in Canva)`
-          : `Gedownload: ${r.name} (${S.pages.length} pagina's, ${fmt(r.elements)} elementen)`);
+          : `Gedownload: ${r.name} (${S.pages.length} pagina's, ${fmt(r.elements)} elementen)`, images);
         return 'pdf gedownload';
       },
     },
     'pdf-hoofdstuk': {
       busy: 'pdf maken…',
-      async task(progress) {
+      images: true,
+      async task(progress, images) {
         const ch = chapterOf(Math.max(0, current));
         const r = await X.pdf(ch, env, progress);
-        toast(`Gedownload: ${r.name} (${chapterName(ch)})`);
+        pdfToast(`Gedownload: ${r.name} (${chapterName(ch)})`, images);
         return 'pdf gedownload';
       },
     },
@@ -613,10 +677,11 @@
 
   function runExport(kind, button) {
     const btn = button && button.getClientRects().length && !button.closest('.menu__list') ? button : el.exportBtn;
-    const { busy, task } = EXPORTS[kind];
+    const { busy, task, images } = EXPORTS[kind];
     return PM.run(btn, busy, async (progress) => {
       await PM.fontsReady;
-      const done = await task(progress);
+      // De foto's en de echte posts en slides horen in de PDF: wacht tot ze er zijn (of niet laden)
+      const done = await task(progress, images ? await imagesReady : null);
       if (PM.tour) PM.tour.signal('export');
       return done;
     });
@@ -795,6 +860,11 @@
       renderLogoPreview();
       renderRatio();
     }));
+    // Foto's, posts en slides geladen: de pagina's en miniaturen opnieuw (eerst stond er het lege fotovlak)
+    imagesReady.then(() => {
+      redrawVisible();
+      renderThumbs();
+    });
     // Vanaf het dashboard: ?q=magenta zoekt meteen
     if (params.q) {
       if (fieldHidden()) openSearch();
@@ -804,7 +874,7 @@
     }
   });
 
-  // Voor de controle in de browser: een pagina op schaal als PNG
+  // Voor de controle in de browser: een pagina op schaal als PNG, de beelden (env) en wanneer ze er zijn
   window.PMStyleguideApp = {
     pagePng(i, scale = 1, overlay = false) {
       const c = document.createElement('canvas');
@@ -812,6 +882,8 @@
       return c.toDataURL('image/png');
     },
     goTo,
+    env,
+    ready: imagesReady,
     get current() { return current; },
   };
 })();

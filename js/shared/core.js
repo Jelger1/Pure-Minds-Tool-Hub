@@ -21,7 +21,7 @@
      PM.libs               jsPDF, svg2pdf, JSZip, docx en pdf-lib, pas geladen bij de eerste export
      PM.pdfFonts(pdf)      Pure Minds Sans insluiten in een PDF (echte, bewerkbare tekst)
      PM.pdfDocument(opts)  een nieuwe PDF zoals alle makers hem maken; PM.pdfFinish(pdf, meta) -> Blob
-     PM.fontFiles()        Pure Minds Sans als bytes per snede (voor Word en PowerPoint)
+     PM.fontFiles()        Pure Minds Sans als bytes per snede (voor Word)
      PM.brandImage(key)    logo als Image, met ingebedde kopie bij file://
      PM.brandSvg(key)      logo als SVG-tekst (vector in PDF's)
      PM.fontsReady         belofte die klaar is als Pure Minds Sans geladen is
@@ -588,8 +588,7 @@
     const w = parseInt(weight, 10) || 400;
     if (italic) return w >= 600 ? 'bolditalic' : 'italic';
     if (w >= 800) return 'extrabold';
-    if (w >= 700) return 'bold';
-    if (w >= 600) return 'semibold';
+    if (w >= 600) return 'bold';   // zonder 600-snede kiest de browser ook Bold
     return 'normal';
   }
 
@@ -602,7 +601,7 @@
    *     ("PureMindsSans-ExtraBold"); daarna weer de familienaam, zodat setFont blijft werken.
    *   - jsPDF schrijft /StemV 0, en PDFium (waar veel importers op bouwen) leidt
    *     het gewicht alleen daaruit af: StemV = gewicht/5 (onder 700) of
-   *     (gewicht-140)/4 geeft daar precies 400/600/700/800. De CapHeight staat
+   *     (gewicht-140)/4 geeft daar precies 400/700/800. De CapHeight staat
    *     in font-eenheden in plaats van per 1000. Geen van beide verandert de weergave.
    */
   async function pdfFonts(pdf, styles) {
@@ -663,16 +662,37 @@
      Fonts: canvas en de PDF-export kennen alleen fonts die al geladen zijn
      ------------------------------------------------------------------------- */
 
+  // Alleen de drie gewichten van de huisstijl (meer snedes staan niet in css/global.css)
   const fontsReady = document.fonts
-    ? Promise.all([300, 400, 600, 700, 800].map((w) => document.fonts.load(`${w} 40px "Pure Minds Sans"`))).then(() => document.fonts.ready).catch(() => null)
+    ? Promise.all([400, 700, 800].map((w) => document.fonts.load(`${w} 40px "Pure Minds Sans"`))).then(() => document.fonts.ready).catch(() => null)
     : Promise.resolve();
 
-  const debounce = (fn, ms) => {
+  const debounce = (fn, ms, { flushOnHide = false } = {}) => {
     let t = 0;
-    return (...args) => {
+    let pending = null;
+    const flush = () => {
       clearTimeout(t);
-      t = setTimeout(() => fn(...args), ms);
+      t = 0;
+      if (!pending) return;
+      const args = pending;
+      pending = null;
+      return fn(...args);
     };
+    const delayed = (...args) => {
+      clearTimeout(t);
+      pending = args;
+      t = setTimeout(flush, ms);
+    };
+    delayed.flush = flush;
+    // Alleen opslaan: render- en zoekfuncties hoeven bij verlaten niet meer te draaien.
+    // pagehide dekt herladen/navigeren; hidden bewaart ook vóór een mobiel tabblad stopt.
+    if (flushOnHide) {
+      global.addEventListener('pagehide', flush);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flush();
+      });
+    }
+    return delayed;
   };
 
   const uid = () => Math.random().toString(36).slice(2, 10);

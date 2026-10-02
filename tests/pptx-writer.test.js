@@ -187,7 +187,7 @@ function fixture() {
     { kind: 'pic', x: 0, y: 0, w: 960, h: 1080, image: img, crop: { l: 0.2, t: 0.1, r: 0, b: 0.3 } },
     { kind: 'text', x: 128, y: 190.1, w: 1433, h: 600, anchor: 't', autofit: 'shrink', name: 'Tekst', paragraphs: [
       { runs: [{ text: 'Missie', size: 88, weight: 800, track: -0.02, color: '#ffffff' }], lh: 1.08, spcBef: 0 },
-      { runs: [run, { text: 'nadruk', size: 42, weight: 600, italic: true, color: '#1ab9e2', alpha: 0.5 }], lh: 1.45, spcBef: 21.3, bullet: { char: '⬢', font: 'Segoe UI Symbol', color: '#1ab9e2', size: 0.75 }, indent: 48.3 },
+      { runs: [run, { text: 'nadruk', size: 42, weight: 700, italic: true, color: '#1ab9e2', alpha: 0.5 }], lh: 1.45, spcBef: 21.3, bullet: { char: '⬢', font: 'Segoe UI Symbol', color: '#1ab9e2', size: 0.75 }, indent: 48.3 },
       { runs: [{ text: 'rechts', size: 30, weight: 400 }], lh: 1.45, align: 'r' },
       { runs: [], endSize: 20 },
       { runs: [{ text: 'plaatje', size: 30, weight: 400 }], bullet: { image: img2, size: 0.8 } },
@@ -236,9 +236,20 @@ test('bestaande soorten schrijven exact dezelfde XML als voor de ovaal en de lij
   // De rest als vingerafdruk, gemaakt met de schrijver van vóór de nieuwe soorten. Verandert
   // de XML van een bestaande soort bewust, maak de vingerafdruk dan opnieuw.
   // Bewust veranderd: de regelafstand is lh / 1,2 (zie de test hieronder) en het lettertype heet
-  // Pure Minds Sans (was Open Sans); de rest is gelijk
+  // Pure Minds Sans (was Open Sans); de nadruk staat op 700, want een aparte 600-snede is er niet
+  // meer (600 wordt Bold, zie de test hieronder); de rest is gelijk
   const hash = crypto.createHash('sha256').update(out.join('\n')).digest('hex');
-  assert.equal(hash, 'f7f061c6f672df98a4a16cd6fa655cbc49c6fa14ba08e1d5f58f4604756995ea');
+  assert.equal(hash, '6743697512bc0715cc148f453a6d90d7a94b7c71f119346b6bf85a9c15295b68');
+});
+
+test('gewicht: 600 en 700 worden Pure Minds Sans vet (zoals de browser 600 als Bold toont), 800 de familie ExtraBold', () => {
+  const xml = (weight) => writer().paraXml({ runs: [{ text: 'x', size: 36, weight }] }, writer().part());
+  assert.equal(xml(600), xml(700));
+  assert.match(xml(700), /<a:rPr [^>]*b="1"[^>]*>.*<a:latin typeface="Pure Minds Sans"\/>/);
+  assert.match(xml(800), /<a:latin typeface="Pure Minds Sans ExtraBold"\/>/);
+  assert.doesNotMatch(xml(800), /b="1"/);
+  assert.match(xml(400), /<a:latin typeface="Pure Minds Sans"\/>/);
+  assert.doesNotMatch(xml(400), /b="1"/);
 });
 
 test('regelafstand: lh gedeeld door 1,2, want 100% is in PowerPoint 1,2 × het korps', () => {

@@ -22,7 +22,6 @@
   'use strict';
 
   const TOKENS = {
-    version: '2.1',
     company: 'Pure Minds Marketing Group',
     domain: 'pureminds.nl',
 
@@ -31,11 +30,9 @@
       postscript: 'PureMindsSans',
       stack: '"Pure Minds Sans", "Open Sans", Arial, sans-serif',
       fallback: 'Open Sans',
-      // Medium 500 uit v2.0 is geschrapt: daar is geen fontbestand van
+      // Alleen deze drie gewichten (plus cursief): de tools laden niet meer dan nodig
       weights: [
-        { weight: 300, name: 'Light' },
         { weight: 400, name: 'Regular' },
-        { weight: 600, name: 'SemiBold' },
         { weight: 700, name: 'Bold' },
         { weight: 800, name: 'ExtraBold' },
       ],

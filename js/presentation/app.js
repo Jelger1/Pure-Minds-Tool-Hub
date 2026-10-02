@@ -324,7 +324,7 @@
   const tourStatus = (PM.store.get(TOUR_KEY, null) || {}).status;
   if (!tourStatus || tourStatus === 'nieuw' || tourStatus === 'bezig') state.active = 0;
 
-  const save = PM.debounce(() => PM.store.set(KEY, state), 300);
+  const save = PM.debounce(() => PM.store.set(KEY, state), 300, { flushOnHide: true });
   const current = () => state.slides[state.active];
   const layoutOf = (slide) => S.LAYOUTS.find((l) => l.id === slide.layout) || S.LAYOUTS[0];
   // De naam van een layout in deze soort (de positionering: Waarde Propositie Canvas)

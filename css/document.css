@@ -67,7 +67,8 @@
 .rte h2 { font-size: 1.05rem; font-weight: 700; }
 .rte h3 { font-size: .9rem; font-weight: 700; }
 .rte ul, .rte ol { padding-left: 1.25rem; }
-.rte blockquote { border-left: 3px solid var(--pm-cyan); padding-left: .75rem; font-weight: 600; }
+.rte blockquote { border-left: 3px solid var(--pm-cyan); padding-left: .75rem; font-weight: 700; }
+.rte blockquote strong { font-weight: 800; }   /* het citaat is al Bold: vet erin wordt ExtraBold */
 .rte:empty::before { content: 'Typ of plak hier de tekst van je document…'; color: #8d99a3; }
 
 /* De werkbalk hoort bij de tekst: alleen zichtbaar als het paneel Tekst open is */
@@ -80,7 +81,7 @@
 .sum { margin: 0; font-size: .8125rem; }
 .sum > div { display: flex; justify-content: space-between; gap: 1rem; padding: .2rem 0; }
 .sum dt { color: var(--pm-muted); }
-.sum dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sum dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 .sum .is-total { margin-top: .25rem; padding-top: .45rem; border-top: 3px solid var(--pm-cyan); font-size: .9375rem; }
 .sum .is-total dt, .sum .is-total dd { color: var(--pm-ink); font-weight: 800; }
 
@@ -222,7 +223,7 @@
 
 .a4--next .a4__head { top: 40px; align-items: center; }
 .a4--next .a4__logo { height: 40px; }
-.a4__running { font-size: 10.5px; font-weight: 600; color: var(--pm-muted); max-width: 60%; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.a4__running { font-size: 10.5px; font-weight: 700; color: var(--pm-muted); max-width: 60%; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Tekstvak: hier lopen de blokken in; alles wat niet past gaat naar de volgende pagina */
 .a4__body { position: absolute; left: 72px; right: 72px; top: 168px; bottom: 112px; overflow: hidden; }
@@ -261,8 +262,9 @@
 .a4__flow h3 { font-size: 14px; font-weight: 700; line-height: 1.4; margin-top: 18px !important; }
 .a4__flow > h2:first-child, .a4__flow > h3:first-child { margin-top: 0 !important; }
 .a4__flow strong { font-weight: 700; }
+.a4__flow blockquote strong { font-weight: 800; }   /* zoals in de editor: vet in een citaat is ExtraBold */
 .a4__flow u { text-decoration-color: var(--pm-cyan); text-decoration-thickness: 2px; text-underline-offset: 2px; }
-.a4__flow blockquote { margin: 0; padding: 2px 0 2px 16px; border-left: 3px solid var(--pm-cyan); font-size: 15px; font-weight: 600; line-height: 1.55; }
+.a4__flow blockquote { margin: 0; padding: 2px 0 2px 16px; border-left: 3px solid var(--pm-cyan); font-size: 15px; font-weight: 700; line-height: 1.55; }
 
 /* Opsommingen met cyaan zeshoekjes (een <img>, zie BULLET in js/document/app.js) */
 .a4__flow ul, .a4__flow ol { margin: 0; padding-left: 22px; }
@@ -281,7 +283,7 @@
 }
 .a4-dl { margin: 0; display: grid; grid-template-columns: auto auto; column-gap: 18px; row-gap: 2px; align-content: start; font-size: 12px; }
 .a4-dl dt { align-self: center; }
-.a4-dl dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.a4-dl dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 .a4-dl--memo { grid-template-columns: 72px 1fr; row-gap: 6px; padding: 14px 0; border-top: 2px solid var(--pm-ink); border-bottom: 1px solid var(--pm-line); font-size: 13px; }
 
 /* Offertetabel, in de stijl van .data-table uit de tools */
@@ -302,7 +304,7 @@
 .a4-totals dl { margin: 0; width: 300px; font-size: 12.5px; }
 .a4-totals dl > div { display: flex; justify-content: space-between; padding: 4px 10px; }
 .a4-totals dt { color: var(--pm-muted); }
-.a4-totals dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.a4-totals dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 .a4-totals .is-total { margin-top: 4px; padding-top: 8px; border-top: 3px solid var(--pm-cyan); font-size: 15px; }
 .a4-totals .is-total dt, .a4-totals .is-total dd { color: var(--pm-ink); font-weight: 800; }
 

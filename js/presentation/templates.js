@@ -201,7 +201,7 @@
     const style = (r, c) => {
       if (t.header && r === 0) return { st: { size: Math.round(size * S.headSize), weight: 700, emWeight: 800, track: 0, lh: S.lh }, colors: { color: S.strong, em: COLORS.cyan } };
       const label = t.firstCol && c === 0 && nC > 1;
-      return { st: { size, weight: label ? 600 : 400, emWeight: 700, track: 0, lh: S.lh }, colors: { color: label ? S.strong : S.text, em: COLORS.cyan } };
+      return { st: { size, weight: label ? 700 : 400, emWeight: 700, track: 0, lh: S.lh }, colors: { color: label ? S.strong : S.text, em: COLORS.cyan } };
     };
 
     // Natuurlijke breedte (alles op één regel) en minimale breedte (langste woord) per kolom
@@ -604,7 +604,7 @@
       { key: 'body', body: s.body, st: PARA(36), min: 20, gap: 44, colors: BODY },
     ],
     stat: (s) => [
-      { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(50, 600), min: 28, colors: TEXT },
+      { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(50, 700), min: 28, colors: TEXT },
       { key: 'author', runs: runsFrom(s.author), st: PARA(28, 700), min: 18, gap: 28, colors: { color: SOFT, em: '#ffffff' } },
     ],
     quote: (s) => [
@@ -622,7 +622,7 @@
       { key: 'title', runs: runsFrom(s.title, { dot: deck.dot }), st: TITLE(titleSize(124, s)), min: 60 },
       { key: 'subtitle', runs: runsFrom(s.subtitle), st: PARA(44), min: 24, gap: 36, colors: BODY },
       // Contactgegevens: per regel een zeshoek met een passend icoon in plaats van een punt
-      { key: 'body', body: asBullets(s.body), st: { ...PARA(34, 600), ...CONTACT_ST }, min: 20, gap: 60, colors: TEXT },
+      { key: 'body', body: asBullets(s.body), st: { ...PARA(34, 700), ...CONTACT_ST }, min: 20, gap: 60, colors: TEXT },
     ],
     // Lopende tekst zoals bij Beeld + tekst: "- " wordt een opsomming, een lege regel geeft lucht
     tekst: (s, deck) => [
@@ -1029,7 +1029,8 @@
       const size = 26;
       const sep = ' · ';
       const lead = { size, weight: 700, track: 0, color: COLORS.cyan };
-      const text = { size, weight: 600, track: 0, color: '#ffffff' };
+      // De waarde in Regular: het cyaan label ervoor is al Bold, en zo past een lange omschrijving vaker heel
+      const text = { size, weight: 400, track: 0, color: '#ffffff' };
       const width = (st, t) => {
         setFont(ctx, st.weight, size, 0);
         return ctx.measureText(t).width;

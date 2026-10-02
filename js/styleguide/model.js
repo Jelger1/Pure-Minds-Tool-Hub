@@ -7,6 +7,13 @@
      readable(hex)           wit of Inkt als tekstkleur: wat het meeste contrast geeft
      copyValue(kleur, soort) wat "kopieer" op het klembord zet (HEX, RGB of CMYK)
      cmykOf(rgb)             de rekenkundige omzetting van RGB naar CMYK
+     typeSpec(stijl)         de maat van een stijl: "ExtraBold 800 · 52/58 · −2%"
+                             (pagina, uitleg en paneel gebruiken allemaal deze)
+     canvaSpec(stijl)        dezelfde maat zoals je hem in Canva invult: grootte,
+                             regelafstand als factor (58 / 52 = 1,1) en letterafstand
+                             in duizendsten (−2% = −20)
+     photoCredits(foto's)    de fotografen: "A, B en C" (voor het colofon)
+     photoLine(content)      de regel met de fotografen uit het colofon
      searchIndex(content)    zoekindex: per pagina de teksten die erop staan
      search(index, vraag)    pagina's die passen, de beste eerst, met een fragment
      aseBytes(groepen)       kleurstalen als Adobe Swatch Exchange (Illustrator, InDesign)
@@ -65,6 +72,46 @@
   }
 
   /* ---------------------------------------------------------------------------
+     Typografie: de maat van een stijl, en hoe je hem in Canva invult
+     ------------------------------------------------------------------------- */
+
+  // De tokens: meegegeven, in de browser het globale object, in Node het bestand ernaast
+  const tokensOf = (tokens) => tokens || global.PM_BRAND_TOKENS || (typeof require === 'function' ? require('./brand-tokens.js') : null);
+  const MINUS = '−';   // een echt minteken, geen streepje
+  const dec = (n) => String(n).replace('.', ',');
+
+  function typeSpec(t, tokens) {
+    const T = tokensOf(tokens);
+    const found = T && T.font.weights.find((w) => w.weight === t.weight);
+    const weight = found ? `${found.name} ${t.weight}` : String(t.weight);
+    const size = `${t.size}/${t.line}`;
+    const track = t.track ? `${t.track > 0 ? '+' : MINUS}${dec(Math.round(Math.abs(t.track) * 1000) / 10)}%` : '';
+    return { weight, size, track, text: [weight, size, track].filter(Boolean).join(' · ') };
+  }
+
+  // Canva rekent de regelafstand als factor van de lettergrootte en de letterafstand in
+  // duizendsten van de lettergrootte (net als Illustrator): −2% wordt −20
+  function canvaSpec(t) {
+    const lineHeight = (Math.round((t.line / t.size) * 10) / 10).toFixed(1).replace('.', ',');
+    const ls = Math.round(t.track * 1000);
+    const letterSpacing = ls ? `${ls > 0 ? '+' : MINUS}${Math.abs(ls)}` : '';
+    const parts = [`grootte ${t.size}`, `regelafstand ${lineHeight}`, letterSpacing && `letterafstand ${letterSpacing}`];
+    return { size: t.size, lineHeight, letterSpacing, text: `Canva: ${parts.filter(Boolean).join(' · ')}` };
+  }
+
+  /* ---------------------------------------------------------------------------
+     Foto's: de fotografen in het colofon
+     ------------------------------------------------------------------------- */
+
+  // Elke naam één keer, in de volgorde van de lijst: "A, B en C"
+  function photoCredits(list) {
+    const names = [...new Set((list || []).map((p) => p.by).filter(Boolean))];
+    return names.length > 1 ? `${names.slice(0, -1).join(', ')} en ${names[names.length - 1]}` : names.join('');
+  }
+
+  const photoLine = (C) => C.colophon.photos.replace('{fotografen}', photoCredits(C.photos));
+
+  /* ---------------------------------------------------------------------------
      Zoeken
      ------------------------------------------------------------------------- */
 
@@ -80,8 +127,10 @@
 
   // Welke content op welke pagina staat (zelfde indeling als pages.js)
   function pageTexts(C, id) {
+    // Toepassingen en documenten: alleen de uitleg, niet de voorbeeldteksten van de posts en de brief
+    const k = C.icons.knockout;
     const map = {
-      cover: [C.company, C.slogan, C.version],
+      cover: [C.company, C.slogan],
       inhoud: C.chapters.map((c) => c.title),
       'missie-visie': [C.intro, C.mission, C.vision, C.slogan],
       kernwaarden: C.values,
@@ -92,12 +141,13 @@
       'logo-gebruik': [C.logo.donts, C.logo.added],
       zeshoek: [C.hexagon],
       kleuren: [C.colors.intro, C.colors.secondaryRule],
-      'kleur-toepassen': [C.colors.ratio, C.colors.contrast.map((r) => r[2]), C.colors.contrastNote],
-      typografie: [C.type.intro, Object.values(C.type.usage), C.type.notes],
-      beeldtaal: [C.imagery.intro, C.imagery.sections, C.imagery.frames],
-      iconen: [C.icons.intro, C.icons.rules, C.icons.variants.map((v) => `${v.name} ${v.sub}`)],
-      toepassingen: [C.usage],
-      colofon: [C.colophon, C.domain],
+      'kleur-toepassen': [C.colors.ratio, C.colors.contrast.map((r) => r[2]), C.colors.contrastNote, C.colors.why],
+      typografie: [C.type.intro, Object.values(C.type.usage), C.type.notes, C.type.legend],
+      beeldtaal: [C.imagery.intro, C.imagery.sections, C.imagery.frames, C.imagery.photoNote],
+      iconen: [C.icons.intro, C.icons.rules, C.icons.variants.map((v) => `${v.name} ${v.sub}`), [k.title, k.wel, k.niet]],
+      toepassingen: [C.usage.intro, C.usage.makers.filter((m) => m.id !== 'document')],
+      documenten: [C.usage.makers.filter((m) => m.id === 'document'), C.usage.badge],
+      colofon: [{ ...C.colophon, photos: photoLine(C) }, C.contact, C.photos.map((p) => p.by)],
     };
     return strings(map[id] || []);
   }
@@ -249,7 +299,6 @@
     const one = (c, group) => ({ id: c.id, name: c.name, group, hex: c.hex.toUpperCase(), rgb: c.rgb, cmyk: c.cmyk, role: c.role, cssVar: c.css ? `--pm-${c.css}` : null });
     return {
       name: `${tokens.company} kleuren`,
-      version: tokens.version,
       source: 'Brand Styleguide, Pure Minds Generator Hub',
       colors: [
         ...tokens.colors.primary.map((c) => one(c, 'primair')),
@@ -301,7 +350,7 @@
   };
 
   const model = {
-    rgbOf, luminance, contrast, ratioText, verdict, readable, cmykOf, copyValue,
+    rgbOf, luminance, contrast, ratioText, verdict, readable, cmykOf, copyValue, typeSpec, canvaSpec, photoCredits, photoLine,
     fold, pageTexts, searchIndex, search, aseBytes, aseGroups, colorJson, splitParts, fileName,
   };
 

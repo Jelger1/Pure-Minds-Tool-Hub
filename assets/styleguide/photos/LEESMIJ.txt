@@ -1,0 +1,14 @@
+Voorbeeldfoto's van het brandbook (Brand Styleguide)
+
+Gratis foto's van Unsplash, onder de Unsplash-licentie (https://unsplash.com/license):
+vrij te gebruiken, ook commercieel; vermelden hoeft niet, maar de fotografen staan in het colofon.
+
+laptop-raam.jpg        Anastasiia Nelen    https://unsplash.com/photos/Ki_pIEtS6pk  Unsplash-licentie  Beeldtaal: onderwerp uit het midden
+team-overleg.jpg       Andreea Avramescu   https://unsplash.com/photos/wR56AUlEsE4  Unsplash-licentie  Beeldtaal: tekst op beeld; Toepassingen: post foto met tekst
+analytics-scherm.jpg   Campaign Creators   https://unsplash.com/photos/pypeCEaJeZY  Unsplash-licentie  Beeldtaal: resultaat als cijfer; Toepassingen: slide met foto
+werkplek-bureau.jpg    Andrew Neel         https://unsplash.com/photos/cckf4TsHAuw  Unsplash-licentie  Toepassingen: blogpost (foto in de zeshoek)
+vakman-werkplaats.jpg  Ali Mkumbwa         https://unsplash.com/photos/PxlKOcj0a3Q  Unsplash-licentie  De zeshoek: fotokader; Toepassingen: titelslide
+bloemist.jpg           Waldemar Brandt     https://unsplash.com/photos/q3RGXuBc_SU  Unsplash-licentie  Logo: wel en niet (geen kader); Toepassingen: post standaard foto
+
+Vervangen: zet een eigen foto met dezelfde bestandsnaam neer (liefst liggend, ±1600 px, JPEG), draai `npm run photos` (voor gebruik vanaf schijf) en controleer de uitsnede; brandpunten staan in js/styleguide/mockups.js (SLOTS).
+Pas dan ook de fotograaf aan in js/styleguide/content.js (photos): die naam staat in het colofon.

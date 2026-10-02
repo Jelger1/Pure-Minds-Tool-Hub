@@ -4,7 +4,9 @@
    Zoeken en bladeren door de Remix-iconen (js/icons/icon-data.js). Het zoeken
    zelf doet PMIconSearch (search.js), met Nederlandse en Engelse woorden; de
    zeshoek komt van PMHex (hex.js), precies zoals maak-zeshoeken.py hem maakt.
-   Alleen de lijnstijl (de volle stijl is weg). Vorm en kleur gelden voor het
+   De lijnstijl; alleen de witte zeshoek met uitgesneden icoon gebruikt de
+   volle stijl (js/icons/icon-fill-data.js, pas geladen als iemand die kiest):
+   een uitgesneden lijnicoon wordt te druk. Vorm en kleur gelden voor het
    hele raster: wat je ziet, download je.
 
    Toestand:
@@ -72,7 +74,7 @@
     { id: 'cyaan', name: 'Cyaan, wit icoon', fill: '#1ab9e2', color: WHITE },
     { id: 'donker', name: 'Donker, wit icoon', fill: INK, color: WHITE },
     { id: 'magenta', name: 'Magenta, wit icoon', fill: '#b61b50', color: WHITE },
-    { id: 'wit', name: 'Wit, doorzichtig icoon', label: 'wit · doorzichtig', slug: 'wit-doorzichtig', fill: WHITE, knockout: true },
+    { id: 'wit', name: 'Wit, uitgesneden icoon in de volle stijl (Fill)', label: 'wit · doorzichtig', slug: 'wit-doorzichtig', fill: WHITE, knockout: true },
     { id: 'eigen', name: 'Eigen kleur' },
   ];
 
@@ -108,7 +110,7 @@
   const keyOf = (i) => (byName.get(ICONS[i][0]).length > 1 ? `${CATS[ICONS[i][1]]}/${ICONS[i][0]}` : ICONS[i][0]);
 
   // Sleutel uit het adres of de opslag terug naar een icoon; -1 als hij niet (meer) bestaat.
-  // Een oude "home-fill" (de volle stijl is weg) geeft het lijnicoon.
+  // "home-line" of "home-fill" (een bestandsnaam) geeft het icoon "home".
   function indexOf(key) {
     if (typeof key !== 'string' || !key) return -1;
     const slash = key.lastIndexOf('/');
@@ -125,18 +127,62 @@
     return i;
   }
 
-  // Het pad en het achtervoegsel van het bronbestand: home-line.svg, of bold.svg
-  // voor een icoon in één stijl
-  function variant(i) {
-    const ic = ICONS[i];
-    return { d: ic[2], suffix: ic[3] ? '-line' : '' };
+  /* De volle stijl, alleen voor de witte zeshoek met uitgesneden icoon (PM_ICON_FILL uit
+     js/icons/icon-fill-data.js): per 'Categorie/naam' het pad van naam-fill.svg, bij
+     overlap al samengevoegd. Pas geladen als iemand de witte zeshoek kiest. */
+  let FILL = window.PM_ICON_FILL || null;
+  let fillLoading = null;
+  const KNOCKOUT = DATA.knockout || {};   // icoon zonder volle stijl met overlap: samengevoegd pad
+  const fullKey = (i) => `${CATS[ICONS[i][1]]}/${ICONS[i][0]}`;
+
+  function loadFill() {
+    if (FILL) return Promise.resolve(FILL);
+    if (!fillLoading) {
+      fillLoading = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = PM.url('js/icons/icon-fill-data.js');
+        s.onload = () => {
+          FILL = window.PM_ICON_FILL || null;
+          if (FILL) resolve(FILL);
+          else reject(new Error('icon-fill-data.js is leeg'));
+        };
+        s.onerror = () => {
+          s.remove();
+          reject(new Error('icon-fill-data.js niet geladen'));
+        };
+        document.head.append(s);
+      }).catch((err) => {
+        fillLoading = null;   // een volgende keer opnieuw proberen
+        throw err;
+      });
+    }
+    return fillLoading;
   }
 
-  // Het pad om uit de witte zeshoek te snijden: bij een paar iconen met overlappende
-  // delen een samengevoegd pad (evenodd zou de overlap anders weglaten)
-  const KNOCKOUT = DATA.knockout || {};
-  const cutPath = (i) => KNOCKOUT[`${CATS[ICONS[i][1]]}/${ICONS[i][0]}`] || ICONS[i][2];
-  const pathFor = (i, L) => (L.knockout ? cutPath(i) : variant(i).d);
+  // Wit uitgesneden, maar de volle stijl is er (nog) niet
+  const needsFill = (L = looks()) => L.knockout && !FILL;
+
+  // Eerst de volle stijl, dan pas tekenen: nooit even de lijnstijl in de witte zeshoek.
+  // Lukt laden niet, dan de lijnstijl met een melding.
+  function withFill(then) {
+    if (!needsFill()) return Promise.resolve(then());
+    return loadFill().catch((err) => {
+      console.error('Icon Finder: volle stijl niet geladen.', err);
+      toast('De volle iconen voor de witte zeshoek konden niet worden geladen. Ververs de pagina.', true);
+    }).then(() => then());
+  }
+
+  /* Het pad en het achtervoegsel van het bronbestand bij de keuze van nu: home-line.svg,
+     home-fill.svg (witte zeshoek, uitgesneden) of bold.svg voor een icoon in één stijl.
+     Uitgesneden zonder volle stijl: het icoon zelf, of het samengevoegde pad (overlap). */
+  function variant(i, L = looks()) {
+    const ic = ICONS[i];
+    const suffix = ic[3] ? '-line' : '';
+    if (!L.knockout) return { d: ic[2], suffix };
+    const fill = FILL && ic[3] ? FILL[fullKey(i)] : null;
+    return fill ? { d: fill, suffix: '-fill' } : { d: KNOCKOUT[fullKey(i)] || ic[2], suffix };
+  }
+  const pathFor = (i, L) => variant(i, L).d;
 
   function placed(d) {
     try {
@@ -230,6 +276,8 @@
     count: $('#count'),
     countLive: $('#countLive'),
     gridTip: $('#gridTip'),
+    fillNote: $('#fillNote'),
+    dStyle: $('#dStyle'),
     results,
     aside: $('#aside'),
     detail: $('#detail'),
@@ -318,6 +366,7 @@
     if (L.fill) el.app.style.setProperty('--hex-fill', L.fill);
     el.resultsWrap.classList.toggle('is-dark', L.dark);
     el.styleArt.classList.toggle('is-dark', L.dark);
+    el.fillNote.hidden = !L.knockout;
     // Een wit icoon of een witte zeshoek is onzichtbaar op de lichte preview: dan vanzelf donker, en weer terug
     if (L.dark && state.stage === 'licht') {
       state.stage = 'donker';
@@ -339,10 +388,11 @@
   // Klein icoon in de kleur en vorm van nu (tegel, stijlknop); kleur via CSS.
   // Uitgesneden: zeshoek en icoon als één pad met evenodd, net als in de download.
   function artSvg(i, cls = '') {
-    const v = variant(i);
-    if (state.shape === 'hex' && looks().knockout) {
+    const L = looks();
+    const v = variant(i, L);
+    if (L.knockout) {
       return `<svg class="${cls} is-hex" viewBox="${HEX_GEO.viewBox}" aria-hidden="true" focusable="false">` +
-        `<path class="ti-hex" fill-rule="evenodd" d="${HEX_GEO.body}${placed(cutPath(i))}"/></svg>`;
+        `<path class="ti-hex" fill-rule="evenodd" d="${HEX_GEO.body}${placed(v.d)}"/></svg>`;
     }
     if (state.shape === 'hex') {
       return `<svg class="${cls} is-hex" viewBox="${HEX_GEO.viewBox}" aria-hidden="true" focusable="false">` +
@@ -557,7 +607,11 @@
       `${artSvg(i, 'tile__svg')}<span class="tile__name">${name}</span></button>`;
   }
 
-  const currentTileKey = () => `${state.shape}|${state.shape === 'hex' && looks().knockout}`;
+  // Opnieuw bouwen bij een andere vorm, van en naar uitgesneden, en als de volle stijl binnen is
+  const currentTileKey = () => {
+    const knockout = looks().knockout;
+    return `${state.shape}|${knockout}|${knockout && !!FILL}`;
+  };
 
   function tilesFor(ids) {
     const key = currentTileKey();
@@ -1049,7 +1103,7 @@
     if (!r.checked) return;
     state.shape = r.value;
     buildSwatches();
-    looksChanged({ tiles: true });
+    withFill(() => looksChanged({ tiles: true }));
   }));
 
   let lastPointer = 0;
@@ -1060,7 +1114,7 @@
     if (state.shape === 'hex') state.hexColor = input.value;
     else state.looseColor = input.value;
     syncColorName();
-    looksChanged();
+    withFill(() => looksChanged());
     // Met de muis op "eigen kleur": meteen de kleurkiezer open
     if (input.value === 'eigen' && performance.now() - lastPointer < 1500) {
       try {
@@ -1118,6 +1172,16 @@
     const words = [...new Set(nl.split(/\s+/).filter(Boolean))].slice(0, 5);
     el.dWords.hidden = !words.length;
     el.dWords.innerHTML = words.length ? `In het Nederlands: ${words.map((w) => `<b>${PM.esc(w)}</b>`).join(', ')}` : '';
+    // Witte zeshoek: waarom dit de volle stijl is (of waarom niet). Zolang de volle stijl
+    // nog laadt niets: anders staat er even "kon niet worden geladen".
+    el.dStyle.hidden = !L.knockout || (needsFill(L) && !!fillLoading);
+    if (!el.dStyle.hidden) {
+      el.dStyle.innerHTML = v.suffix === '-fill'
+        ? '<b>Volle stijl.</b> Uitgesneden gebruiken we het volle icoon: een lijnicoon wordt in het gat te druk.'
+        : ICONS[i][3] && !FILL
+          ? '<b>Lijnstijl.</b> De volle stijl kon niet worden geladen. Ververs de pagina.'
+          : '<b>Eén stijl.</b> Dit icoon bestaat niet in de volle stijl en wordt uitgesneden zoals het is.';
+    }
     syncStage();
     syncExport();
   }
@@ -1185,9 +1249,9 @@
      ------------------------------------------------------------------------- */
 
   // home-line.svg, home-line-cyaan.svg, home-line-zeshoek-donker-512px.png,
-  // home-line-zeshoek-wit-doorzichtig.svg, home-line-eigen-1a2b3c.svg
+  // home-fill-zeshoek-wit-doorzichtig.svg (de volle stijl), home-line-eigen-1a2b3c.svg
   function fileBase(i, L = looks()) {
-    return [ICONS[i][0] + variant(i).suffix, L.slug].filter(Boolean).join('-');
+    return [ICONS[i][0] + variant(i, L).suffix, L.slug].filter(Boolean).join('-');
   }
 
   function makeSvg(i) {
@@ -1227,6 +1291,7 @@
   const makeFile = (i) => (state.format === 'png' ? makePng(i) : Promise.resolve(makeSvg(i)));
 
   async function saveFile(i) {
+    if (needsFill()) await withFill(() => {});   // net de witte zeshoek gekozen: eerst de volle stijl
     const file = await makeFile(i);
     PM.saveBlob(file.blob, file.name);
     remember(i);
@@ -1291,6 +1356,7 @@
       return;
     }
     PM.run(el.copyBtn, 'kopiëren…', async () => {
+      if (needsFill()) await withFill(() => {});
       if (state.format === 'png') {
         await copyImage(i);
         toast('Afbeelding gekopieerd. Plak hem in PowerPoint, Google Slides, Canva of Word.');
@@ -1417,6 +1483,16 @@
   // Voorbeeld in de lege detailkaart
   const sampleIcon = indexOf('search') >= 0 ? indexOf('search') : 0;
   el.emptyArt.innerHTML = HEX.svg(ICONS[sampleIcon][2], { shape: 'hex', fill: HEX_COLORS[0].fill, color: WHITE, id: 'pmi-sample' });
+
+  // Witte zeshoek bewaard: eerst de volle stijl laden. Tot dan zijn de iconen onzichtbaar,
+  // zodat je nooit even de lijnstijl uitgesneden ziet.
+  if (needsFill()) {
+    el.app.classList.add('is-loading-fill');
+    withFill(() => {
+      el.app.classList.remove('is-loading-fill');
+      looksChanged({ tiles: true });
+    });
+  }
 
   el.q.value = state.query;
   buildSwatches();

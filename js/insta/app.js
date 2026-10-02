@@ -158,17 +158,7 @@
   if (T.TEMPLATE_META.some((t) => t.id === start.template)) state.template = start.template;
   if (T.FORMATS[start.format]) state.format = start.format;
 
-  let saveTimer = 0;
-  function save() {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (err) {
-        /* opslag vol of geblokkeerd: niet erg, alleen niet onthouden */
-      }
-    }, 300);
-  }
+  const save = PM.debounce(() => PM.store.set(STORAGE_KEY, state), 300, { flushOnHide: true });
 
   const env = { logo: null, badge: null, photo: null, clientLogo: null };
   const current = () => state.data[state.template];

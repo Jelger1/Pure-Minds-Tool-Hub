@@ -5,10 +5,14 @@
    PDF: dezelfde tekenfuncties als het podium (js/styleguide/pages.js) tekenen
    via PMPdfCanvas in jsPDF: echte tekst in Pure Minds Sans (elk gewicht een
    eigen PostScript-naam, PureMindsSans-*), vormen, logo en iconen als vector,
-   exacte kleuren, geen afbeeldingen, uitknippaden of verlopen. Daarna zet
+   exacte kleuren, geen uitknippaden of verlopen als vector. Foto's en de
+   voorbeelden uit de makers gaan als afbeelding in de laag Beeld (JPEG), met
+   het verloop erin gebakken; de tekst op een foto blijft echte tekst. Daarna zet
    pdf-lib de lagen erin: vijf optionele inhoudsgroepen (OCG: Achtergrond,
    Vormen, Tekst, Logo, Beeld) die de gemarkeerde blokken (/OC /Tekst BDC … EMC)
    uit PMPdfCanvas een naam geven, en de metadata (titel, onderwerp, auteur).
+   De export wacht op de foto's (app.js); een foto die niet laadt, wordt het
+   lege fotovlak.
 
    Canva importeert hoogstens 1.400 elementen per PDF. Past het hele brandbook
    daar niet onder, dan worden het delen van hele hoofdstukken (model.js
@@ -34,9 +38,6 @@
   const PAGE_W = 841.89;   // A4 liggend in pt; de hoogte (595,28) volgt uit het formaat
   const AUTHOR = T.company;
 
-  // Light 300 krijgt in de PDF zijn eigen snede; al het andere zoals in de andere makers
-  const fontStyle = (weight, italic) => (!italic && (parseInt(weight, 10) || 400) <= 300 ? 'light' : PM.pdfFontStyle(weight, italic));
-
   /* ---------------------------------------------------------------------------
      PDF
      ------------------------------------------------------------------------- */
@@ -48,7 +49,7 @@
       progress(indices.length > 1 ? `pagina ${n + 1} van ${indices.length}…` : 'pdf maken…');
       await PM.wait(0);   // knoptekst laten verversen
       if (n) pdf.addPage('a4', 'landscape');
-      const ctx = new global.PMPdfCanvas(pdf, { width: S.W, height: S.H, pageWidth: PAGE_W, fontStyle });
+      const ctx = new global.PMPdfCanvas(pdf, { width: S.W, height: S.H, pageWidth: PAGE_W });
       S.draw(ctx, indices[n], env);
       const st = await ctx.flush();
       counts.push(st.text + st.vector + st.raster + st.image + st.svg);
@@ -99,7 +100,7 @@
     const chapter = scope ? C.chapters.find((c) => c.id === scope) : null;
     const meta = {
       title: chapter ? `Brandbook ${T.company}: ${chapter.title}` : `Brandbook ${T.company}`,
-      subject: `Huisstijl en richtlijnen, versie ${T.version}`,
+      subject: `Huisstijl en richtlijnen van ${T.company}`,
     };
     const name = M.fileName(scope);
     const first = await build(all, env, progress, meta);
@@ -161,7 +162,7 @@
     'Minimaal 80 px breed op een scherm, 20 mm in print.',
     'Niet vervormen, kantelen of hertekenen; geen andere kleur, kader of vlak erachter.',
     '',
-    `${C.version} · ${C.domain}`,
+    `${C.company} · ${C.contact.web}`,
     '',
   ].join('\r\n');
 
@@ -197,5 +198,5 @@
     return { blob: new Blob([svg], { type: 'image/svg+xml' }), name: `emerce-100-2026-${variant === 'zwart' ? 'zwart' : 'wit'}.svg` };
   }
 
-  global.PMStyleguideExport = { pdf, logoFile, logoPackage, colors, badge, fontStyle };
+  global.PMStyleguideExport = { pdf, logoFile, logoPackage, colors, badge };
 })(window);

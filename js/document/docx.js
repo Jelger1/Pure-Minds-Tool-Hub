@@ -12,8 +12,9 @@
      offerte   de tabel, de totalen en het blok "voor akkoord" als Word-tabellen
      voet      bedrijfsgegevens en "pagina X van Y" als echte velden, en zo
                gekozen de Emerce 100-badge (SVG, met PNG voor Google Docs)
-     letters   Pure Minds Sans wordt ingesloten, zodat het document ook goed oogt op
-               een computer zonder dat lettertype
+     letters   Pure Minds Sans (Regular en ExtraBold) wordt ingesloten, zodat het document
+               ook goed oogt op een computer zonder dat lettertype; vet maakt Word
+               daar zelf van de Regular
 
    Maten komen uit css/document.css (px op 794 px paginabreedte): 1 px = 15 twips
    = 0,75 pt. Regelafstanden zijn omgerekend naar Words "meervoud", zodat ze
@@ -117,12 +118,13 @@
     // o: { size (px), weight, italic, underline, color, caps, spacing (em), break }
     function run(text, o = {}) {
       const w = o.weight || 400;
-      const font = w >= 800 ? 'Pure Minds Sans ExtraBold' : w >= 600 && w < 700 ? 'Pure Minds Sans SemiBold' : 'Pure Minds Sans';
+      // ExtraBold is in Word een eigen familie; 600 en 700 worden Bold, net als in de browser
+      const font = w >= 800 ? 'Pure Minds Sans ExtraBold' : 'Pure Minds Sans';
       const size = o.size || 13.5;
       return new TextRun({
         text,
         font,
-        bold: w >= 700 && w < 800,
+        bold: w >= 600 && w < 800,
         italics: !!o.italic,
         size: hp(size),
         color: o.color || INK,
@@ -255,7 +257,7 @@
     function nextHeader() {
       const t = table([row([
         cell([para([logoImage(40)], { lh: 1 })], { width: CONTENT_W * 0.4, valign: VerticalAlign.CENTER }),
-        cell([para([run(model.running, { size: 10.5, weight: 600, color: MUTED })], { align: AlignmentType.RIGHT, lh: 1.6 })], { width: CONTENT_W * 0.6, valign: VerticalAlign.CENTER }),
+        cell([para([run(model.running, { size: 10.5, weight: 700, color: MUTED })], { align: AlignmentType.RIGHT, lh: 1.6 })], { width: CONTENT_W * 0.6, valign: VerticalAlign.CENTER }),
       ], { height: 40 })], [CONTENT_W * 0.4, CONTENT_W * 0.6]);
       return new Header({ children: [anchors([barImage()]), t, tinyPara()] });
     }
@@ -322,13 +324,13 @@
     // het ook in Google Docs goed overkomt.
     function dlWidths(pairs, ddPx = 12) {
       const dt = Math.max(0, ...pairs.map(([k]) => textWidth(k.toUpperCase(), 9.5, 700, 0.12))) + 10;
-      const dd = Math.max(0, ...pairs.map(([, v]) => textWidth(v, ddPx, 600))) + 10;
+      const dd = Math.max(0, ...pairs.map(([, v]) => textWidth(v, ddPx, 700))) + 10;
       return { dt: Math.ceil(dt), dd: Math.ceil(dd) };
     }
     const tab = () => (D.Tab ? new TextRun({ children: [new D.Tab()] }) : new TextRun({ text: '\t' }));
     function dlParas(pairs, tabAt, ddPx = 12) {
       return pairs.map(([k, v], i) => new Paragraph({
-        children: [smallCaps(k), tab(), run(v, { size: ddPx, weight: 600 })],
+        children: [smallCaps(k), tab(), run(v, { size: ddPx, weight: 700 })],
         tabStops: [{ type: D.TabStopType.LEFT, position: tw(tabAt) }],
         spacing: { before: tw(i ? 2 : 0), after: 0, line: lineOf(1.65), lineRule: LineRuleType.AUTO },
       }));
@@ -368,7 +370,7 @@
         const o = { pt: first ? 14 : 0, pb: last ? 14 : 0, bt: first ? line(2, INK) : NONE, bb: last ? line(1, LINE_C) : NONE };
         return row([
           cell([para([smallCaps(k)], { before: first ? 0 : 6, lh: 1.65 })], { width: 72, valign: VerticalAlign.CENTER, ...o }),
-          cell([para([run(v, { size: 13, weight: 600 })], { before: first ? 0 : 6, lh: 1.65 })], { width: CONTENT_W - 72, ...o }),
+          cell([para([run(v, { size: 13, weight: 700 })], { before: first ? 0 : 6, lh: 1.65 })], { width: CONTENT_W - 72, ...o }),
         ]);
       }), [72, CONTENT_W - 72]));
     } else {
@@ -389,13 +391,14 @@
       { reference: 'pm-numbers', levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: tw(22), hanging: tw(22) } }, run: { color: BLUE, bold: true, font: 'Pure Minds Sans', size: hp(13.5) } } }] },
     );
 
-    // Inline-opmaak: tekst, vet, cursief, onderstreept en regeleindes
+    // Inline-opmaak: tekst, vet, cursief, onderstreept en regeleindes. base.strong: het gewicht
+    // van vet in dit blok (een citaat is al Bold, vet erin wordt ExtraBold zoals in de preview)
     function inlineRuns(node, st, base) {
       const out = [];
       for (const child of Array.from(node.childNodes)) {
         if (child.nodeType === 3) {
           const text = child.nodeValue.replace(/\s+/g, ' ');
-          if (text) out.push(run(text, { ...base, weight: st.bold ? 700 : base.weight, italic: st.italic, underline: st.underline }));
+          if (text) out.push(run(text, { ...base, weight: st.bold ? (base.strong || 700) : base.weight, italic: st.italic, underline: st.underline }));
         } else if (child.nodeType === 1) {
           const tag = child.tagName.toLowerCase();
           if (tag === 'br') out.push(new TextRun({ break: 1 }));
@@ -417,7 +420,7 @@
       } else if (tag === 'h3') {
         body.push(para(inlineRuns(el, st, { size: 14, weight: 700 }), { before: 18, lh: 1.4, keepNext: true }));
       } else if (tag === 'blockquote') {
-        body.push(para(inlineRuns(el, st, { size: 15, weight: 600 }), { before: gap, lh: 1.55, indent: { left: tw(16) }, border: { left: { style: BorderStyle.SINGLE, size: 18, color: CYAN, space: 12 } } }));
+        body.push(para(inlineRuns(el, st, { size: 15, weight: 700, strong: 800 }), { before: gap, lh: 1.55, indent: { left: tw(16) }, border: { left: { style: BorderStyle.SINGLE, size: 18, color: CYAN, space: 12 } } }));
       } else if (tag === 'ul' || tag === 'ol') {
         listInstance++;
         Array.from(el.children).filter((li) => li.tagName === 'LI').forEach((li, i) => {
@@ -442,7 +445,7 @@
 
       const tot = (k, v, total) => row([
         cell([para([run(k, { size: total ? 15 : 12.5, weight: total ? 800 : 400, color: total ? INK : MUTED })], { lh: 1.65, before: total ? 4 : 0 })], { width: 150, pt: total ? 8 : 4, pb: 4, pl: 10, bt: total ? line(3, CYAN) : NONE }),
-        cell([para([run(v, { size: total ? 15 : 12.5, weight: total ? 800 : 600 })], { align: AlignmentType.RIGHT, lh: 1.65, before: total ? 4 : 0 })], { width: 150, pt: total ? 8 : 4, pb: 4, pr: 10, bt: total ? line(3, CYAN) : NONE }),
+        cell([para([run(v, { size: total ? 15 : 12.5, weight: total ? 800 : 700 })], { align: AlignmentType.RIGHT, lh: 1.65, before: total ? 4 : 0 })], { width: 150, pt: total ? 8 : 4, pb: 4, pr: 10, bt: total ? line(3, CYAN) : NONE }),
       ]);
       body.push(spacer(12), table([tot('Subtotaal', m.items.subtotal), tot(`Btw ${m.items.vatRate}%`, m.items.vat), tot('Totaal', m.items.total, true)], [150, 150], { align: AlignmentType.RIGHT }));
     }
@@ -516,7 +519,6 @@
       numbering: { config: numbering },
       fonts: [
         { name: 'Pure Minds Sans', data: fonts.normal.data },
-        { name: 'Pure Minds Sans SemiBold', data: fonts.semibold.data },
         { name: 'Pure Minds Sans ExtraBold', data: fonts.extrabold.data },
       ],
       sections: [{

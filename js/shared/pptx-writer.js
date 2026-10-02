@@ -98,8 +98,7 @@
   function face(weight) {
     const w = parseInt(weight, 10) || 400;
     if (w >= 800) return { typeface: 'Pure Minds Sans ExtraBold', bold: false };
-    if (w >= 700) return { typeface: 'Pure Minds Sans', bold: true };
-    if (w >= 600) return { typeface: 'Pure Minds Sans SemiBold', bold: false };
+    if (w >= 600) return { typeface: 'Pure Minds Sans', bold: true };   // 600 wordt Bold, net als in de browser
     return { typeface: 'Pure Minds Sans', bold: false };
   }
 

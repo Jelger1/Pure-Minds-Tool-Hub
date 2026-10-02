@@ -346,7 +346,7 @@ test('fillText: gecentreerd en rechts uitgelijnd verschuift x met de gemeten bre
 
 test('fillText: gewicht en letterspatiëring volgen de font-instelling', () => {
   const { ctx } = make();
-  const cases = [['300 40px x', 'normal'], ['400 40px x', 'normal'], ['600 40px x', 'semibold'], ['bold 40px x', 'bold'],
+  const cases = [['300 40px x', 'normal'], ['400 40px x', 'normal'], ['600 40px x', 'bold'], ['bold 40px x', 'bold'],
     ['800 40px x', 'extrabold'], ['40px x', 'normal'], ['italic 400 40px x', 'italic'], ['italic 700 40px x', 'bolditalic']];
   for (const [font, style] of cases) {
     ctx.font = font;

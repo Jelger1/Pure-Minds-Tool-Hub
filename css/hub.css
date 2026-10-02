@@ -52,7 +52,7 @@
 .maker__link:hover { text-decoration: underline; text-decoration-color: var(--pm-cyan); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .maker__link:focus-visible { outline: 3px solid var(--pm-blue); outline-offset: 2px; }
 .maker__desc { flex-basis: 100%; font-size: .8125rem; line-height: 1.5; color: var(--pm-muted); text-wrap: pretty; }
-.maker__or { margin: -.375rem 0 -.5rem; font-size: .75rem; font-weight: 600; color: var(--pm-muted); }
+.maker__or { margin: -.375rem 0 -.5rem; font-size: .75rem; font-weight: 700; color: var(--pm-muted); }
 @media (pointer: coarse), (max-width: 639px) {
   .maker__link { display: inline-flex; align-items: center; min-height: 2.75rem; }
 }
@@ -122,7 +122,7 @@
   margin-top: auto; padding-top: .5rem; border-top: 1px dashed var(--pm-border);
   font-size: .75rem;
 }
-.maker__exports { font-weight: 600; color: var(--pm-blue); }
+.maker__exports { font-weight: 700; color: var(--pm-blue); }
 
 /* Hulp: overal dezelfde woorden en dezelfde kleine link */
 .help-link {
@@ -176,7 +176,7 @@
 /* Voor wie hem al kent: meteen downloaden, rustig naast de knop */
 .check__alt {
   display: inline-flex; align-items: center; gap: .35rem; min-height: 2.75rem;
-  font-size: .8125rem; font-weight: 600; color: var(--pm-muted); text-decoration: none;
+  font-size: .8125rem; font-weight: 700; color: var(--pm-muted); text-decoration: none;
 }
 .check__alt svg { width: .95rem; height: .95rem; flex: none; fill: none; stroke: currentColor; stroke-width: 2.5; }
 .check__alt:hover { color: var(--pm-ink); text-decoration: underline; text-decoration-color: var(--pm-cyan); text-underline-offset: 3px; }
@@ -199,7 +199,7 @@
 }
 :is(.devnote, .guide__help) summary {
   display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem;
-  font-weight: 600; cursor: pointer; list-style: none;
+  font-weight: 700; cursor: pointer; list-style: none;
 }
 :is(.devnote, .guide__help) summary::-webkit-details-marker { display: none; }
 :is(.devnote, .guide__help) summary::before {
@@ -272,7 +272,7 @@ html:has(dialog.guide[open]) { overflow: hidden; }   /* de pagina erachter schui
 .guide-step--prep::before { background: var(--pm-tint); }   /* eenmalig: licht, zonder nummer */
 .guide-step__title { font-size: 1rem; font-weight: 800; line-height: 1.35; }
 .guide-step p { margin-top: .375rem; font-size: .9375rem; line-height: 1.65; }
-.guide-step a:not(.btn), .guide__more a { color: var(--pm-blue); font-weight: 600; }
+.guide-step a:not(.btn), .guide__more a { color: var(--pm-blue); font-weight: 700; }
 .guide-step .guide-step__action { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: .75rem; }
 .guide-step__action small { font-size: .75rem; color: var(--pm-muted); }
 .guide-step .guide-step__tip { margin-top: .625rem; padding: .5rem .75rem; border-left: 3px solid var(--pm-cyan); background: var(--pm-soft); font-size: .875rem; line-height: 1.55; }

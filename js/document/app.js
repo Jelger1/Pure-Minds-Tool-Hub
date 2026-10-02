@@ -217,7 +217,7 @@
   const save = PM.debounce(() => {
     PM.store.set(KEY, state);
     PM.store.set(SENDER_KEY, sender);
-  }, 300);
+  }, 300, { flushOnHide: true });
 
   /* ---------------------------------------------------------------------------
      Elementen

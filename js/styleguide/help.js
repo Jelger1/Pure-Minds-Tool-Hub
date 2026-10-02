@@ -32,7 +32,7 @@
   help: {
     'exporteer': {
       title: 'Het brandbook als PDF',
-      text: 'Eén bewerkbare PDF van alle pagina’s: echte tekst in Pure Minds Sans, vormen en logo als vector, in vijf lagen. Opent los in Canva (zet Pure Minds Sans in de Brand Kit) en in Illustrator.',
+      text: 'Eén bewerkbare PDF van alle pagina’s: echte tekst in Pure Minds Sans, vormen en logo als vector, foto’s en voorbeelden als afbeelding, in vijf lagen. Opent in Canva (zet Pure Minds Sans in de Brand Kit) en in Illustrator.',
     },
     'teksten': {
       title: 'Teksten kopiëren',
@@ -72,7 +72,7 @@
     },
     'typeschaal': {
       title: 'De typeschaal',
-      text: 'Maten in px op een scherm van 1440 breed. Kopieer de CSS van een stijl, of alleen het lettertype met Open Sans als vangnet.',
+      text: 'Maten in px op een scherm van 1440 breed. De uitleg erboven vertelt wat 800, 52/58 en −2% betekenen, ook in Canva. Kopieer de CSS van een stijl, of alleen het lettertype met Open Sans als vangnet.',
     },
     'fotocheck': {
       title: 'Past deze foto?',
@@ -80,7 +80,7 @@
     },
     'icoonvarianten': {
       title: 'Vier zeshoeken',
-      text: 'Cyaan is de huisvariant. Donker en magenta hebben een wit icoon; magenta alleen bij de hoofdactie. Wit met een uitgesneden icoon zet je op een donkere ondergrond.',
+      text: 'Cyaan is de huisvariant. Donker en magenta hebben een wit lijnicoon; magenta alleen bij de hoofdactie. Wit heeft een uitgesneden icoon in de volle stijl (Fill) en staat op een donkere ondergrond.',
     },
     'emerce': {
       title: 'Emerce 100-badge',

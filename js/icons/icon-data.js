@@ -2,8 +2,9 @@
    voeg iconen toe in assets/icons/<categorie>/ en draai `npm run icons`.
    Per icoon: [naam, categorie-index, pad van naam-line.svg, 1], of
    [naam, categorie-index, pad] voor een icoon in één stijl (naam.svg).
-   knockout: per 'Categorie/naam' een pad zonder overlap, voor de witte zeshoek
-   met uitgesneden icoon (uit assets/icons/uitsnijpaden.json).
+   knockout: per 'Categorie/naam' een pad zonder overlap, voor een icoon zonder
+   volle stijl in de witte zeshoek (uit assets/icons/uitsnijpaden.json). De
+   volle stijl zelf staat in icon-fill-data.js.
    Paden op het 24-raster van Remix, alleen absolute M, L, H, V, C en Z. */
 window.PM_ICON_DATA = {
   categories: ['Arrows', 'Buildings', 'Business', 'Communication', 'Design', 'Development', 'Device', 'Document', 'Editor', 'Finance', 'Food', 'Game & Sports', 'Health & Medical', 'Logos', 'Map', 'Media', 'Others', 'System', 'User & Faces', 'Weather'],
@@ -1700,7 +1701,5 @@ window.PM_ICON_DATA = {
     ['windy', 19, 'M10.5 17H4V15H10.5C12.433 15 14 16.567 14 18.5C14 20.433 12.433 22 10.5 22C9 22 7.72 21.056 7.222 19.729L9.095 19.027C9.308 19.595 9.857 20 10.5 20C11.328 20 12 19.328 12 18.5C12 17.672 11.328 17 10.5 17ZM5 11H18.5C20.433 11 22 12.567 22 14.5C22 16.433 20.433 18 18.5 18C17 18 15.72 17.056 15.222 15.729L17.095 15.027C17.308 15.595 17.857 16 18.5 16C19.328 16 20 15.328 20 14.5C20 13.672 19.328 13 18.5 13H5C3.343 13 2 11.657 2 10C2 8.343 3.343 7 5 7H13.5C14.328 7 15 6.328 15 5.5C15 4.672 14.328 4 13.5 4C12.857 4 12.308 4.405 12.095 4.973L10.222 4.271C10.72 2.944 12 2 13.5 2C15.433 2 17 3.567 17 5.5C17 7.433 15.433 9 13.5 9H5C4.448 9 4 9.448 4 10C4 10.552 4.448 11 5 11Z', 1],
   ],
   knockout: {
-    'Logos/twitch': 'M4.301 3L21.001 3L21.001 14.7L16.301 19.4L12.401 19.4L9.901 21.8L7.001 21.8L7.001 19.4L3.001 19.4L3.001 6.2ZM5.001 17.4L9.001 17.4L9.001 19.8L9.096 19.8L11.596 17.4L15.472 17.4L19.001 13.872L19.001 5L5.001 5ZM10.001 8L12.001 8L12.001 12.7L10.001 12.7ZM15.001 8L17.001 8L17.001 12.7L15.001 12.7Z',
-    'System/information-off': 'M2 12C2 6.477 6.477 2 12 2C17.523 2 22 6.477 22 12C22 17.523 17.523 22 12 22C6.477 22 2 17.523 2 12ZM18.32 16.906C19.373 15.551 20 13.849 20 12C20 7.582 16.418 4 12 4C10.151 4 8.449 4.627 7.094 5.68L11.914 10.5L13 10.5L13 11.586ZM16.906 18.32L14 15.414L14 17L10 17L10 15L11 15L11 12.5L10 12.5L10 11.414L5.68 7.094C4.627 8.449 4 10.151 4 12C4 16.418 7.582 20 12 20C13.849 20 15.551 19.373 16.906 18.32ZM12 9.5C11.172 9.5 10.5 8.828 10.5 8C10.5 7.172 11.172 6.5 12 6.5C12.828 6.5 13.5 7.172 13.5 8C13.5 8.828 12.828 9.5 12 9.5Z',
   },
 };

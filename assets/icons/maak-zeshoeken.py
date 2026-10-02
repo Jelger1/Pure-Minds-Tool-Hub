@@ -1,15 +1,18 @@
 """
 Zet alle Remix-iconen in deze map om naar Pure Minds-zeshoekiconen (punt boven).
 
-Alleen de lijnstijl: van een icoon met -line en -fill wordt de -line-variant
-gebruikt; iconen in één stijl (zonder -line, zoals bold.svg) doen gewoon mee.
+De lijnstijl (naam-line.svg in de categoriemappen); iconen in één stijl (zonder
+-line, zoals bold.svg) doen gewoon mee. Alleen de witte zeshoek met uitgesneden
+icoon gebruikt de volle stijl (naam-fill.svg uit Vol/<categorie>/): een
+uitgesneden lijnicoon is een wirwar van dunne randjes. Een icoon zonder volle
+stijl (de iconen in één stijl) wordt uitgesneden zoals het is.
 Er komen vier varianten, elk in een eigen map onder Zeshoek/, met dezelfde
-categorieën en bestandsnamen als het origineel:
+categorieën en bestandsnamen als het origineel (in de witte map naam-fill.svg):
 - Cyaan zeshoek - wit icoon:         effen Pure Cyaan (#1ab9e2), wit icoon (de huisvariant)
 - Donkere zeshoek - wit icoon:       antraciet (#303030), wit icoon
 - Magenta zeshoek - wit icoon:       magenta (#b61b50), wit icoon
-- Witte zeshoek - doorzichtig icoon: witte zeshoek waar het icoon uit gesneden is;
-                                     de achtergrond schijnt door het icoon heen
+- Witte zeshoek - doorzichtig icoon: witte zeshoek waar het icoon (volle stijl) uit
+                                     gesneden is; de achtergrond schijnt erdoorheen
 Alle varianten zijn effen: geen verloop en geen rand.
 Daarnaast komen de iconen los (zonder zeshoek) in de huiskleuren in Los/<kleur>/,
 en een overzicht.html om alles te bekijken en te doorzoeken.
@@ -49,6 +52,8 @@ import re
 BRON = os.path.dirname(os.path.abspath(__file__))
 DOEL = os.path.join(BRON, 'Zeshoek')
 DOEL_LOS = os.path.join(BRON, 'Los')
+BRON_VOL = os.path.join(BRON, 'Vol')       # de volle stijl, alleen voor het uitsparen
+GEEN_CATEGORIE = ('Zeshoek', 'Los', 'Vol')
 
 # Losse iconen (zonder zeshoek) in de huiskleuren, dezelfde als 'los' in de Icon Finder
 LOSSE_KLEUREN = {
@@ -326,7 +331,8 @@ def controleer_uitsparen(bronnen):
 def schrijf_uitsnijpaden(paden):
     inhoud = {'_uitleg': 'Gemaakt door maak-zeshoeken.py: paden zonder overlap voor iconen waarbij '
                          'fill-rule evenodd een andere vorm geeft dan de gewone vulling. Alleen gebruikt '
-                         'voor de witte zeshoek met uitgesneden icoon (hier en in de Icon Finder).'}
+                         'voor de witte zeshoek met uitgesneden icoon (hier en in de Icon Finder), dus '
+                         'voor de volle stijl (Vol/<categorie>/naam-fill.svg) en de iconen in één stijl.'}
     inhoud.update(sorted(paden.items()))
     with open(UITSNIJPADEN, 'w', encoding='utf-8', newline='\n') as uit:
         json.dump(inhoud, uit, ensure_ascii=False, indent=2)
@@ -335,29 +341,73 @@ def schrijf_uitsnijpaden(paden):
 # --- Uitvoeren ----------------------------------------------------------------
 
 
+def lees_svg(pad):
+    """Het ene pad uit een Remix-SVG, of None als het er niet precies één op een 24-raster is."""
+    bron = open(pad, encoding='utf-8').read()
+    paden = re.findall(r'\sd="([^"]*)"', bron)
+    return paden[0] if len(paden) == 1 and 'viewBox="0 0 24 24"' in bron else None
+
+
 def bronbestanden():
     """{'Categorie/naam.svg': pad} van alle iconen in lijnstijl (en die in één stijl)."""
     bronnen, fouten = {}, []
     for categorie in sorted(os.listdir(BRON)):
         map_ = os.path.join(BRON, categorie)
-        if categorie in ('Zeshoek', 'Los') or not os.path.isdir(map_) or categorie.startswith(('.', '_')):
+        if categorie in GEEN_CATEGORIE or not os.path.isdir(map_) or categorie.startswith(('.', '_')):
             continue
-        # De volle stijl (-fill) wordt niet meer gebruikt
+        # De volle stijl staat in Vol/, niet in de categoriemappen
         for f in sorted(f for f in os.listdir(map_) if f.lower().endswith('.svg') and not f.endswith('-fill.svg')):
-            bron = open(os.path.join(map_, f), encoding='utf-8').read()
-            paden = re.findall(r'\sd="([^"]*)"', bron)
-            if len(paden) != 1 or 'viewBox="0 0 24 24"' not in bron:
+            d = lees_svg(os.path.join(map_, f))
+            if d is None:
                 fouten.append(f'{categorie}/{f}: verwacht één pad op een 24-raster')
                 continue
-            bronnen[f'{categorie}/{f}'] = paden[0]
+            bronnen[f'{categorie}/{f}'] = d
     return bronnen, fouten
+
+
+def uitsnedes(bronnen):
+    """Per icoon wat uit de witte zeshoek gesneden wordt: {'Categorie/naam-line.svg':
+    ('Categorie/naam-fill.svg', pad)} uit Vol/, en anders het icoon zelf (één stijl)."""
+    uit = {sleutel: (sleutel, d) for sleutel, d in bronnen.items()}
+    fouten = []
+    if not os.path.isdir(BRON_VOL):
+        return uit, ['map Vol ontbreekt: de witte zeshoek krijgt de lijnstijl']
+    for categorie in sorted(os.listdir(BRON_VOL)):
+        map_ = os.path.join(BRON_VOL, categorie)
+        if not os.path.isdir(map_) or categorie.startswith(('.', '_')):
+            continue
+        for f in sorted(f for f in os.listdir(map_) if f.lower().endswith('.svg')):
+            lijn = f'{categorie}/{f[:-9]}-line.svg'
+            d = lees_svg(os.path.join(map_, f)) if f.endswith('-fill.svg') else None
+            if d is None or lijn not in bronnen:
+                fouten.append(f'Vol/{categorie}/{f}: ' + ('verwacht naam-fill.svg met één pad op een 24-raster'
+                                                          if d is None else f'geen {lijn}'))
+                continue
+            uit[lijn] = (f'{categorie}/{f}', d)
+    return uit, fouten
+
+
+def ruim_op(map_, geschreven):
+    """Verwijdert .svg-bestanden die dit script niet (meer) maakt, zoals naam-line.svg in
+    de witte map van vóór de volle stijl. Geeft het aantal terug."""
+    weg = 0
+    for wortel, _, bestanden in os.walk(map_):
+        for b in bestanden:
+            pad = os.path.normcase(os.path.abspath(os.path.join(wortel, b)))
+            if b.lower().endswith('.svg') and pad not in geschreven:
+                os.remove(pad)
+                weg += 1
+    return weg
 
 
 def main():
     vorm = zeshoek()
     bronnen, fouten = bronbestanden()
+    snij, fouten_vol = uitsnedes(bronnen)
+    fouten += fouten_vol
 
-    uitsnij = controleer_uitsparen(bronnen)
+    # Controle op overlap: alleen de paden die echt uitgesneden worden (de volle stijl)
+    uitsnij = controleer_uitsparen(dict(snij.values()))
     if uitsnij is None:
         uitsnij = lees_uitsnijpaden()
         print(f'skia-pathops niet geïnstalleerd: uitsnijpaden.json niet gecontroleerd ({len(uitsnij)} paden gebruikt)')
@@ -366,45 +416,64 @@ def main():
         print(f'{len(uitsnij)} iconen met overlap, voor het uitsparen samengevoegd in uitsnijpaden.json: '
               f'{", ".join(uitsnij) or "geen"}')
 
-    overzicht, verkleind = {}, []
+    overzicht, verkleind, zonder_vol, geschreven = {}, [], [], set()
+
+    def schrijf(pad, tekst):
+        os.makedirs(os.path.dirname(pad), exist_ok=True)
+        with open(pad, 'w', encoding='utf-8', newline='\n') as uit:
+            uit.write(tekst)
+        geschreven.add(os.path.normcase(os.path.abspath(pad)))
+
     for sleutel, d in bronnen.items():
         categorie, f = sleutel.split('/')
+        snijsleutel, snijpad = snij[sleutel]
         try:
             icoon, kleiner = plaats_icoon(d, vorm)
-            gat = plaats_icoon(uitsnij[sleutel], vorm)[0] if sleutel in uitsnij else icoon
+            gat = plaats_icoon(uitsnij.get(snijsleutel, snijpad), vorm)[0]
         except ValueError as e:
             fouten.append(f'{sleutel}: {e}')
             continue
         for v, variant in VARIANTEN.items():
-            os.makedirs(os.path.join(DOEL, v, categorie), exist_ok=True)
-            with open(os.path.join(DOEL, v, categorie, f), 'w', encoding='utf-8', newline='\n') as uit:
-                uit.write(maak_svg(variant, f[:-4], gat if variant.get('uitsparen') else icoon, vorm))
+            # De witte zeshoek heet naar wat er uitgesneden is: naam-fill.svg (of bold.svg)
+            naam = snijsleutel.split('/')[1] if variant.get('uitsparen') else f
+            schrijf(os.path.join(DOEL, v, categorie, naam),
+                    maak_svg(variant, naam[:-4], gat if variant.get('uitsparen') else icoon, vorm))
         # Los, zonder zeshoek: het bronpad ongewijzigd, alleen met de kleur ingevuld
         for kleurmap, kleur in LOSSE_KLEUREN.items():
-            os.makedirs(os.path.join(DOEL_LOS, kleurmap, categorie), exist_ok=True)
-            with open(os.path.join(DOEL_LOS, kleurmap, categorie, f), 'w', encoding='utf-8', newline='\n') as uit:
-                uit.write(f'<svg viewBox="0 0 24 24" fill="{kleur}" xmlns="http://www.w3.org/2000/svg"><path d="{d}"/></svg>\n')
+            schrijf(os.path.join(DOEL_LOS, kleurmap, categorie, f),
+                    f'<svg viewBox="0 0 24 24" fill="{kleur}" xmlns="http://www.w3.org/2000/svg"><path d="{d}"/></svg>\n')
         overzicht.setdefault(categorie, []).append(f[:-4])
+        if f.endswith('-line.svg') and snijsleutel == sleutel:
+            zonder_vol.append(sleutel[:-4])
         if kleiner:
             verkleind.append(sleutel)
 
-    schrijf_overzicht(overzicht, vorm)
+    weg = ruim_op(DOEL, geschreven) + ruim_op(DOEL_LOS, geschreven)
+    schrijf_overzicht(overzicht, vorm, zonder_vol)
     totaal = sum(len(v) for v in overzicht.values())
     print(f'{totaal} iconen x {len(VARIANTEN)} varianten gemaakt in {DOEL}:')
     for v in VARIANTEN:
         print(f'  {v}')
     print(f'en los in {len(LOSSE_KLEUREN)} kleuren in {DOEL_LOS}: {", ".join(LOSSE_KLEUREN)}')
+    vol = sum(1 for k, (s, _) in snij.items() if s != k)
+    print(f'witte zeshoek: {vol} iconen in de volle stijl, {totaal - vol} zonder volle stijl (zoals ze zijn)')
+    if zonder_vol:
+        print(f'Let op, lijnicoon zonder volle stijl in Vol/: {", ".join(zonder_vol)}')
     print(f'{len(verkleind)} iconen iets verkleind om binnen de schuine randen te blijven')
+    if weg:
+        print(f'{weg} oude bestanden verwijderd die het script niet meer maakt')
     for fout in fouten:
         print('Overgeslagen:', fout)
 
 
-def schrijf_overzicht(overzicht, vorm):
-    # Per variant: [map, licht]; een lichte zeshoek (wit) toont het overzicht op een donkere achtergrond
-    varianten = [[v, VARIANTEN[v]['vlak'] == '#ffffff'] for v in VARIANTEN]
+def schrijf_overzicht(overzicht, vorm, zonder_vol):
+    # Per variant: [map, licht, uitsparen]; een lichte zeshoek (wit) toont het overzicht op een
+    # donkere achtergrond; bij uitsparen heet het bestand naam-fill.svg (behalve zonder_vol)
+    varianten = [[v, VARIANTEN[v]['vlak'] == '#ffffff', bool(VARIANTEN[v].get('uitsparen'))] for v in VARIANTEN]
     sjabloon = (OVERZICHT
                 .replace('__DATA__', json.dumps(overzicht, ensure_ascii=False))
                 .replace('__VARIANTEN__', json.dumps(varianten, ensure_ascii=False))
+                .replace('__ZONDER_VOL__', json.dumps(zonder_vol, ensure_ascii=False))
                 .replace('__RATIO__', getal(vorm['breedte'] / HOOGTE)))
     with open(os.path.join(DOEL, 'overzicht.html'), 'w', encoding='utf-8', newline='\n') as uit:
         uit.write(sjabloon)
@@ -433,6 +502,8 @@ OVERZICHT = '''<!doctype html>
   .achtergrond button { width: 22px; height: 22px; border: 1px solid var(--lijn); border-radius: 50%; }
   .achtergrond button[aria-pressed="true"] { outline: 2px solid var(--cyaan); outline-offset: 1px; }
   #telling { color: var(--grijs); }
+  #uitleg { flex-basis: 100%; margin: 0; color: var(--grijs); font-size: 13px; }
+  #uitleg b { color: var(--ink); }
   main { padding: 8px 24px 48px; transition: background .2s; }
   main.donker { color: #fff; }
   main.donker small, main.donker h2 span { color: rgba(255,255,255,.7); }
@@ -456,6 +527,7 @@ OVERZICHT = '''<!doctype html>
   <input id="zoek" type="search" placeholder="Zoek een icoon, bijvoorbeeld mail of chart" autofocus>
   <div class="achtergrond" id="achtergronden">Achtergrond</div>
   <span id="telling"></span>
+  <p id="uitleg" hidden>Uitgesneden in de witte zeshoek gebruik je de <b>volle stijl (Fill)</b>: met lijnen wordt het te druk.</p>
 </header>
 <main id="lijst"></main>
 <div id="melding"></div>
@@ -465,6 +537,11 @@ OVERZICHT = '''<!doctype html>
   const data = __DATA__;
   const varianten = __VARIANTEN__.map(([naam]) => naam);
   const licht = new Set(__VARIANTEN__.filter(([, l]) => l).map(([naam]) => naam));
+  // De witte zeshoek is uitgesneden in de volle stijl: daar heet home-line home-fill
+  const uitsparen = new Set(__VARIANTEN__.filter(([, , u]) => u).map(([naam]) => naam));
+  const zonderVol = new Set(__ZONDER_VOL__);
+  const bestand = (categorie, naam) => (uitsparen.has(variant) && naam.endsWith('-line') &&
+    !zonderVol.has(categorie + '/' + naam) ? naam.slice(0, -5) + '-fill' : naam);
   const achtergronden = [['#ffffff', false], ['#f4f6fa', false], ['#1ab9e2', true], ['#b61b50', true], ['#303030', true]];
   let donkerNu = false;
   let vanzelf = false;   // achtergrond vanzelf donker gezet voor een lichte variant
@@ -475,7 +552,7 @@ OVERZICHT = '''<!doctype html>
   let variant = varianten.includes(decodeURIComponent(location.hash.slice(1))) ? decodeURIComponent(location.hash.slice(1)) : varianten[0];
 
   function src(categorie, naam) {
-    return [variant, categorie, naam + '.svg'].map(encodeURIComponent).join('/');
+    return [variant, categorie, bestand(categorie, naam) + '.svg'].map(encodeURIComponent).join('/');
   }
 
   for (const [categorie, namen] of Object.entries(data)) {
@@ -486,12 +563,10 @@ OVERZICHT = '''<!doctype html>
     const knoppen = namen.map((naam) => {
       const knop = document.createElement('button');
       knop.className = 'icoon';
-      knop.title = categorie + '/' + naam + '.svg';
       knop.innerHTML = '<img loading="lazy" alt=""><small></small>';
-      knop.querySelector('small').textContent = naam;
-      knop.addEventListener('click', () => kopieer('Zeshoek/' + variant + '/' + categorie + '/' + naam + '.svg'));
+      knop.addEventListener('click', () => kopieer('Zeshoek/' + variant + '/' + categorie + '/' + bestand(categorie, naam) + '.svg'));
       raster.append(knop);
-      return { knop, naam, img: knop.querySelector('img') };
+      return { knop, naam, img: knop.querySelector('img'), label: knop.querySelector('small') };
     });
     sectie.append(kop, raster);
     lijst.append(sectie);
@@ -523,7 +598,15 @@ OVERZICHT = '''<!doctype html>
     // Onthoud de keuze in de adresbalk; sommige browsers staan dat bij lokale bestanden niet toe.
     try { history.replaceState(null, '', '#' + encodeURIComponent(v)); } catch (e) { /* geen probleem */ }
     variantKnoppen.forEach((k) => k.setAttribute('aria-pressed', k.textContent === v));
-    for (const s of secties) for (const k of s.knoppen) k.img.src = src(s.categorie, k.naam);
+    document.getElementById('uitleg').hidden = !uitsparen.has(v);
+    for (const s of secties) {
+      for (const k of s.knoppen) {
+        const naam = bestand(s.categorie, k.naam);
+        k.img.src = src(s.categorie, k.naam);
+        k.label.textContent = naam;
+        k.knop.title = s.categorie + '/' + naam + '.svg';
+      }
+    }
     const laatste = achtergronden.length - 1;
     if (licht.has(v) && !donkerNu) {
       kiesAchtergrond(...achtergronden[laatste], achtergrondKnoppen[laatste]);
@@ -532,6 +615,7 @@ OVERZICHT = '''<!doctype html>
       kiesAchtergrond(...achtergronden[0], achtergrondKnoppen[0]);
       vanzelf = false;
     }
+    filter();   // de bestandsnaam hangt van de variant af (home-fill in de witte zeshoek)
   }
 
   function kiesAchtergrond(kleur, donker, knop) {
@@ -547,7 +631,8 @@ OVERZICHT = '''<!doctype html>
     for (const s of secties) {
       let zichtbaar = 0;
       for (const { knop, naam } of s.knoppen) {
-        const tekst = (s.categorie + ' ' + naam).toLowerCase();
+        // Op de icoonnaam en op de bestandsnaam die eronder staat (home-line of home-fill)
+        const tekst = (s.categorie + ' ' + naam + ' ' + bestand(s.categorie, naam)).toLowerCase();
         const toon = woorden.every((w) => tekst.includes(w));
         knop.hidden = !toon;
         if (toon) zichtbaar++;
@@ -578,7 +663,6 @@ OVERZICHT = '''<!doctype html>
   document.getElementById('zoek').addEventListener('input', filter);
   kiesAchtergrond(...achtergronden[0], achtergrondKnoppen[0]);
   kiesVariant(variant);
-  filter();
 </script>
 </body>
 </html>

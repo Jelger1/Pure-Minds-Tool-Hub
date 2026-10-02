@@ -5,13 +5,15 @@
    alleen opgeschoond (enkele spaties, "technologiegedreven" aan elkaar).
    "on-aangetapt" blijft zoals het is: zo staat het ook in de voorstellen.
    De rest (tone of voice, regels voor logo, zeshoek, kleur, beeld en iconen)
-   is nieuw in 2.1. De pagina's (js/styleguide/pages.js) tekenen deze teksten;
+   vult dat brandbook aan. Geen versie of datum: het brandbook is altijd de
+   huidige huisstijl. De pagina's (js/styleguide/pages.js) tekenen deze teksten;
    zoeken (js/styleguide/model.js) doorzoekt ze. Nadruk: **woord** wordt cyaan
    (op donker) of vet.
 
      chapters   de hoofdstukken, in de volgorde van de rail
      pages      de pagina's: id, hoofdstuk, titel en zoekwoorden
      iconPaths  Remix-iconen (24-raster, uit assets/icons) die de pagina's tekenen
+     photos     de voorbeeldfoto's (assets/styleguide/photos) met hun fotograaf
 
    Geen DOM: dit bestand laadt ook in Node (voor de tests).
    ============================================================================= */
@@ -23,8 +25,7 @@
     short: 'Pure Minds',
     domain: 'pureminds.nl',
     slogan: 'We mind your business, for your peace of mind.',
-    version: 'Brandbook 2.1',
-    date: 'oktober 2026',
+    contact: { web: 'www.pureminds.nl', phone: '045 - 3690530', email: 'info@pureminds.nl' },
 
     /* --- Merk --- */
 
@@ -88,7 +89,7 @@
       added: [
         { title: 'Kleur', text: 'Alleen wit of Inkt. Geen cyaan, magenta, verloop of schaduw op het logo.' },
         { title: 'Contrast', text: 'Op een foto alleen waar het rustig is; leg zo nodig een donker verloop onder de rand van de foto, nooit een kader om het logo.' },
-        { title: 'Plek', text: 'In documenten rechtsboven of rechtsonder, op slides altijd rechtsonder op dezelfde plek. Eén logo per pagina of slide.' },
+        { title: 'Plek', text: 'In documenten linksboven, zoals op het briefpapier van de Document Maker; op posts en slides altijd rechtsonder op dezelfde plek. Eén logo per pagina, post of slide.' },
         { title: 'Bestanden', text: 'Gebruik altijd de originelen uit de styleguide (SVG voor digitaal en print, PNG alleen als het programma geen SVG kent). Nooit overtrekken of een screenshot gebruiken.' },
       ],
     },
@@ -97,7 +98,7 @@
       intro: 'De zeshoek komt uit het logo en is het herkenbaarste element na het logo zelf. Zo gebruik je hem goed:',
       rules: [
         { ok: true, text: 'Punt boven, zoals in het logo. Nooit plat liggend.' },
-        { ok: true, text: 'Effen cyaan, donker of magenta met een wit icoon, of wit met een uitgesneden icoon.' },
+        { ok: true, text: 'Effen cyaan, donker of magenta met een wit icoon, of wit met een uitgesneden icoon in de volle stijl.' },
         { ok: false, text: 'Geen verloop en geen blauw (#1B71A8) als vlak.' },
         { ok: false, text: 'Geen rand om een witte zeshoek; zet hem op een donkere of gekleurde ondergrond.' },
       ],
@@ -127,6 +128,11 @@
         ['cyaan', 'wit', 'Pure Cyaan op wit'],
         ['wit', 'oranje', 'Wit op Oranje'],
       ],
+      // Waarom deze regels, voor wie geen ontwerper is (pagina en paneel). Vaste spatie rond de dubbele punt
+      why: [
+        { id: 'ratio', title: 'Waarom 60/30/10', text: 'Eén kleur die de toon zet geeft rust, en overal dezelfde verhouding maakt ons herkenbaar. Magenta valt op omdat hij schaars is: daarom alleen voor de hoofdactie.' },
+        { id: 'contrast', title: 'Waarom contrast', text: 'Zo kan iedereen de tekst lezen, ook op een slecht scherm of in de zon. De norm voor toegankelijkheid (WCAG) vraagt 4,5 : 1 voor gewone tekst en 3 : 1 voor grote tekst.' },
+      ],
       contrastNote: 'Let op: Pure Cyaan werkt als tekstkleur alleen op donker. Op wit is cyaan voor vlakken, lijnen en markeringen, niet voor tekst. Een cyaan knop krijgt tekst in Inkt; witte tekst op cyaan alleen in grote, korte koppen op beeld, waar de foto eronder donker is.',
     },
 
@@ -143,10 +149,20 @@
         label: 'Overline, hoofdletters',
       },
       notes: [
-        'Gewichten in gebruik: Light 300, Regular 400, SemiBold 600, Bold 700, ExtraBold 800 (plus cursief).',
+        'Gewichten in gebruik: Regular 400, Bold 700 en ExtraBold 800 (plus cursief).',
         'Nadruk in een kop: één of twee woorden in Pure Cyaan (op donker) of een cyaan punt achter de kop. Nooit onderstrepen.',
         'Fallback: Open Sans (zelfde vormen) als Pure Minds Sans ergens niet geïnstalleerd is, bijvoorbeeld in Google Slides.',
       ],
+      // Uitleg bij een maat als "ExtraBold 800 · 52/58 · −2%", voor wie in Canva werkt (pagina en
+      // paneel). Het voorbeeld zelf rekent model.js uit (typeSpec), zodat het nooit afwijkt
+      legend: {
+        title: 'Zo lees je de maten',
+        parts: [
+          { key: '800', title: 'Letterdikte', text: 'De dikte van de letter (font weight): 400 is Regular, 700 Bold, 800 ExtraBold. In Canva kies je die stijl bij het lettertype.' },
+          { key: '52/58', title: 'Grootte en regelafstand', text: 'Lettergrootte 52, regelafstand 58. In Canva: grootte 52 en regelafstand 1,1 (58 gedeeld door 52).' },
+          { key: '−2%', title: 'Letterafstand', text: 'De ruimte tussen de letters (tracking): −2% is iets dichter op elkaar. In Canva en Illustrator: −20.' },
+        ],
+      },
       alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
       lower: 'abcdefghijklmnopqrstuvwxyz',
       digits: '0123456789 € % & @ ? ! ( ) . , : ;',
@@ -181,7 +197,9 @@
           'Logo’s van andere merken groot in beeld, tenzij het om de klant gaat (zoals Google bij een Ads-post).',
         ] },
       ],
-      // De kaders op de pagina: geen foto's, alleen de opbouw
+      // De drie voorbeelden op de pagina, elk op een echte foto (js/styleguide/mockups.js); de
+      // tekst erop is echte tekst. photoNote: waar de foto's vandaan komen
+      photoNote: 'Voorbeeldfoto’s via Unsplash; de fotografen staan in het colofon. In je eigen ontwerp: echte foto’s van de klant of van Pure Minds.',
       frames: [
         { id: 'compositie', title: 'Onderwerp uit het midden', text: 'Een rustige kant voor de kop.' },
         { id: 'tekst', title: 'Tekst op beeld', text: 'Witte kop op het donkere deel.' },
@@ -200,10 +218,11 @@
     /* --- Iconen --- */
 
     icons: {
-      intro: 'Iconen komen uit de Icon Finder in de Generator Hub: 1.690 lijniconen van Remix Icon, te zoeken in het Nederlands en Engels. Los of in de zeshoek, altijd in een effen huiskleur.',
+      intro: 'Iconen komen uit de Icon Finder in de Generator Hub: Remix Icon, te zoeken in het Nederlands en Engels. We gebruiken de lijnstijl (Line), los of in de zeshoek, altijd in een effen huiskleur. Alleen uitgesneden in een witte zeshoek gebruik je de volle stijl (Solid/Fill).',
       rules: [
-        'Alleen de lijnstijl, uit één set. Geen iconen van andere sets ernaast.',
-        'In de zeshoek: cyaan (de huisvariant), donker of magenta met een wit icoon, of wit met een uitgesneden icoon op een donkere ondergrond.',
+        'Standaard de lijnstijl (Line) van Remix Icon, uit één set. Geen iconen van andere sets ernaast.',
+        'Uitgesneden iconen in een witte zeshoek: altijd de volle stijl (Solid/Fill) van hetzelfde icoon. Dunne lijnen in een uitsparing maken het beeld onrustig.',
+        'In de zeshoek: cyaan (de huisvariant), donker of magenta met een wit lijnicoon, of wit met een uitgesneden icoon in de volle stijl, op een donkere ondergrond.',
         'Los: in Inkt, cyaan, blauw, magenta of wit.',
         'Punt boven en afgeronde hoeken van 12% van de straal, net als de icoonhouders in de makers.',
         'Magenta alleen bij de hoofdactie, zoals een knop of cta.',
@@ -214,10 +233,12 @@
         { preset: 'cyaan', name: 'Cyaan zeshoek', sub: 'wit icoon · de huisvariant', folder: 'Cyaan zeshoek - wit icoon' },
         { preset: 'donker', name: 'Donkere zeshoek', sub: 'wit icoon', folder: 'Donkere zeshoek - wit icoon' },
         { preset: 'magenta', name: 'Magenta zeshoek', sub: 'wit icoon · hoofdactie', folder: 'Magenta zeshoek - wit icoon' },
-        { preset: 'wit', name: 'Witte zeshoek', sub: 'uitgesneden icoon · op donker', folder: 'Witte zeshoek - doorzichtig icoon' },
+        { preset: 'wit', name: 'Witte zeshoek', sub: 'uitgesneden, volle stijl · op donker', folder: 'Witte zeshoek - doorzichtig icoon' },
       ],
       loose: ['inkt', 'cyaan', 'blauw', 'magenta', 'wit'],
       sample: ['line-chart', 'megaphone', 'lightbulb', 'team', 'search', 'mail'],
+      // Wel en niet: hetzelfde icoon uitgesneden in de volle stijl en in de lijnstijl
+      knockout: { icon: 'team', title: 'Uitgesneden', sub: 'wel en niet', wel: 'Volle stijl (Fill): een rustig silhouet.', niet: 'Lijnstijl (Line): dunne lijnen worden onrustig.' },
     },
 
     /* --- Gebruik --- */
@@ -226,12 +247,12 @@
       intro: 'De makers in de Generator Hub passen deze regels vanzelf toe. Begin daar, niet met een leeg bestand.',
       makers: [
         { id: 'insta', name: 'Social posts', tool: 'Insta Post Maker', text: 'Vijf templates: standaard foto, foto met tekst, blog, case en carousel. Cyaan balk, label met zeshoek, logo rechtsonder.', formats: ['standaard foto', 'foto met tekst', 'blog', 'case', 'carousel'] },
-        { id: 'document', name: 'Documenten', tool: 'Document Maker', text: 'Brief, offerte, memo en notitie op het A4-briefpapier, met het logo in Inkt rechtsboven.' },
+        { id: 'document', name: 'Documenten', tool: 'Document Maker', text: 'Brief, offerte, memo en notitie op het A4-briefpapier: cyaan balk, het logo in Inkt linksboven, de afzender rechts en de bedrijfsgegevens in de voetregel.' },
         { id: 'presentation', name: 'Presentaties', tool: 'Presentation Maker', text: 'Slides, voorstellen en positioneringen in 16:9. Het logo staat op elke slide rechtsonder, op dezelfde plek.' },
       ],
       badge: {
         title: 'Emerce 100-badge',
-        intro: 'Pure Minds staat in de Emerce 100: de beste e-businessbedrijven van 2026. De badge is een keurmerk, geen tweede logo.',
+        intro: 'Pure Minds staat in de Emerce 100, de lijst met de beste e-businessbedrijven van Nederland. De badge is een keurmerk, geen tweede logo.',
         rules: [
           'Wit op donker, zwart op licht; nooit in een andere kleur.',
           'Klein en ondergeschikt aan het logo: in de voetregel van slides en briefpapier, linksonder op posts.',
@@ -239,22 +260,78 @@
           'Buiten de clear space van het logo, en één badge per ontwerp.',
         ],
       },
+      // De brief zoals de Document Maker hem begint (js/document/model.js EXAMPLE en de standaardtitel
+      // in js/document/app.js); de datum als invulplek. tests/styleguide.test.js houdt hem gelijk
+      letter: {
+        label: 'brief',
+        title: 'Voorstel voor de samenwerking',
+        date: '[datum]',
+        recipient: ['Naam contactpersoon', 'Bedrijfsnaam', 'Straat 1', '1234 AB Plaats'],
+        salutation: 'Beste [naam],',
+        intro: 'Bedankt voor het prettige gesprek van afgelopen week. In dit document zetten we op een rij wat we voor jullie gaan doen en wat je van ons mag verwachten.',
+        heading: 'Onze aanpak',
+        bullets: [
+          'We starten met een analyse van de huidige campagnes en de landingspagina\'s.',
+          'Daarna maken we een plan met **concrete doelen per kanaal**.',
+          'Elke maand bespreken we de resultaten en stellen we bij.',
+        ],
+        outro: 'Heb je vragen of wil je iets aanpassen? Laat het ons weten, dan passen we het voorstel aan.',
+        closing: 'Met vriendelijke groet,',
+        signature: 'Pure Minds Marketing Group',
+      },
+      // De voorbeeldteksten van de Insta Post Maker (js/insta/app.js, defaults), letterlijk; de
+      // carousel staat op slide 2. Niet in de zoekindex: het zijn voorbeelden, geen regels
+      demo: {
+        posts: {
+          photo: { style: 'full', label: '' },
+          overlay: {
+            label: '',
+            title: 'Onze nieuwe **Google Ads-audit** is live',
+            subtitle: 'In twee weken weet je precies waar je advertentiebudget weglekt.',
+            strength: 80,
+            position: 'bottom',
+            decor: true,
+            titleSize: 'normaal',
+          },
+          blog: {
+            label: 'pure blog',
+            title: '5 signalen dat je landingspagina conversies laat liggen',
+            topic: 'conversie-optimalisatie',
+            cta: 'Lees onze nieuwe blog over {onderwerp} op de website.',
+            button: 'lees de blog',
+            titleSize: 'normaal',
+          },
+          case: {
+            label: 'pure case',
+            client: 'Studio Noord',
+            services: ['Google Ads', 'een nieuwe landingspagina', ''],
+            sentence: 'Voor {klant} hebben wij {diensten} gedaan.',
+            resultValue: '+184%',
+            resultLabel: 'meer aanvragen binnen drie maanden',
+            photoBg: false,
+            titleSize: 'normaal',
+          },
+          carousel: {
+            label: 'pure kennis',
+            active: 1,
+            titleSize: 'normaal',
+            slides: [
+              { title: 'Zo schrijf je een advertentie die wél klikt', body: 'Vijf lessen uit honderden Google Ads-accounts. Swipe mee.', last: false },
+              { title: 'Begin met het zoekwoord', body: 'Laat het **zoekwoord** terugkomen in je eerste kop.\n- herkenbaar voor de zoeker\n- hogere kwaliteitsscore\n- lagere klikprijs', last: false },
+              { title: 'Hulp nodig bij je campagnes?', body: 'Plan een gratis adviesgesprek via **pureminds.nl**.', last: true },
+            ],
+          },
+        },
+      },
     },
 
+    // Het colofon: tijdloos, zonder versie of datum. {fotografen} vult model.js in (photoCredits)
     colophon: {
-      lines: [
-        'Brandbook 2.1, oktober 2026. Vervangt brandbook 2.0.',
-        'Gemaakt in de Brand Styleguide van de Pure Minds Generator Hub. Deze PDF opent bewerkbaar in Canva en Illustrator.',
-        'Lettertype: Pure Minds Sans. Iconen: Remix Icon (Remix Icon License v1.0).',
-      ],
-      news: [
-        'Tone of voice en schrijfregels',
-        'Clear space en minimum formaat van het logo',
-        'Regels voor de zeshoek en de iconen',
-        'Contrast en de 60/30/10-regel',
-        'Beeldtaal en fotografie',
-        'Medium 500 geschrapt: dat gewicht heeft geen fontbestand',
-      ],
+      signoff: 'Gemaakt met de Pure Minds Generator Hub.',
+      about: 'Dit brandbook beschrijft de huisstijl van Pure Minds Marketing Group. De Brand Styleguide in de Generator Hub is altijd actueel: daar kopieer je elke kleur en download je elk logo.',
+      sources: 'Lettertype: Pure Minds Sans. Iconen: Remix Icon (Remix Icon License v1.0). Deze PDF opent bewerkbaar in Canva en Illustrator.',
+      photos: 'Foto’s: {fotografen}, via Unsplash (Unsplash-licentie).',
+      rights: '© Pure Minds Marketing Group. Alle rechten voorbehouden.',
     },
   };
 
@@ -288,30 +365,76 @@
     { id: 'kleur-toepassen', chapter: 'kleur', title: '60/30/10 en contrast', words: 'verhouding 60 30 10 contrast leesbaarheid wcag toegankelijkheid' },
     { id: 'typografie', chapter: 'type', title: 'Typografie', words: 'lettertype font pure minds sans open sans gewichten koppen typeschaal' },
     { id: 'beeldtaal', chapter: 'beeld', title: 'Beeldtaal en fotografie', words: 'foto fotografie beeld licht compositie stock filter' },
-    { id: 'iconen', chapter: 'iconen', title: 'Iconen', words: 'iconen icoon icon finder remix zeshoek' },
-    { id: 'toepassingen', chapter: 'gebruik', title: 'Toepassingen', words: 'social posts documenten presentaties slides emerce badge keurmerk templates' },
-    { id: 'colofon', chapter: 'gebruik', title: 'Colofon', words: 'contact colofon versie nieuw' },
+    { id: 'iconen', chapter: 'iconen', title: 'Iconen', words: 'iconen icoon icon finder remix zeshoek lijnstijl volle stijl line fill uitgesneden' },
+    { id: 'toepassingen', chapter: 'gebruik', title: 'Toepassingen', words: 'social posts presentaties slides templates voorbeelden insta post maker presentation maker' },
+    { id: 'documenten', chapter: 'gebruik', title: 'Documenten en keurmerk', words: 'documenten brief briefpapier offerte memo notitie document maker emerce badge keurmerk' },
+    { id: 'colofon', chapter: 'gebruik', title: 'Colofon', words: 'contact colofon telefoon e-mail website bronnen fotografen unsplash rechten' },
   ];
 
   /* ---------------------------------------------------------------------------
-     Iconen voor de pagina's: de -line-varianten uit assets/icons (24-raster,
-     alleen absolute M, L, H, V, C en Z). tests/styleguide.test.js controleert
-     dat ze gelijk zijn aan de bestanden.
+     Iconen voor de pagina's (24-raster, alleen absolute M, L, H, V, C en Z): d is
+     de lijnstijl uit assets/icons (file), fill de volle stijl uit assets/icons/Vol
+     (fillFile), alleen voor een uitgesneden icoon in de witte zeshoek. Bij check en
+     close zijn beide stijlen gelijk. tests/styleguide.test.js controleert dat ze
+     gelijk zijn aan de bestanden.
      ------------------------------------------------------------------------- */
 
   const iconPaths = {
-    'line-chart': { file: 'Business/line-chart-line.svg', d: 'M5 3V19H21V21H3V3H5ZM20.2929 6.29289L21.7071 7.70711L16 13.4142L13 10.415L8.70711 14.7071L7.29289 13.2929L13 7.58579L16 10.585L20.2929 6.29289Z' },
-    megaphone: { file: 'Business/megaphone-line.svg', d: 'M9 17C9 17 16 18 19 21H20C20.5523 21 21 20.5523 21 20V13.937C21.8626 13.715 22.5 12.9319 22.5 12C22.5 11.0681 21.8626 10.285 21 10.063V4C21 3.44772 20.5523 3 20 3H19C16 6 9 7 9 7H5C3.89543 7 3 7.89543 3 9V15C3 16.1046 3.89543 17 5 17H6L7 22H9V17ZM11 8.6612C11.6833 8.5146 12.5275 8.31193 13.4393 8.04373C15.1175 7.55014 17.25 6.77262 19 5.57458V18.4254C17.25 17.2274 15.1175 16.4499 13.4393 15.9563C12.5275 15.6881 11.6833 15.4854 11 15.3388V8.6612ZM5 9H9V15H5V9Z' },
-    lightbulb: { file: 'Others/lightbulb-line.svg', d: 'M9.97308 18H11V13H13V18H14.0269C14.1589 16.7984 14.7721 15.8065 15.7676 14.7226C15.8797 14.6006 16.5988 13.8564 16.6841 13.7501C17.5318 12.6931 18 11.385 18 10C18 6.68629 15.3137 4 12 4C8.68629 4 6 6.68629 6 10C6 11.3843 6.46774 12.6917 7.31462 13.7484C7.40004 13.855 8.12081 14.6012 8.23154 14.7218C9.22766 15.8064 9.84103 16.7984 9.97308 18ZM10 20V21H14V20H10ZM5.75395 14.9992C4.65645 13.6297 4 11.8915 4 10C4 5.58172 7.58172 2 12 2C16.4183 2 20 5.58172 20 10C20 11.8925 19.3428 13.6315 18.2443 15.0014C17.624 15.7748 16 17 16 18.5V21C16 22.1046 15.1046 23 14 23H10C8.89543 23 8 22.1046 8 21V18.5C8 17 6.37458 15.7736 5.75395 14.9992Z' },
-    team: { file: 'User & Faces/team-line.svg', d: 'M12 11C14.7614 11 17 13.2386 17 16V22H15V16C15 14.4023 13.7511 13.0963 12.1763 13.0051L12 13C10.4023 13 9.09634 14.2489 9.00509 15.8237L9 16V22H7V16C7 13.2386 9.23858 11 12 11ZM5.5 14C5.77885 14 6.05009 14.0326 6.3101 14.0942C6.14202 14.594 6.03873 15.122 6.00896 15.6693L6 16L6.0007 16.0856C5.88757 16.0456 5.76821 16.0187 5.64446 16.0069L5.5 16C4.7203 16 4.07955 16.5949 4.00687 17.3555L4 17.5V22H2V17.5C2 15.567 3.567 14 5.5 14ZM18.5 14C20.433 14 22 15.567 22 17.5V22H20V17.5C20 16.7203 19.4051 16.0796 18.6445 16.0069L18.5 16C18.3248 16 18.1566 16.03 18.0003 16.0852L18 16C18 15.3343 17.8916 14.694 17.6915 14.0956C17.9499 14.0326 18.2211 14 18.5 14ZM5.5 8C6.88071 8 8 9.11929 8 10.5C8 11.8807 6.88071 13 5.5 13C4.11929 13 3 11.8807 3 10.5C3 9.11929 4.11929 8 5.5 8ZM18.5 8C19.8807 8 21 9.11929 21 10.5C21 11.8807 19.8807 13 18.5 13C17.1193 13 16 11.8807 16 10.5C16 9.11929 17.1193 8 18.5 8ZM5.5 10C5.22386 10 5 10.2239 5 10.5C5 10.7761 5.22386 11 5.5 11C5.77614 11 6 10.7761 6 10.5C6 10.2239 5.77614 10 5.5 10ZM18.5 10C18.2239 10 18 10.2239 18 10.5C18 10.7761 18.2239 11 18.5 11C18.7761 11 19 10.7761 19 10.5C19 10.2239 18.7761 10 18.5 10ZM12 2C14.2091 2 16 3.79086 16 6C16 8.20914 14.2091 10 12 10C9.79086 10 8 8.20914 8 6C8 3.79086 9.79086 2 12 2ZM12 4C10.8954 4 10 4.89543 10 6C10 7.10457 10.8954 8 12 8C13.1046 8 14 7.10457 14 6C14 4.89543 13.1046 4 12 4Z' },
-    search: { file: 'System/search-line.svg', d: 'M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z' },
-    mail: { file: 'Business/mail-line.svg', d: 'M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z' },
-    image: { file: 'Media/image-line.svg', d: 'M2.9918 21C2.44405 21 2 20.5551 2 20.0066V3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918ZM20 15V5H4V19L14 9L20 15ZM20 17.8284L14 11.8284L6.82843 19H20V17.8284ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z' },
-    check: { file: 'System/check-line.svg', d: 'M9.9997 15.1709L19.1921 5.97852L20.6063 7.39273L9.9997 17.9993L3.63574 11.6354L5.04996 10.2212L9.9997 15.1709Z' },
-    close: { file: 'System/close-line.svg', d: 'M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z' },
+    'line-chart': {
+      file: 'Business/line-chart-line.svg', d: 'M5 3V19H21V21H3V3H5ZM20.2929 6.29289L21.7071 7.70711L16 13.4142L13 10.415L8.70711 14.7071L7.29289 13.2929L13 7.58579L16 10.585L20.2929 6.29289Z',
+      fillFile: 'Vol/Business/line-chart-fill.svg', fill: 'M5 3V19H21V21H3V3H5ZM19.9393 5.93934L22.0607 8.06066L16 14.1213L13 11.121L9.06066 15.0607L6.93934 12.9393L13 6.87868L16 9.879L19.9393 5.93934Z',
+    },
+    megaphone: {
+      file: 'Business/megaphone-line.svg', d: 'M9 17C9 17 16 18 19 21H20C20.5523 21 21 20.5523 21 20V13.937C21.8626 13.715 22.5 12.9319 22.5 12C22.5 11.0681 21.8626 10.285 21 10.063V4C21 3.44772 20.5523 3 20 3H19C16 6 9 7 9 7H5C3.89543 7 3 7.89543 3 9V15C3 16.1046 3.89543 17 5 17H6L7 22H9V17ZM11 8.6612C11.6833 8.5146 12.5275 8.31193 13.4393 8.04373C15.1175 7.55014 17.25 6.77262 19 5.57458V18.4254C17.25 17.2274 15.1175 16.4499 13.4393 15.9563C12.5275 15.6881 11.6833 15.4854 11 15.3388V8.6612ZM5 9H9V15H5V9Z',
+      fillFile: 'Vol/Business/megaphone-fill.svg', fill: 'M21 10.063V4C21 3.44772 20.5523 3 20 3H19C17.0214 4.97864 13.3027 6.08728 11 6.61281V17.3872C13.3027 17.9127 17.0214 19.0214 19 21H20C20.5523 21 21 20.5523 21 20V13.937C21.8626 13.715 22.5 12.9319 22.5 12 22.5 11.0681 21.8626 10.285 21 10.063ZM5 7C3.89543 7 3 7.89543 3 9V15C3 16.1046 3.89543 17 5 17H6L7 22H9V7H5Z',
+    },
+    lightbulb: {
+      file: 'Others/lightbulb-line.svg', d: 'M9.97308 18H11V13H13V18H14.0269C14.1589 16.7984 14.7721 15.8065 15.7676 14.7226C15.8797 14.6006 16.5988 13.8564 16.6841 13.7501C17.5318 12.6931 18 11.385 18 10C18 6.68629 15.3137 4 12 4C8.68629 4 6 6.68629 6 10C6 11.3843 6.46774 12.6917 7.31462 13.7484C7.40004 13.855 8.12081 14.6012 8.23154 14.7218C9.22766 15.8064 9.84103 16.7984 9.97308 18ZM10 20V21H14V20H10ZM5.75395 14.9992C4.65645 13.6297 4 11.8915 4 10C4 5.58172 7.58172 2 12 2C16.4183 2 20 5.58172 20 10C20 11.8925 19.3428 13.6315 18.2443 15.0014C17.624 15.7748 16 17 16 18.5V21C16 22.1046 15.1046 23 14 23H10C8.89543 23 8 22.1046 8 21V18.5C8 17 6.37458 15.7736 5.75395 14.9992Z',
+      fillFile: 'Vol/Others/lightbulb-fill.svg', fill: 'M11 18H7.94101C7.64391 16.7274 6.30412 15.6857 5.75395 14.9992C4.65645 13.6297 4 11.8915 4 10C4 5.58172 7.58172 2 12 2C16.4183 2 20 5.58172 20 10C20 11.8925 19.3428 13.6315 18.2443 15.0014C17.6944 15.687 16.3558 16.7276 16.059 18H13V13H11V18ZM16 20V21C16 22.1046 15.1046 23 14 23H10C8.89543 23 8 22.1046 8 21V20H16Z',
+    },
+    team: {
+      file: 'User & Faces/team-line.svg', d: 'M12 11C14.7614 11 17 13.2386 17 16V22H15V16C15 14.4023 13.7511 13.0963 12.1763 13.0051L12 13C10.4023 13 9.09634 14.2489 9.00509 15.8237L9 16V22H7V16C7 13.2386 9.23858 11 12 11ZM5.5 14C5.77885 14 6.05009 14.0326 6.3101 14.0942C6.14202 14.594 6.03873 15.122 6.00896 15.6693L6 16L6.0007 16.0856C5.88757 16.0456 5.76821 16.0187 5.64446 16.0069L5.5 16C4.7203 16 4.07955 16.5949 4.00687 17.3555L4 17.5V22H2V17.5C2 15.567 3.567 14 5.5 14ZM18.5 14C20.433 14 22 15.567 22 17.5V22H20V17.5C20 16.7203 19.4051 16.0796 18.6445 16.0069L18.5 16C18.3248 16 18.1566 16.03 18.0003 16.0852L18 16C18 15.3343 17.8916 14.694 17.6915 14.0956C17.9499 14.0326 18.2211 14 18.5 14ZM5.5 8C6.88071 8 8 9.11929 8 10.5C8 11.8807 6.88071 13 5.5 13C4.11929 13 3 11.8807 3 10.5C3 9.11929 4.11929 8 5.5 8ZM18.5 8C19.8807 8 21 9.11929 21 10.5C21 11.8807 19.8807 13 18.5 13C17.1193 13 16 11.8807 16 10.5C16 9.11929 17.1193 8 18.5 8ZM5.5 10C5.22386 10 5 10.2239 5 10.5C5 10.7761 5.22386 11 5.5 11C5.77614 11 6 10.7761 6 10.5C6 10.2239 5.77614 10 5.5 10ZM18.5 10C18.2239 10 18 10.2239 18 10.5C18 10.7761 18.2239 11 18.5 11C18.7761 11 19 10.7761 19 10.5C19 10.2239 18.7761 10 18.5 10ZM12 2C14.2091 2 16 3.79086 16 6C16 8.20914 14.2091 10 12 10C9.79086 10 8 8.20914 8 6C8 3.79086 9.79086 2 12 2ZM12 4C10.8954 4 10 4.89543 10 6C10 7.10457 10.8954 8 12 8C13.1046 8 14 7.10457 14 6C14 4.89543 13.1046 4 12 4Z',
+      fillFile: 'Vol/User & Faces/team-fill.svg', fill: 'M12 10C14.2091 10 16 8.20914 16 6 16 3.79086 14.2091 2 12 2 9.79086 2 8 3.79086 8 6 8 8.20914 9.79086 10 12 10ZM5.5 13C6.88071 13 8 11.8807 8 10.5 8 9.11929 6.88071 8 5.5 8 4.11929 8 3 9.11929 3 10.5 3 11.8807 4.11929 13 5.5 13ZM21 10.5C21 11.8807 19.8807 13 18.5 13 17.1193 13 16 11.8807 16 10.5 16 9.11929 17.1193 8 18.5 8 19.8807 8 21 9.11929 21 10.5ZM12 11C14.7614 11 17 13.2386 17 16V22H7V16C7 13.2386 9.23858 11 12 11ZM5 15.9999C5 15.307 5.10067 14.6376 5.28818 14.0056L5.11864 14.0204C3.36503 14.2104 2 15.6958 2 17.4999V21.9999H5V15.9999ZM22 21.9999V17.4999C22 15.6378 20.5459 14.1153 18.7118 14.0056 18.8993 14.6376 19 15.307 19 15.9999V21.9999H22Z',
+    },
+    search: {
+      file: 'System/search-line.svg', d: 'M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z',
+      fillFile: 'Vol/System/search-fill.svg', fill: 'M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168Z',
+    },
+    mail: {
+      file: 'Business/mail-line.svg', d: 'M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z',
+      fillFile: 'Vol/Business/mail-fill.svg', fill: 'M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM12.0606 11.6829L5.64722 6.2377L4.35278 7.7623L12.0731 14.3171L19.6544 7.75616L18.3456 6.24384L12.0606 11.6829Z',
+    },
+    image: {
+      file: 'Media/image-line.svg', d: 'M2.9918 21C2.44405 21 2 20.5551 2 20.0066V3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918ZM20 15V5H4V19L14 9L20 15ZM20 17.8284L14 11.8284L6.82843 19H20V17.8284ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z',
+      fillFile: 'Vol/Media/image-fill.svg', fill: 'M20 5H4V19L13.2923 9.70649C13.6828 9.31595 14.3159 9.31591 14.7065 9.70641L20 15.0104V5ZM2 3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918C2.44405 21 2 20.5551 2 20.0066V3.9934ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z',
+    },
+    check: {
+      file: 'System/check-line.svg', d: 'M9.9997 15.1709L19.1921 5.97852L20.6063 7.39273L9.9997 17.9993L3.63574 11.6354L5.04996 10.2212L9.9997 15.1709Z',
+      fillFile: 'Vol/System/check-fill.svg', fill: 'M9.9997 15.1709L19.1921 5.97852L20.6063 7.39273L9.9997 17.9993L3.63574 11.6354L5.04996 10.2212L9.9997 15.1709Z',
+    },
+    close: {
+      file: 'System/close-line.svg', d: 'M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z',
+      fillFile: 'Vol/System/close-fill.svg', fill: 'M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z',
+    },
   };
 
-  const CONTENT = { ...C, chapters, pages, iconPaths };
+  /* ---------------------------------------------------------------------------
+     Voorbeeldfoto's (Unsplash-licentie): het bestand, de fotograaf (in het
+     colofon) en de pagina op Unsplash. Waar elke foto staat en hoe hij is
+     uitgesneden, staat in js/styleguide/mockups.js (SLOTS). Vervangen: zie
+     assets/styleguide/photos/LEESMIJ.txt
+     ------------------------------------------------------------------------- */
+
+  const photos = [
+    { id: 'laptop-raam', file: 'assets/styleguide/photos/laptop-raam.jpg', by: 'Anastasiia Nelen', url: 'https://unsplash.com/photos/Ki_pIEtS6pk' },
+    { id: 'team-overleg', file: 'assets/styleguide/photos/team-overleg.jpg', by: 'Andreea Avramescu', url: 'https://unsplash.com/photos/wR56AUlEsE4' },
+    { id: 'analytics-scherm', file: 'assets/styleguide/photos/analytics-scherm.jpg', by: 'Campaign Creators', url: 'https://unsplash.com/photos/pypeCEaJeZY' },
+    { id: 'werkplek-bureau', file: 'assets/styleguide/photos/werkplek-bureau.jpg', by: 'Andrew Neel', url: 'https://unsplash.com/photos/cckf4TsHAuw' },
+    { id: 'vakman-werkplaats', file: 'assets/styleguide/photos/vakman-werkplaats.jpg', by: 'Ali Mkumbwa', url: 'https://unsplash.com/photos/PxlKOcj0a3Q' },
+    { id: 'bloemist', file: 'assets/styleguide/photos/bloemist.jpg', by: 'Waldemar Brandt', url: 'https://unsplash.com/photos/q3RGXuBc_SU' },
+  ];
+
+  const CONTENT = { ...C, chapters, pages, iconPaths, photos };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = CONTENT;
   if (global && global.document) global.PM_BRAND_CONTENT = CONTENT;

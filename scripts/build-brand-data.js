@@ -48,16 +48,14 @@ console.log(`brand-data.js geschreven (${Math.round(brand.length / 1024)} KB)`);
 // --- Lettertypen voor PDF ---------------------------------------------------
 
 // Stijlnaam in jsPDF -> bestand. De namen gebruikt js/shared/core.js (PM.pdfFontStyle).
+// Alleen de snedes die de tools gebruiken (Regular, Bold, ExtraBold en de cursieven): elke
+// extra snede maakt pdf-fonts.js, dat bij de eerste export laadt, zo'n 290 KB groter.
 const fonts = {
   normal: 'PureMindsSans-Regular.ttf',
-  semibold: 'PureMindsSans-SemiBold.ttf',
   bold: 'PureMindsSans-Bold.ttf',
   extrabold: 'PureMindsSans-ExtraBold.ttf',
   italic: 'PureMindsSans-Italic.ttf',
   bolditalic: 'PureMindsSans-BoldItalic.ttf',
-  // Light alleen voor de Brand Styleguide (de pagina Typografie). Als laatste: zo houden de
-  // andere snedes in jsPDF hun nummer (/F14 …) en blijven de PDF's van de andere makers gelijk
-  light: 'PureMindsSans-Light.ttf',
 };
 
 const pdfFonts = `/* Gegenereerd door scripts/build-brand-data.js. Niet met de hand wijzigen:

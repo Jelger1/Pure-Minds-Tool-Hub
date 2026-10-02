@@ -50,11 +50,11 @@ const overgeslagen = new Set(nl.overgeslagen || []);
 const STOPWORDS = new Set(['de', 'het', 'een', 'en', 'van', 'met', 'naar', 'in', 'op', 'te', 'of', 'is',
   'voor', 'the', 'a', 'an', 'and', 'to', 'for', 'with', 'on']);
 
-// --- Iconen: dezelfde groepering als icon-data.js (zonder -line; -fill telt niet mee)
+// --- Iconen: dezelfde groepering als icon-data.js (zonder -line; de volle stijl in Vol/ telt niet mee)
 
 const names = new Set();
 for (const entry of fs.readdirSync(iconDir, { withFileTypes: true })) {
-  if (!entry.isDirectory() || entry.name === 'Zeshoek' || entry.name === 'Los') continue;
+  if (!entry.isDirectory() || ['Zeshoek', 'Los', 'Vol'].includes(entry.name)) continue;
   for (const file of fs.readdirSync(path.join(iconDir, entry.name))) {
     if (file.endsWith('.svg') && !file.endsWith('-fill.svg')) names.add(file.slice(0, -4).replace(/-line$/, ''));
   }

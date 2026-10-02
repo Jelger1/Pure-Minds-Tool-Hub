@@ -1,5 +1,6 @@
 /* Tests voor de Brand Styleguide: tokens gelijk aan de huisstijl, teksten uit brandbook v2.0,
-   uitleg en rail bij de HTML, de pagina's, het rekenwerk (model.js), de SVG-paden en de export */
+   uitleg en rail bij de HTML, de pagina's, het rekenwerk (model.js), de SVG-paden, de export,
+   de voorbeeldfoto's en de voorbeelden uit de makers (gelijk aan die makers) */
 'use strict';
 
 const test = require('node:test');
@@ -44,12 +45,12 @@ test('RGB en CMYK horen bij de HEX-waarde (CMYK rekenkundig, zoals v2.0)', () =>
   assert.deepEqual(T.color('cyaan').cmyk, [88, 18, 0, 11], 'zoals in brandbook v2.0');
 });
 
-test('gewichten zijn de @font-face-regels van Pure Minds Sans, zonder Medium 500', () => {
+test('gewichten: Regular 400, Bold 700 en ExtraBold 800, gelijk aan de @font-face-regels', () => {
   const css = read('css/global.css');
   const faces = Array.from(css.matchAll(/@font-face\s*\{([^}]+)\}/g), (m) => m[1]).filter((f) => /Pure Minds Sans/.test(f) && !/italic/.test(f));
   const weights = faces.map((f) => Number(/font-weight:\s*(\d+)/.exec(f)[1])).sort((a, b) => a - b);
-  assert.deepEqual(T.font.weights.map((w) => w.weight), weights);
-  assert.ok(!weights.includes(500), 'geen Medium 500');
+  assert.deepEqual(T.font.weights.map((w) => w.weight), [400, 700, 800]);
+  assert.deepEqual(weights, [400, 700, 800], 'de @font-face-regels in global.css');
   for (const w of T.font.weights) assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'fonts', `PureMindsSans-${w.name}.ttf`)), `${w.name}.ttf`);
   assert.equal(T.font.stack, brand.FONT, 'zelfde fallback als PM.brand');
 });
@@ -90,7 +91,7 @@ test('de correcties op v2.0 zijn doorgevoerd, en on-aangetapt blijft', () => {
   assert.ok(!/on aangetapt|onaangetapt/.test(all), 'on-aangetapt, zoals in de voorstellen');
   assert.ok(!/Google Fonts/.test(all), 'Pure Minds Sans staat niet op Google Fonts');
   assert.ok(!/ {2}/.test(all), 'geen dubbele spaties');
-  assert.ok(!/Medium 500/.test(C.type.notes.join(' ')), 'Medium 500 staat niet bij de gewichten in gebruik');
+  assert.ok(!/Light|SemiBold|Medium/.test(C.type.notes.join(' ')), 'alleen Regular, Bold en ExtraBold bij de gewichten in gebruik');
   assert.match(C.logo.donts[0].title, /^Geen achtergrond achter het logo$/);
 });
 
@@ -164,6 +165,25 @@ test('de iconen op de pagina’s zijn gelijk aan assets/icons', () => {
     assert.equal(/\sd="([^"]+)"/.exec(svg)[1], icon.d, name);
   }
   for (const n of C.icons.sample) assert.ok(C.iconPaths[n], `voorbeeldicoon ${n}`);
+  assert.ok(C.iconPaths[C.icons.knockout.icon], 'het icoon van wel en niet');
+});
+
+test('de volle stijl (Fill) op de pagina’s is gelijk aan assets/icons/Vol', () => {
+  for (const [name, icon] of Object.entries(C.iconPaths)) {
+    assert.match(icon.fillFile, /^Vol\/[^/]+\/[\w-]+-fill\.svg$/, name);
+    assert.equal(icon.fillFile.replace(/^Vol\//, '').replace(/-fill\.svg$/, ''), icon.file.replace(/-line\.svg$/, ''), `${name}: hetzelfde icoon`);
+    const svg = read(`assets/icons/${icon.fillFile}`);
+    assert.equal(/\sd="([^"]+)"/.exec(svg)[1], icon.fill, name);
+  }
+});
+
+test('uitgesneden in de witte zeshoek: de pagina’s tekenen hetzelfde als de map van de Icon Finder', () => {
+  const Hex = require('../js/icons/hex.js');
+  for (const [name, icon] of Object.entries(C.iconPaths)) {
+    const [, cat, file] = /^Vol\/(.+)\/([^/]+)$/.exec(icon.fillFile);
+    const want = read(`assets/icons/Zeshoek/Witte zeshoek - doorzichtig icoon/${cat}/${file}`).replace(/\r\n/g, '\n');
+    assert.equal(`${Hex.svg(icon.fill, { shape: 'hex', ...Hex.presets.wit })}\n`, want, name);
+  }
 });
 
 /* ---------------------------------------------------------------------------
@@ -174,6 +194,8 @@ test('pagina’s: elk hoofdstuk heeft er minstens één, in de volgorde van de r
   const ids = C.pages.map((p) => p.id);
   assert.equal(new Set(ids).size, ids.length, 'unieke id’s');
   assert.ok(C.pages.length >= 12 && C.pages.length <= 18, `${C.pages.length} pagina's`);
+  assert.equal(C.pages.length, 18);
+  assert.deepEqual(ids.slice(-3), ['toepassingen', 'documenten', 'colofon'], 'documenten tussen toepassingen en het colofon');
   const order = C.chapters.map((c) => c.id);
   let last = 0;
   for (const p of C.pages) {
@@ -194,9 +216,12 @@ test('pages.js tekent elke pagina uit content.js, met alleen tekenwerk dat de PD
   // Geen transformaties, uitknippaden, verlopen of stippellijnen in de pagina's (wel in de clear-space-laag)
   // Zonder commentaar: de kop van pages.js noemt juist wat er niet in mag
   const pageCode = js.slice(0, js.indexOf('function overlay(')).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
-  for (const op of ['translate(', 'rotate(', '.scale(', '.clip(', 'createLinearGradient', 'createRadialGradient', 'setLineDash', 'ellipse(', 'roundRect(', 'drawImage(', 'globalAlpha', 'strokeText']) {
+  for (const op of ['translate(', 'rotate(', '.scale(', '.clip(', 'createLinearGradient', 'createRadialGradient', 'setLineDash', 'ellipse(', 'roundRect(', 'globalAlpha', 'strokeText']) {
     assert.ok(!pageCode.includes(op), `geen ${op} in de pagina's`);
   }
+  // Beelden alleen via raster(): een foto of een echt ontwerp, het verloop zit erin gebakken
+  assert.equal((pageCode.match(/drawImage\(/g) || []).length, 1, 'drawImage alleen in raster()');
+  assert.ok(pageCode.includes("if (img) layer(ctx, 'Beeld', () => ctx.drawImage(img, x, y, w, h));"), 'raster() tekent in de laag Beeld');
   // Geen blauw (#1B71A8) als vlak van een zeshoek: blauw alleen bij de kleurstalen (via de tokens)
   assert.ok(!/#1B71A8/i.test(pageCode), 'blauw staat niet los in pages.js');
 });
@@ -228,6 +253,33 @@ test('kopiëren: HEX in hoofdletters, RGB en CMYK als getallen', () => {
   assert.equal(M.copyValue(c, 'cmyk'), '88, 18, 0, 11');
 });
 
+test('de maat van een stijl, en hoe je hem in Canva invult', () => {
+  const [h1, , , body, , labelStyle] = T.type;
+  assert.equal(M.typeSpec(h1).text, 'ExtraBold 800 · 52/58 · −2%');
+  assert.deepEqual(M.typeSpec(h1, T), { weight: 'ExtraBold 800', size: '52/58', track: '−2%', text: 'ExtraBold 800 · 52/58 · −2%' });
+  assert.equal(M.typeSpec(body).text, 'Regular 400 · 18/31', 'zonder letterafstand geen derde deel');
+  assert.equal(M.typeSpec(labelStyle).track, '+10%');
+  // Canva: regelafstand als factor (58 / 52), letterafstand in duizendsten (−0,02 = −20)
+  assert.deepEqual([M.canvaSpec(h1).lineHeight, M.canvaSpec(h1).letterSpacing], ['1,1', '−20']);
+  assert.equal(M.canvaSpec(h1).text, 'Canva: grootte 52 · regelafstand 1,1 · letterafstand −20');
+  assert.deepEqual([M.canvaSpec(body).lineHeight, M.canvaSpec(body).letterSpacing], ['1,7', '']);
+  assert.equal(M.canvaSpec(body).text, 'Canva: grootte 18 · regelafstand 1,7');
+  assert.equal(M.canvaSpec(labelStyle).letterSpacing, '+100');
+  // De uitleg legt precies de delen van het voorbeeld uit, in dezelfde volgorde
+  const spec = M.typeSpec(T.type[0]).text;
+  let at = -1;
+  for (const p of C.type.legend.parts) {
+    const i = spec.indexOf(p.key);
+    assert.ok(i > at, `"${p.key}" staat in "${spec}"`);
+    at = i;
+  }
+  // De fotografen voor het colofon
+  assert.equal(M.photoCredits(C.photos), 'Anastasiia Nelen, Andreea Avramescu, Campaign Creators, Andrew Neel, Ali Mkumbwa en Waldemar Brandt');
+  assert.equal(M.photoCredits([{ by: 'A' }, { by: 'B' }, { by: 'A' }]), 'A en B', 'elke naam één keer');
+  assert.equal(M.photoCredits([{ by: 'A' }]), 'A');
+  assert.equal(M.photoLine(C), 'Foto’s: Anastasiia Nelen, Andreea Avramescu, Campaign Creators, Andrew Neel, Ali Mkumbwa en Waldemar Brandt, via Unsplash (Unsplash-licentie).');
+});
+
 test('zoeken: de juiste pagina eerst, korte woorden alleen als heel woord', () => {
   const index = M.searchIndex(C, T);
   const first = (q) => (M.search(index, q)[0] || {}).id;
@@ -236,7 +288,12 @@ test('zoeken: de juiste pagina eerst, korte woorden alleen als heel woord', () =
   assert.equal(first('je of u'), 'tone-of-voice');
   assert.equal(first('#1ab9e2'), 'kleuren');
   assert.equal(first('emoji'), 'schrijven');
-  assert.equal(first('Emerce'), 'toepassingen');
+  assert.equal(first('Emerce'), 'documenten');
+  assert.equal(first('Insta Post Maker'), 'toepassingen');
+  assert.equal(first('telefoon'), 'colofon');
+  assert.equal(first('regelafstand'), 'typografie');
+  assert.equal(first('WCAG'), 'kleur-toepassen');
+  assert.equal(first('volle stijl'), 'iconen');
   assert.equal(first('lettertype'), 'typografie');
   assert.equal(first('60/30/10'), 'kleur-toepassen');
   assert.deepEqual(M.search(index, 'x'), [], 'te kort');
@@ -287,7 +344,8 @@ test('JSON: kleuren met rol en CSS-variabele, de verhouding en het lettertype', 
   const cyaan = j.colors.find((c) => c.id === 'cyaan');
   assert.deepEqual(cyaan, { id: 'cyaan', name: 'Pure Cyaan', group: 'primair', hex: '#1AB9E2', rgb: [26, 185, 226], cmyk: [88, 18, 0, 11], role: 'Accenten, vlakken, lijnen en markeringen', cssVar: '--pm-cyan' });
   assert.equal(j.ratio['pure cyaan'], 30);
-  assert.deepEqual(j.font.weights, [300, 400, 600, 700, 800]);
+  assert.deepEqual(j.font.weights, [400, 700, 800]);
+  assert.ok(!('version' in j), 'tijdloos: geen versienummer');
   JSON.parse(JSON.stringify(j));
 });
 
@@ -355,7 +413,7 @@ test('de Emerce-badge wordt ook paden; toSvg geeft een nette SVG in één kleur'
 });
 
 /* ---------------------------------------------------------------------------
-   Export: lagen in PMPdfCanvas, pdf-lib in core.js, Light in de PDF-fonts
+   Export: lagen in PMPdfCanvas, pdf-lib in core.js, dezelfde snedes als de andere makers
    ------------------------------------------------------------------------- */
 
 test('PMPdfCanvas: lagen als gemarkeerde inhoud, en alleen als je erom vraagt', async () => {
@@ -380,20 +438,21 @@ test('PMPdfCanvas: lagen als gemarkeerde inhoud, en alleen als je erom vraagt', 
   await ctx.flush();
   assert.ok(!pdf.calls.some((c) => c[0] === 'write'));
 
-  // Met lagen: BDC/EMC om elk blok, een nieuwe laag sluit de vorige, open aan het eind wordt dicht
+  // Met lagen: BDC/EMC om elk blok, een nieuwe laag sluit de vorige, open aan het eind wordt dicht.
+  // De snede volgt PM.pdfFontStyle, zoals in de andere makers (geen eigen keuze van de styleguide)
   pdf = fake();
-  ctx = new PMPdfCanvas(pdf, { width: 100, height: 100, pageWidth: 100, measure, fontStyle: (w) => (w <= 300 ? 'light' : 'normal') });
+  ctx = new PMPdfCanvas(pdf, { width: 100, height: 100, pageWidth: 100, measure });
   ctx.beginLayer('Achtergrond');
   ctx.fillRect(0, 0, 100, 100);
   ctx.endLayer();
   ctx.beginLayer('Vormen');
   ctx.fillRect(0, 0, 10, 10);
   ctx.beginLayer('Tekst');
-  ctx.font = '300 20px x';
-  ctx.fillText('Light', 10, 50);
+  ctx.font = '400 20px x';
+  ctx.fillText('Regular', 10, 50);
   await ctx.flush();
   const seq = pdf.calls.filter((c) => ['write', 'fill', 'text', 'setFont'].includes(c[0])).map((c) => (c[0] === 'write' ? c[1] : c[0] === 'setFont' ? `font:${c[2]}` : c[0]));
-  assert.deepEqual(seq, ['/OC /Achtergrond BDC', 'fill', 'EMC', '/OC /Vormen BDC', 'fill', 'EMC', '/OC /Tekst BDC', 'font:light', 'text', 'EMC']);
+  assert.deepEqual(seq, ['/OC /Achtergrond BDC', 'fill', 'EMC', '/OC /Vormen BDC', 'fill', 'EMC', '/OC /Tekst BDC', 'font:normal', 'text', 'EMC']);
   ctx.endLayer();   // niets open: geen losse EMC
   await ctx.flush();
   assert.equal(pdf.calls.filter((c) => c[1] === 'EMC').length, 3);
@@ -401,11 +460,13 @@ test('PMPdfCanvas: lagen als gemarkeerde inhoud, en alleen als je erom vraagt', 
 
 /* ---------------------------------------------------------------------------
    De PDF zonder browser: elke pagina door PMPdfCanvas met een nep-jsPDF.
-   Alleen PureMindsSans-*, geen afbeeldingen, uitknippaden of verlopen (die
-   worden in PMPdfCanvas een afbeelding), alleen huiskleuren en de vaste
-   neutralen, alles in een laag, en onder de 1.400 elementen van Canva.
+   Alleen PureMindsSans-*, geen uitknippaden of verlopen (die worden in
+   PMPdfCanvas een afbeelding), alleen huiskleuren en de vaste neutralen, alles
+   in een laag, en onder de 1.400 elementen van Canva. Zonder env.raster (de
+   foto's en echte posts en slides, alleen in de browser) staat er het lege
+   fotovlak; met een nep-raster wordt elk beeld één afbeelding in de laag Beeld.
    Meten gebeurt hier met een vaste tekenbreedte: de regelval wijkt iets af van
-   de browser, de telling dus ook (in de browser: zo'n 1.100).
+   de browser, de telling dus ook (in de browser: zo'n 1.150).
    ------------------------------------------------------------------------- */
 
 function pagesInNode() {
@@ -418,18 +479,17 @@ function pagesInNode() {
   return sandbox.PMStyleguide;
 }
 
-async function pdfInNode() {
+async function pdfInNode(extra = {}) {
   const core = read('js/shared/core.js');
   const fromCore = (name) => new Function(`${new RegExp(`function ${name}\\([\\s\\S]*?\\n {2}\\}\\r?\\n`).exec(core)[0]}\nreturn ${name};`)();
   globalThis.PM = { pdfFontStyle: fromCore('pdfFontStyle'), pdfColor: fromCore('pdfColor'), fileProtocolError: () => new Error('x') };
   const { PMPdfCanvas } = require('../js/shared/pdf-canvas.js');
-  // De snedekeuze van de export zelf (Light krijgt een eigen snede)
-  const fontStyle = new Function('PM', `return ${/const fontStyle = (\(weight, italic\) => [^;]+);/.exec(read('js/styleguide/export.js'))[1]};`)(globalThis.PM);
   const S = pagesInNode();
   const env = {
     logo: P.parseSvg(read('assets/brand/logo/PureMinds-zeshoek-logo-wit.svg')),
     badgeWhite: P.parseSvg(read('assets/brand/emerce/e100-2026-liggend-wit.svg')),
     badgeBlack: P.parseSvg(read('assets/brand/emerce/e100-2026-liggend-zwart.svg')),
+    ...extra,
   };
   const measure = {
     font: '10px sans-serif',
@@ -447,7 +507,12 @@ async function pdfInNode() {
       pdf[n] = (...a) => calls.push([n, ...a]);
     }
     pdf.internal = { getFont: () => ({ metadata: { characterToGlyph: () => 1 } }), write: (s) => calls.push(['write', s]) };
-    const ctx = new PMPdfCanvas(pdf, { width: S.W, height: S.H, pageWidth: 841.89, measure, fontStyle });
+    const ctx = new PMPdfCanvas(pdf, { width: S.W, height: S.H, pageWidth: 841.89, measure });
+    // Zonder DOM: een afbeelding alleen vastleggen (in de browser wordt het een JPEG)
+    ctx.writeImage = (item) => {
+      calls.push(['addImage', item.img.id, item.dest]);
+      ctx.stats.image++;
+    };
     S.draw(ctx, i, env);
     pages.push({ id: S.pages[i].id, stats: await ctx.flush(), calls });
   }
@@ -467,7 +532,7 @@ test('de PDF: alleen Pure Minds Sans, vectoren in huiskleuren, alles in een laag
   let total = 0;
   for (const p of pages) {
     const { text, vector, raster, image, svg } = p.stats;
-    assert.equal(raster + image + svg, 0, `${p.id}: geen afbeeldingen (ook geen verloop of uitsnede)`);
+    assert.equal(raster + image + svg, 0, `${p.id}: zonder beelden geen afbeeldingen (ook geen verloop of uitsnede)`);
     total += text + vector;
     let open = null;
     for (const [op, ...a] of p.calls) {
@@ -500,7 +565,8 @@ test('de PDF: alleen Pure Minds Sans, vectoren in huiskleuren, alles in een laag
     assert.equal(open, null, `${p.id}: laatste laag dicht`);
   }
   assert.ok([...used].every((f) => f.startsWith('PureMindsSans-')));
-  assert.ok(used.has('PureMindsSans-Light') && used.has('PureMindsSans-ExtraBold'), [...used].join());
+  for (const n of ['Regular', 'Bold', 'ExtraBold']) assert.ok(used.has(`PureMindsSans-${n}`), [...used].join());
+  for (const n of ['Light', 'SemiBold', 'Medium']) assert.ok(![...used].some((f) => f.startsWith(`PureMindsSans-${n}`)), `geen ${n}: ${[...used].join()}`);
   for (const c of T.colors.primary) assert.ok(seen.has(c.hex), `${c.name} staat in de PDF`);
   assert.ok(total < limit, `${total} elementen (Canva: ${limit})`);
   assert.ok(total > 800, `${total} elementen: de pagina's zijn getekend`);
@@ -520,10 +586,137 @@ test('de PDF: de teksten uit content.js staan er als echte tekst in', async () =
     ...C.tone.scales.flatMap((s) => [s.where, s.practice]), ...C.logo.donts.flatMap((d) => [d.title, d.text]), ...C.logo.added.map((a) => a.text),
     ...C.logo.minimum.map((m) => m.why), ...C.hexagon.rules.map((r) => r.text), ...C.hexagon.uses.map((u) => u.text), ...C.type.notes,
     ...C.imagery.sections.flatMap((s) => s.items), ...C.icons.rules, ...C.usage.makers.map((m) => m.text), ...C.usage.badge.rules,
-    ...C.colophon.lines, ...C.colophon.news, ...T.allColors().filter((c) => !['wit', 'grijs'].includes(c.id)).map((c) => c.hex),
+    C.colophon.signoff, C.colophon.about, C.colophon.sources, C.colophon.rights, M.photoLine(C), ...Object.values(C.contact),
+    ...C.colors.why.map((w) => w.text), ...C.type.legend.parts.map((x) => x.text), C.icons.knockout.wel, C.icons.knockout.niet,
+    C.imagery.photoNote, C.usage.letter.title, C.usage.letter.salutation,
+    ...T.allColors().filter((c) => !['wit', 'grijs'].includes(c.id)).map((c) => c.hex),
   ];
   const missing = want.map(norm).filter((s) => !all.includes(s));
   assert.deepEqual(missing, []);
+  // De maat van Heading 1 staat op de pagina als dezelfde tekst als in de uitleg
+  assert.ok(all.includes(M.typeSpec(T.type[0]).text), 'de maat uit model.js typeSpec');
+});
+
+test('beelden: foto’s en echte ontwerpen alleen op hun eigen pagina’s, elk één afbeelding in de laag Beeld', async () => {
+  const asked = [];
+  const raster = (id, w, h) => {
+    asked.push(id);
+    return { id, width: Math.round(2 * w), height: Math.round(2 * h) };
+  };
+  const { pages, limit } = await pdfInNode({ raster });
+  const want = {
+    'logo-gebruik': ['logo-kader'],
+    zeshoek: ['zeshoek-foto'],
+    beeldtaal: ['beeld-compositie', 'beeld-tekst', 'beeld-cijfer'],
+    toepassingen: ['post-photo', 'post-overlay', 'post-blog', 'post-case', 'post-carousel', 'slide-title', 'slide-split'],
+  };
+  let total = 0;
+  for (const p of pages) {
+    const { text, vector, raster: r, image, svg } = p.stats;
+    total += text + vector + r + image + svg;
+    assert.equal(r + svg, 0, `${p.id}: geen verloop of uitsnede als afbeelding`);
+    let open = null;
+    const ids = [];
+    for (const [op, ...a] of p.calls) {
+      if (op === 'write') {
+        const m = /^\/OC \/(\w+) BDC$/.exec(a[0]);
+        open = m ? m[1] : null;
+      }
+      if (op === 'addImage') {
+        assert.equal(open, 'Beeld', `${p.id}: ${a[0]} in de laag Beeld`);
+        const d = a[1];
+        assert.ok(d.x >= 0 && d.y >= 0 && d.x + d.w <= 1684 && d.y + d.h <= 1191, `${p.id}: ${a[0]} binnen de pagina`);
+        ids.push(a[0]);
+      }
+    }
+    assert.deepEqual(ids, want[p.id] || [], `${p.id}: beelden`);
+    assert.equal(image, ids.length, `${p.id}: elk beeld één afbeelding`);
+  }
+  assert.deepEqual(asked, Object.values(want).flat(), 'pages.js vraagt precies deze beelden, in deze volgorde');
+  assert.ok(total < limit, `${total} elementen met beelden (Canva: ${limit})`);
+});
+
+test('tijdloos: geen versie, datum of "vervangt" in het brandbook', async () => {
+  assert.ok(!('version' in T), 'geen versie in de tokens');
+  assert.ok(!('version' in C) && !('date' in C), 'geen versie of datum in content.js');
+  const all = JSON.stringify({ ...C, iconPaths: 0, photos: 0 });
+  assert.ok(!/\b2\.[01]\b|oktober|Vervangt|Versie|Nieuw in/.test(all), 'geen versienummers of datum in de teksten');
+  assert.ok(!/Brandbook \d/.test(read('tools/styleguide.html')), 'appbalk zonder versie');
+  assert.ok(!/\bversi(e|on)\b|\.version\b|C\.date\b/i.test(read('js/styleguide/export.js')), 'export: geen versie in de metadata of het LEESMIJ');
+  const { pages } = await pdfInNode();
+  const words = pages.flatMap((p) => p.calls.filter((c) => c[0] === 'text').map((c) => c[1])).join(' ');
+  assert.ok(!/Brandbook \d|Versie|oktober|Vervangt/.test(words), 'geen versie in de PDF');
+});
+
+test('foto’s: JPEG-bestanden in assets/styleguide/photos, en photo-data.js is bijgewerkt', () => {
+  const ids = C.photos.map((p) => p.id);
+  assert.equal(new Set(ids).size, ids.length, 'unieke id’s');
+  for (const p of C.photos) {
+    assert.match(p.file, /^assets\/styleguide\/photos\/[a-z-]+\.jpg$/, p.id);
+    const bytes = fs.readFileSync(path.join(__dirname, '..', p.file));
+    assert.ok(bytes[0] === 0xff && bytes[1] === 0xd8, `${p.file} is een JPEG`);
+    assert.ok(bytes.length < 300 * 1024, `${p.file}: ${Math.round(bytes.length / 1024)} KB`);
+    assert.ok(p.by && /^https:\/\/unsplash\.com\/photos\/[\w-]+$/.test(p.url), `${p.id}: fotograaf en bron`);
+  }
+  // De kopie voor file:// (npm run photos): dezelfde foto's, byte voor byte
+  const sandbox = { window: {} };
+  vm.runInNewContext(read('js/styleguide/photo-data.js'), sandbox);
+  const data = sandbox.window.PM_STYLEGUIDE_PHOTOS;
+  assert.deepEqual(Object.keys(data), ids);
+  for (const p of C.photos) {
+    assert.ok(data[p.id] === `data:image/jpeg;base64,${fs.readFileSync(path.join(__dirname, '..', p.file)).toString('base64')}`, `${p.id}: bijgewerkt (npm run photos)`);
+  }
+  // Elke foto wordt gebruikt, en elke foto in mockups.js bestaat
+  const slots = read('js/styleguide/mockups.js');
+  const used = new Set(Array.from(slots.matchAll(/photo: '([\w-]+)'/g), (m) => m[1]));
+  assert.deepEqual([...used].sort(), [...ids].sort());
+});
+
+test('de voorbeelden zijn gelijk aan de makers: posts uit de Insta Post Maker, de brief uit de Document Maker', () => {
+  // Posts: elke tekst staat letterlijk in de standaardteksten van js/insta/app.js
+  const insta = read('js/insta/app.js');
+  const strings = [];
+  (function walk(v) {
+    if (typeof v === 'string') strings.push(v);
+    else if (v && typeof v === 'object') Object.values(v).forEach(walk);
+  })(C.usage.demo.posts);
+  for (const s of strings.filter(Boolean)) assert.ok(insta.includes(`'${s.replace(/\n/g, '\\n')}'`), `in js/insta/app.js: ${s}`);
+  assert.deepEqual(Object.keys(C.usage.demo.posts), ['photo', 'overlay', 'blog', 'case', 'carousel']);
+  assert.equal(C.usage.demo.posts.carousel.active, 1, 'de carousel op slide 2');
+  // De brief: gelijk aan PMDocModel.EXAMPLE en de standaardtitel van de Document Maker
+  const { EXAMPLE } = require('../js/document/model.js');
+  const L = C.usage.letter;
+  assert.deepEqual(L.recipient, EXAMPLE.recipient.split('\n'));
+  assert.equal(L.salutation, EXAMPLE.salutation);
+  const em = (html) => html.replace(/<strong>(.*?)<\/strong>/g, '**$1**');
+  const body = /^<p>(.*?)<\/p><h2>(.*?)<\/h2><ul>(.*?)<\/ul><p>(.*?)<\/p>$/.exec(EXAMPLE.body);
+  assert.ok(body, 'de opbouw van EXAMPLE.body');
+  assert.equal(L.intro, body[1]);
+  assert.equal(L.heading, body[2]);
+  assert.deepEqual(L.bullets, Array.from(body[3].matchAll(/<li>(.*?)<\/li>/g), (m) => em(m[1])));
+  assert.equal(L.outro, body[4]);
+  const app = read('js/document/app.js');
+  assert.ok(app.includes(`title: '${L.title}'`), 'de standaardtitel');
+  assert.ok(app.includes(`closing: '${L.closing}'`), 'de groet');
+  assert.ok(app.includes(`company: '${L.signature}'`), 'de afzender onder de groet');
+  assert.equal(L.date, '[datum]', 'geen echte datum: tijdloos');
+});
+
+test('tools/styleguide.html laadt de makers en de beelden vóór de pagina’s', () => {
+  const html = read('tools/styleguide.html');
+  const order = Array.from(html.matchAll(/<script src="\.\.\/([^"]+)"><\/script>/g), (m) => m[1]);
+  const at = (f) => {
+    assert.ok(order.includes(f), f);
+    return order.indexOf(f);
+  };
+  for (const f of ['js/insta/templates.js', 'js/presentation/deck.js', 'js/presentation/templates.js', 'js/styleguide/photos.js', 'js/styleguide/mockups.js']) {
+    assert.ok(at(f) < at('js/styleguide/model.js') && at(f) < at('js/styleguide/pages.js') && at(f) < at('js/styleguide/app.js'), `${f} vóór model, pages en app`);
+  }
+  assert.ok(at('js/icons/hex.js') < at('js/insta/templates.js'));
+  assert.ok(at('js/styleguide/svg-path.js') < at('js/styleguide/photos.js') && at('js/styleguide/photos.js') < at('js/styleguide/mockups.js'));
+  assert.ok(at('js/styleguide/content.js') < at('js/styleguide/mockups.js'), 'mockups.js leest content.js bij het laden');
+  // photo-data.js op aanvraag via photos.js (geen vaste <script>: 1,5 MB)
+  assert.ok(!order.includes('js/styleguide/photo-data.js'));
 });
 
 test('de neutralen van de pagina’s zijn grijs of blauwgrijs, geen eigen accentkleur', () => {
@@ -545,12 +738,11 @@ test('pdf-lib laadt zoals de andere bibliotheken: vaste versie en SRI-hash', () 
   assert.match(core, /pdflib: \(\) => loadLib\('pdflib'\)/);
 });
 
-test('Pure Minds Sans Light zit in de PDF-fonts, als eigen snede (alleen de styleguide gebruikt hem)', () => {
-  assert.match(read('scripts/build-brand-data.js'), /light: 'PureMindsSans-Light\.ttf'/);
-  // Light staat bewust als laatste (zie build-brand-data.js), dus per regel zoeken in plaats van alleen het begin
-  const lines = fs.readFileSync(path.join(__dirname, '..', 'js', 'shared', 'pdf-fonts.js'), 'utf8').split('\n');
-  assert.ok(lines.some((l) => l.startsWith("  light: { file: 'PureMindsSans-Light.ttf'")), 'light in pdf-fonts.js');
-  assert.match(read('js/styleguide/export.js'), /'light'/);
+test('de export van de styleguide kiest geen eigen snede: dezelfde als de andere makers', () => {
+  const js = read('js/styleguide/export.js');
+  assert.ok(!/fontStyle/.test(js), 'geen fontStyle');
+  assert.ok(!/'light'/.test(js), 'geen Light-snede');
+  assert.match(js, /new global\.PMPdfCanvas\(pdf, \{ width: S\.W, height: S\.H, pageWidth: PAGE_W \}\)/);
 });
 
 /* ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ Plain HTML, CSS en JavaScript: geen framework, geen buildstap.
 | [Document Maker](tools/document.html) | Brief, offerte, memo of notitie op A4-briefpapier | bewerkbare PDF, Word (.docx, ook voor Google Docs), afdrukken |
 | [Presentation Maker](tools/presentation.html) | 16:9-slides in zeven layouts, waaronder een tabel, plus voorstellen en positioneringen in de vaste opbouw van Pure Minds | bewerkbare PDF, PowerPoint (.pptx, ook voor Google Slides), PNG (Full HD of 4K) |
 | [Icon Finder](tools/icons.html) | 1.690 lijniconen, te zoeken in het Nederlands of Engels; los of in de zeshoek, in de merkkleuren | SVG, PNG (128 tot 2048 px), kopiëren om te plakken |
-| [Brand Styleguide](tools/styleguide.html) | Het brandbook (versie 2.1) digitaal: kleurwaarden kopiëren, logo's downloaden, contrast checken, zoeken in alle richtlijnen | bewerkbare PDF met lagen (Canva, Illustrator), logo-pakket (SVG en PNG), kleuren als ASE en JSON |
+| [Brand Styleguide](tools/styleguide.html) | Het brandbook digitaal: kleurwaarden kopiëren, logo's downloaden, contrast checken, zoeken in alle richtlijnen | bewerkbare PDF met lagen (Canva, Illustrator), logo-pakket (SVG en PNG), kleuren als ASE en JSON |
 
 Alle PDF's hebben **echte tekst** in ingesloten Pure Minds Sans, met per gewicht een
 eigen fontnaam (te selecteren en aan te passen in Canva, Acrobat of
@@ -966,19 +966,20 @@ als los iconenpakket.
 
 ## Brand Styleguide
 
-Het brandbook van Pure Minds Marketing Group als tool: versie 2.1, op basis
+Het tijdloze brandbook van Pure Minds Marketing Group als tool, op basis
 van `assets/PureMinds-Brandbook-v2.0.pdf`. Missie, visie en kernwaarden staan
 er letterlijk in (alleen opgeschoond; "on-aangetapt" blijft zoals in de
-voorstellen). Nieuw in 2.1: tone of voice en schrijfregels, clear space en
+voorstellen). Het bevat tone of voice en schrijfregels, clear space en
 minimum formaat van het logo, regels voor de zeshoek en de iconen, contrast,
-de 60/30/10-regel en beeldtaal. Medium 500 is geschrapt (geen fontbestand).
+de 60/30/10-regel en beeldtaal. De gebruikte gewichten zijn Regular 400,
+Bold 700 en ExtraBold 800.
 
 - **Indeling:** zoals de andere makers. De rail heeft zeven hoofdstukken
   (Merk, Logo, Kleur, Type, Beeld, Iconen, Gebruik); een hoofdstuk kiezen
   scrolt naar zijn eerste pagina en opent zijn paneel. Blader je zelf naar een
   ander hoofdstuk (scrollen, miniaturen, `Page Up` en `Page Down`), dan volgt
   het paneel (breed scherm, als er een paneel open staat). Het podium toont de
-  17 pagina's (A4 liggend) onder elkaar, met miniaturen eronder. Op een
+  18 pagina's (A4 liggend) onder elkaar, met miniaturen eronder. Op een
   telefoon is de rail een tabbalk en het paneel een blad van onderen.
 - **Panelen:** teksten kopiëren (naam, slogan, missie, visie); het logo in wit
   of Inkt als SVG of PNG; de **clear space** aan en uit (om elk logo op elke

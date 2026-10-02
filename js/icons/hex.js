@@ -32,9 +32,11 @@
      knockout  alleen zeshoek: true snijdt het icoon uit de zeshoek (color telt
              dan niet). Eén samengesteld pad, zeshoek + icoon met fill-rule
              evenodd: geen masker, zodat het gat ook in Illustrator, Figma, Canva
-             en PowerPoint een gat blijft. Geef voor een icoon met overlappende
-             delen het pad uit PM_ICON_DATA.knockout mee, anders valt een
-             overlap weg (zie maak-zeshoeken.py).
+             en PowerPoint een gat blijft. Geef de volle stijl mee: het pad uit
+             PM_ICON_FILL (js/icons/icon-fill-data.js, overlap al samengevoegd);
+             een icoon zonder volle stijl met zijn eigen pad, of bij overlap dat
+             uit PM_ICON_DATA.knockout. Anders valt een overlap weg (zie
+             maak-zeshoeken.py).
      border  alleen zeshoek: [kleur, dikte in viewBox-eenheden], of niets
      id      id van het verloop (standaard 'pm-icoon'); maak hem uniek als er
              meerdere SVG's in dezelfde pagina staan
@@ -65,7 +67,7 @@
     cyaan: { fill: '#1ab9e2', color: '#ffffff' },   // de huisvariant
     donker: { fill: '#303030', color: '#ffffff' },
     magenta: { fill: '#b61b50', color: '#ffffff' },
-    wit: { fill: '#ffffff', knockout: true },       // Witte zeshoek - doorzichtig icoon
+    wit: { fill: '#ffffff', knockout: true },       // Witte zeshoek - doorzichtig icoon (volle stijl)
   });
 
   /* ---------------------------------------------------------------------------
