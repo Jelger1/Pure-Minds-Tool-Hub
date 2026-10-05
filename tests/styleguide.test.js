@@ -97,7 +97,7 @@ test('de correcties op v2.0 zijn doorgevoerd, en on-aangetapt blijft', () => {
 
 test('huisstijlregels: wel/niet-voorbeelden, contrasttabel en effen zeshoeken', () => {
   assert.equal(C.tone.examples.length, 3);
-  assert.equal(C.tone.rules.length, 6);
+  assert.equal(C.tone.rules.length, 5);
   assert.equal(C.tone.scales.length, 4);
   C.tone.scales.forEach((s) => assert.ok(s.pos > 0 && s.pos < 1, s.left));
   assert.match(C.hexagon.rules.map((r) => r.text).join(' '), /Geen verloop en geen blauw \(#1B71A8\) als vlak/);
@@ -316,7 +316,7 @@ test('zoeken: de juiste pagina eerst, korte woorden alleen als heel woord', () =
   assert.deepEqual(M.search(index, 'qqqzzz'), []);
   assert.ok(!M.search(index, 'u').length, '"u" alleen is te kort');
   const hit = M.search(index, 'je of u')[0];
-  assert.match(hit.snippet, /je\/jij/, 'fragment met de treffer');
+  assert.match(hit.snippet, /je\/jij/i, 'fragment met de treffer');
   // Elke pagina heeft tekst om te doorzoeken
   for (const p of index) assert.ok(p.texts.length > 0, p.id);
 });
@@ -602,7 +602,7 @@ test('de PDF: de teksten uit content.js staan er als echte tekst in', async () =
     ...C.tone.scales.flatMap((s) => [s.where, s.practice]), ...C.logo.donts.flatMap((d) => [d.title, d.text]), ...C.logo.added.map((a) => a.text),
     ...C.logo.minimum.map((m) => m.why), ...C.hexagon.rules.map((r) => r.text), ...C.hexagon.uses.map((u) => u.text), ...C.type.notes,
     ...C.imagery.sections.flatMap((s) => s.items), ...C.icons.rules, ...C.usage.makers.map((m) => m.text), ...C.usage.badge.rules,
-    C.colophon.signoff, C.colophon.about, C.colophon.sources, C.colophon.rights, M.photoLine(C), ...Object.values(C.contact),
+    ...C.tone.order.steps.flatMap((st) => [st.title, st.text]), C.colophon.about, C.colophon.sources, C.colophon.rights, M.photoLine(C), ...Object.values(C.contact),
     ...C.colors.why.map((w) => w.text), ...C.type.legend.parts.map((x) => x.text), C.icons.knockout.wel, C.icons.knockout.niet,
     C.imagery.photoNote, C.usage.letter.title, C.usage.letter.salutation,
     ...T.allColors().filter((c) => !['wit', 'grijs'].includes(c.id)).map((c) => c.hex),
@@ -611,6 +611,20 @@ test('de PDF: de teksten uit content.js staan er als echte tekst in', async () =
   assert.deepEqual(missing, []);
   // De maat van Heading 1 staat op de pagina als dezelfde tekst als in de uitleg
   assert.ok(all.includes(M.typeSpec(T.type[0]).text), 'de maat uit model.js typeSpec');
+});
+
+test('de PDF oogt met de hand gemaakt: geen tool, maker, map of "gemaakt met"', async () => {
+  const { pages } = await pdfInNode();
+  const all = pages.map((p) => p.calls.filter((c) => c[0] === 'text').map((c) => c[1]).join(' ')).join(' ');
+  for (const re of [/Generator Hub/i, /\bMaker\b/, /Brand Styleguide/i, /gemaakt met/i, /Icon Finder/i, /tools\//, /assets\//, /\.html\b/, /\bexport/i, /bewerkbaar/i]) {
+    assert.ok(!re.test(all), `${re} staat in de PDF`);
+  }
+  // Ook de metadata noemt alleen het bureau
+  const exp = read('js/styleguide/export.js');
+  assert.match(exp, /doc\.setCreator\(AUTHOR\)/);
+  assert.match(exp, /doc\.setProducer\(AUTHOR\)/);
+  assert.ok(!/Generator Hub/.test(exp.slice(exp.indexOf('async function finish'))));
+  assert.ok(!('signoff' in C.colophon), 'geen "gemaakt met" in het colofon');
 });
 
 test('beelden: foto’s en echte ontwerpen alleen op hun eigen pagina’s, elk één afbeelding in de laag Beeld', async () => {

@@ -196,11 +196,11 @@
 
   // Iconen via de zeshoek van de Icon Finder (js/icons/hex.js), één keer omgezet per variant.
   // Uitgesneden in de witte zeshoek de volle stijl (Fill), net als in de Icon Finder; style
-  // 'line' alleen voor het fout-voorbeeld. Bij check en close zijn beide stijlen gelijk
+  // 'line' of 'fill' alleen voor de wel-en-niet-voorbeelden. Bij check en close zijn beide stijlen gelijk
   const iconCache = new Map();
   function iconSvg(name, opts, style) {
     const icon = C.iconPaths[name];
-    const fill = opts.shape === 'hex' && opts.knockout && style !== 'line' && icon.fill;
+    const fill = (style === 'fill' || (style !== 'line' && opts.shape === 'hex' && opts.knockout)) && icon.fill;
     const key = `${name}|${fill ? 'fill' : 'line'}|${JSON.stringify(opts)}`;
     if (!iconCache.has(key)) iconCache.set(key, SVG.parseSvg(global.PMHex.svg(fill || icon.d, opts)));
     return iconCache.get(key);
@@ -215,8 +215,8 @@
   }
 
   // Los icoon (24-raster) in een kleur
-  function looseIcon(ctx, name, x, y, size, color) {
-    layer(ctx, 'Beeld', () => SVG.draw(ctx, iconSvg(name, { color }), { x, y, w: size, h: size }));
+  function looseIcon(ctx, name, x, y, size, color, style) {
+    layer(ctx, 'Beeld', () => SVG.draw(ctx, iconSvg(name, { color }, style), { x, y, w: size, h: size }));
   }
 
   // Wel of niet: een cyaan zeshoek met vinkje of een donkere met kruis (op donker: wit, uitgesneden)
@@ -326,7 +326,7 @@
   function inhoud(ctx, P) {
     const top = head(ctx, P, 'Inhoud', 'Wat er in dit brandbook staat.') + 40;
     layer(ctx, 'Tekst', () => {
-      text(ctx, 'De huisstijl van Pure Minds Marketing Group: wie we zijn, hoe we klinken en hoe we eruitzien. In de Brand Styleguide kopieer je elke kleur en download je elk logo.', MX, top, 1150, { size: 23, lh: 1.5, color: MUTED });
+      text(ctx, 'De huisstijl van Pure Minds Marketing Group: wie we zijn, hoe we klinken en hoe we eruitzien.', MX, top, 1150, { size: 23, lh: 1.5, color: MUTED });
     });
     const rows = C.chapters;
     const y0 = top + 120;
@@ -405,7 +405,7 @@
       text(ctx, C.tone.intro, MX, top, 1180, { size: 24, lh: 1.5, color: INK });
     });
     const y0 = top + 180;
-    const rowH = (945 - y0) / C.tone.scales.length;
+    const rowH = (830 - y0) / C.tone.scales.length;
     const colA = 440;
     layer(ctx, 'Tekst', () => {
       [['Schaal', MX], ['Waar Pure Minds staat', 620], ['In de praktijk', 1000]].forEach(([t, x]) => line(ctx, t.toUpperCase(), x, y0 - 18, { size: 14, weight: 700, color: MUTED, track: 0.1 }));
@@ -424,6 +424,20 @@
         line(ctx, s.right, MX + colA, y + 42, { size: 18, weight: 700, color: MUTED, align: 'right' });
         text(ctx, s.where, 620, y + 30, 330, { size: 25, weight: 700, lh: 1.25, color: INK });
         text(ctx, s.practice, 1000, y + 30, CW - (1000 - MX), { size: 20, lh: 1.5, color: INK });
+      });
+    });
+    // De vaste volgorde: drie genummerde stappen naast elkaar, links van het logo
+    const order = C.tone.order;
+    const oy = 868;
+    const sw = 420;
+    layer(ctx, 'Vormen', () => rule(ctx, MX, oy - 22, CW));
+    layer(ctx, 'Tekst', () => label(ctx, order.title, MX, oy, { color: INK }));
+    order.steps.forEach((st, i) => {
+      const x = MX + i * (sw + 30);
+      layer(ctx, 'Vormen', () => numberHex(ctx, x + 19, oy + 72, 19, i + 1));
+      layer(ctx, 'Tekst', () => {
+        line(ctx, st.title, x + 52, oy + 80, { size: 22, weight: 700, color: INK });
+        text(ctx, st.text, x + 52, oy + 104, sw - 52, { size: 18, lh: 1.45, color: INK });
       });
     });
   }
@@ -1073,73 +1087,104 @@
 
   function iconen(ctx, P) {
     const top = head(ctx, P, 'Iconen', 'Iconen.') + 30;
-    layer(ctx, 'Tekst', () => text(ctx, C.icons.intro, MX, top, 900, { size: 21, lh: 1.5, color: INK }));
+    layer(ctx, 'Tekst', () => text(ctx, C.icons.intro, MX, top, 1300, { size: 21, lh: 1.5, color: INK }));
     const names = C.icons.sample;
-    let y = top + 140;
     const ix = MX + 280;
-    const ih = 62;
+    const ih = 52;
     const step = 82;
-    C.icons.variants.forEach((v) => {
-      if (v.preset === 'wit') {
-        layer(ctx, 'Vormen', () => {
-          ctx.fillStyle = INK;
-          ctx.fillRect(ix - 20, y - 14, names.length * step + 22, ih + 28);
-        });
-      }
-      names.forEach((n, k) => hexIcon(ctx, n, ix + k * step, y, ih, v.preset));
-      layer(ctx, 'Tekst', () => {
-        line(ctx, v.name, MX, y + 26, { size: 20, weight: 700, color: INK });
-        line(ctx, v.sub, MX, y + 52, { size: 15, color: MUTED });
-      });
-      y += 104;
-    });
-    // Los, in de vijf huiskleuren
-    layer(ctx, 'Vormen', () => {
-      ctx.fillStyle = INK;
-      ctx.fillRect(ix + 4 * step - 14, y - 10, 70, 64);
-    });
-    C.icons.loose.forEach((id, k) => looseIcon(ctx, names[k], ix + k * step + 4, y, 44, hex(id)));
-    layer(ctx, 'Tekst', () => {
-      line(ctx, 'Los', MX, y + 22, { size: 20, weight: 700, color: INK });
-      line(ctx, 'Inkt, cyaan, blauw, magenta, wit', MX, y + 48, { size: 15, color: MUTED });
-    });
+    const rowStep = 72;
+    const bandW = names.length * step + 22;   // zo breed als een rij iconen, met wat rand
+    const hw = (h) => (h * global.PMHex.WIDTH) / global.PMHex.HEIGHT;
+    const G = C.icons.groups;
 
-    // Wel en niet: hetzelfde icoon uitgesneden in de volle stijl en in de lijnstijl. Elk op een
-    // eigen vlak van Inkt met het teken rechtsboven, zoals de voorbeelden bij het logo
-    const ko = C.icons.knockout;
-    y += 108;
+    // Kop van een groep: een lijn erboven, het label en waar de groep voor geldt
+    const groupHead = (g, gy) => {
+      layer(ctx, 'Vormen', () => rule(ctx, MX, gy - 26, ix - 20 + bandW - MX));
+      layer(ctx, 'Tekst', () => {
+        label(ctx, g.title, MX, gy, { color: INK });
+        line(ctx, g.sub, ix - 20, gy + 17 * CAP, { size: 15, color: MUTED });
+      });
+    };
+    // Naam en uitleg links van een rij
+    const rowLabel = (title, sub, ry) => layer(ctx, 'Tekst', () => {
+      line(ctx, title, MX, ry + 22, { size: 20, weight: 700, color: INK });
+      line(ctx, sub, MX, ry + 46, { size: 15, color: MUTED });
+    });
+    // Twee vlakken naast elkaar, wel en niet, met het teken rechtsboven
     const gapT = 20;
-    const tw = (names.length * step + 22 - gapT) / 2;   // samen zo breed als de rij van de witte zeshoek
-    const th = 104;
-    const kh = 76;
-    const kw = (kh * global.PMHex.WIDTH) / global.PMHex.HEIGHT;
-    [[true, ko.wel], [false, ko.niet]].forEach(([ok, caption], k) => {
+    const tw = (bandW - gapT) / 2;
+    const checkTiles = (ty, th, bg, onDark, drawArt) => [true, false].forEach((ok, k) => {
       const tx = ix - 20 + k * (tw + gapT);
-      const ty = y - 14;
       layer(ctx, 'Vormen', () => {
-        ctx.fillStyle = INK;
+        ctx.fillStyle = bg;
         ctx.fillRect(tx, ty, tw, th);
       });
-      hexIcon(ctx, ko.icon, tx + (tw - kw) / 2, ty + (th - kh) / 2, kh, 'wit', ok ? 'fill' : 'line');
-      mark(ctx, ok, tx + tw - 42, ty + 10, 32, true);
-      // De stijl vet, de uitleg erachter: "Volle stijl (Fill): een rustig silhouet."
-      layer(ctx, 'Tekst', () => text(ctx, caption.replace(/^([^:]+:)/, '**$1**'), tx, ty + th + 22, tw, { size: 15, lh: 1.4, color: INK }));
+      drawArt(ok, tx, ty);
+      mark(ctx, ok, tx + tw - 40, ty + 10, 28, onDark);
     });
-    layer(ctx, 'Tekst', () => {
-      line(ctx, ko.title, MX, y + 26, { size: 20, weight: 700, color: INK });
-      line(ctx, ko.sub, MX, y + 52, { size: 15, color: MUTED });
+
+    // Groep 1: de lijnstijl, in de zeshoek (cyaan, donker, magenta) en los
+    let y = top + 104;
+    groupHead(G.line, y);
+    y += 46;
+    C.icons.variants.filter((v) => v.preset !== 'wit').forEach((v) => {
+      names.forEach((n, k) => hexIcon(ctx, n, ix + k * step, y, ih, v.preset));
+      rowLabel(v.name, v.sub, y);
+      y += rowStep;
     });
+    // Los, in de vijf huiskleuren (wit op een vlakje Inkt)
+    layer(ctx, 'Vormen', () => {
+      ctx.fillStyle = INK;
+      ctx.fillRect(ix + 4 * step - 12, y - 8, 64, ih + 16);
+    });
+    C.icons.loose.forEach((id, k) => looseIcon(ctx, names[k], ix + k * step + 4, y + 6, 40, hex(id)));
+    rowLabel('Los', 'Inkt, cyaan, blauw, magenta, wit', y);
+    y += rowStep + 12;
+    // Wel en niet: hetzelfde icoon in de cyane zeshoek en los, in de lijnstijl en in de volle stijl
+    const lc = C.icons.lineCheck;
+    const th1 = 76;
+    checkTiles(y - 10, th1, CANVAS, false, (ok, tx, ty) => {
+      const h = 52;
+      const ax = tx + (tw - 40 - (hw(h) + 18 + 40)) / 2;
+      hexIcon(ctx, lc.icon, ax, ty + (th1 - h) / 2, h, 'cyaan', ok ? 'line' : 'fill');
+      looseIcon(ctx, lc.icon, ax + hw(h) + 18, ty + (th1 - 40) / 2, 40, INK, ok ? 'line' : 'fill');
+    });
+    rowLabel(lc.title, lc.sub, y);
+    y += th1 + 66;
+
+    // Groep 2: alleen uitgesneden in de witte zeshoek, en dan de volle stijl
+    groupHead(G.fill, y);
+    y += 46;
+    const wit = C.icons.variants.find((v) => v.preset === 'wit');
+    layer(ctx, 'Vormen', () => {
+      ctx.fillStyle = INK;
+      ctx.fillRect(ix - 20, y - 12, bandW, ih + 24);
+    });
+    names.forEach((n, k) => hexIcon(ctx, n, ix + k * step, y, ih, 'wit'));
+    rowLabel(wit.name, wit.sub, y);
+    y += rowStep + 16;
+    // Wel en niet: hetzelfde icoon uitgesneden in de volle stijl en in de lijnstijl, op Inkt
+    const ko = C.icons.knockout;
+    const th2 = 76;
+    checkTiles(y - 10, th2, INK, true, (ok, tx, ty) => {
+      const h = 58;
+      hexIcon(ctx, ko.icon, tx + (tw - 40 - hw(h)) / 2, ty + (th2 - h) / 2, h, 'wit', ok ? 'fill' : 'line');
+      // De stijl vet, de uitleg erachter: "Volle stijl (Fill): rustig en snel herkenbaar."
+      const caption = ok ? ko.wel : ko.niet;
+      layer(ctx, 'Tekst', () => text(ctx, caption.replace(/^([^:]+:)/, '**$1**'), tx, ty + th2 + 20, tw, { size: 15, lh: 1.4, color: INK }));
+    });
+    rowLabel(ko.title, ko.sub, y);
 
     const x = 1020;
     const w = W - MX - x;
     let rh = 0;
     layer(ctx, 'Tekst', () => {
-      label(ctx, 'Regels', x, top + 140, { color: INK });
-      rh = bullets(ctx, C.icons.rules, x, top + 186, w, { size: 19, lh: 1.45, color: INK, gap: 0.6 });
+      label(ctx, 'Regels', x, top + 104, { color: INK });
+      rh = bullets(ctx, C.icons.rules, x, top + 150, w, { size: 19, lh: 1.45, color: INK, gap: 0.6 });
     });
     // Waarom uitgesneden vol: drie korte redenen in een tint met een cyane balk
     const why = C.icons.why;
-    const wy = top + 186 + rh + 32;
+    const wy = top + 150 + rh + 32;
     const pad = 24;
     const body = K.layoutBody(ctx, why.items.map((it) => `- **${it.title}:** ${it.text}`).join('\n'), w - 2 * pad - 6, {
       size: 17, weight: 400, emWeight: 700, lh: 1.4, track: 0, itemGap: 0.3,
@@ -1155,7 +1200,7 @@
       label(ctx, why.title, x + pad + 6, wy + pad, { color: INK });
       K.drawBody(ctx, body, x + pad + 6, wy + pad + 36, { color: INK, em: INK });
     });
-    // Waar je ze vindt: de Icon Finder in de Generator Hub
+    // Waar de iconen vandaan komen: één set, Remix Icon
     const by = wy + wh + 18;
     layer(ctx, 'Vormen', () => {
       ctx.fillStyle = TINT;
@@ -1165,16 +1210,16 @@
     });
     hexIcon(ctx, 'search', x + 30, by + 20, 56, 'cyaan');
     layer(ctx, 'Tekst', () => {
-      line(ctx, 'Icon Finder', x + 108, by + 42, { size: 21, weight: 700, color: INK });
-      line(ctx, 'Generator Hub · tools/icons.html', x + 108, by + 70, { size: 17, color: MUTED });
+      line(ctx, 'Remix Icon', x + 108, by + 42, { size: 21, weight: 700, color: INK });
+      line(ctx, 'remixicon.com · één set, geen andere ernaast', x + 108, by + 70, { size: 17, color: MUTED });
     });
   }
 
-  // Naam van de toepassing met de maker erachter, op één regel
+  // Naam van de toepassing met het formaat erachter, op één regel
   function caption(ctx, m, x, base) {
     layer(ctx, 'Tekst', () => {
       const w = line(ctx, m.name, x, base, { size: 23, weight: 700, color: INK });
-      line(ctx, m.tool, x + w + 16, base, { size: 15, weight: 700, color: MUTED, track: 0.04 });
+      line(ctx, m.format, x + w + 16, base, { size: 15, weight: 700, color: MUTED, track: 0.04 });
     });
   }
 
@@ -1366,7 +1411,6 @@
     layer(ctx, 'Tekst', () => {
       text(ctx, C.company, MX, ly + h + 64, CW, { size: 48, weight: 800, track: -0.01, lh: 1.1, color: WHITE, dot: true, align: 'center' });
       line(ctx, C.slogan, W / 2, ly + h + 160, { size: 26, color: DIM, align: 'center', italic: true });
-      line(ctx, C.colophon.signoff, W / 2, ly + h + 212, { size: 20, color: DIM, align: 'center' });
     });
     const y = 700;
     layer(ctx, 'Vormen', () => rule(ctx, MX, y - 40, CW, RULE_DARK, 2));

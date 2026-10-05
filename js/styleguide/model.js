@@ -299,7 +299,7 @@
     const one = (c, group) => ({ id: c.id, name: c.name, group, hex: c.hex.toUpperCase(), rgb: c.rgb, cmyk: c.cmyk, role: c.role, cssVar: c.css ? `--pm-${c.css}` : null });
     return {
       name: `${tokens.company} kleuren`,
-      source: 'Brand Styleguide, Pure Minds Generator Hub',
+      source: 'Brandbook Pure Minds Marketing Group',
       colors: [
         ...tokens.colors.primary.map((c) => one(c, 'primair')),
         ...tokens.colors.secondary.map((c) => one(c, 'secundair')),

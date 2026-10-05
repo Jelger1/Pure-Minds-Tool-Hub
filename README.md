@@ -624,10 +624,9 @@ strook met alle slides eronder.
     altijd de gewone presentatie (`?type=regulier`); je voorstel en je
     positionering blijven bewaard bij *Soort*. Bij een eerste bezoek start de
     rondleiding zoals altijd.
-  - **Van voorstel naar positionering:** een nieuwe positionering neemt de
-    klantnaam over uit je voorstel (open of bewaard bij *Soort*), en de
-    melding zegt dat. Alleen de naam: de canvassen schrijf je na het
-    interview.
+  - **Nieuwe positionering begint leeg:** net als een nieuw voorstel staat er
+    overal `[klantnaam]` tot je de naam bij *Gegevens* invult. De naam uit een
+    voorstel wordt niet overgenomen.
   - **Eigen aanpassingen blijven:** wat je zelf op een slide verandert, laat
     het formulier staan; het werkt alleen de andere velden bij. Een melding
     bij *Inhoud* zegt dat, met *terugzetten* om de slide weer helemaal het

@@ -78,8 +78,8 @@
     doc.setTitle(title, { showInWindowTitleBar: true });
     doc.setSubject(subject);
     doc.setAuthor(AUTHOR);
-    doc.setCreator('Pure Minds Generator Hub · Brand Styleguide');
-    doc.setProducer('jsPDF en pdf-lib');
+    doc.setCreator(AUTHOR);
+    doc.setProducer(AUTHOR);
     doc.setKeywords(['brandbook', 'huisstijl', 'Pure Minds']);
     doc.setLanguage('nl-NL');
     const now = new Date();

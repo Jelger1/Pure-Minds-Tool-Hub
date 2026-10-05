@@ -562,11 +562,8 @@
     // Zonder recept is de tegel weg (en een bewaard voorstel of bewaarde positionering ongelezen)
     if (type !== 'regulier' && !DECKS[type]) return null;
     if (state.stash[type]) return state.stash[type].slides;
-    // Een nieuwe positionering begint met de klantnaam van je voorstel: de tegel dus ook
-    const klant = type === 'positionering' ? voorstelKlant() : '';
-    const key = `${type}:${klant}`;
-    if (!freshDecks[key]) freshDecks[key] = freshDeck(type, { klant }).slides;
-    return freshDecks[key];
+    if (!freshDecks[type]) freshDecks[type] = freshDeck(type).slides;
+    return freshDecks[type];
   }
 
   function renderTypeTiles() {
@@ -1481,20 +1478,12 @@
 
   /* --- Wisselen van soort en opnieuw beginnen --- */
 
-  // Een nieuwe presentatie (voorbeeldslides), of een nieuw voorstel of een nieuwe positionering
-  // (leeg formulier; klant: de klantnaam die er al in staat)
-  function freshDeck(type, { klant = '' } = {}) {
+  // Een nieuwe presentatie (voorbeeldslides), of een nieuw voorstel of een nieuwe positionering:
+  // leeg formulier, dus overal [klantnaam] tot je hem invult (ook niet de naam uit een voorstel)
+  function freshDeck(type) {
     if (type === 'regulier' || !DECKS[type]) return { slides: exampleSlides(), active: 0, form: null, parked: {} };
     const form = DECKS[type].defaults(today());
-    if (klant) DECKS[type].set(form, 'klant', klant);
     return { slides: deckSlides(type, form), active: 0, form, parked: {} };
-  }
-
-  // De klantnaam van je voorstel (open of bewaard bij Soort): een nieuwe positionering begint ermee.
-  // Alleen de naam: de positionering schrijf je na het interview
-  function voorstelKlant() {
-    const form = state.type === 'voorstel' ? state.form : formOf(state.stash.voorstel);
-    return isObj(form) && typeof form.klant === 'string' ? form.klant.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim() : '';
   }
 
   // Na wisselen of opnieuw beginnen: alles bij, één stap om ongedaan te maken. Een voorstel of
@@ -1513,19 +1502,16 @@
     if (type === state.type || !TYPES.includes(type) || (type !== 'regulier' && !DECKS[type])) return;
     const from = state.type;
     const back = state.stash[type];
-    // De klantnaam uit het voorstel: lezen vóór de wissel (daarna staat het voorstel in de bewaarplek)
-    const klant = !back && type === 'positionering' ? voorstelKlant() : '';
     // Elke soort houdt zijn eigen slidenummers; een nieuwe begint zonder
     const keep = { slides: state.slides, active: state.active, showNumbers: state.showNumbers };
     if (from !== 'regulier') Object.assign(keep, { form: state.form, parked: state.parked });
     state.stash = { ...state.stash, [from]: keep, [type]: null };
-    Object.assign(state, back ? { form: null, parked: {}, ...back } : { ...freshDeck(type, { klant }), showNumbers: false }, { type });
+    Object.assign(state, back ? { form: null, parked: {}, ...back } : { ...freshDeck(type), showNumbers: false }, { type });
     afterSwitch(!back);
     const text = {
       regulier: back ? 'Terug in je presentatie.' : 'Nieuwe presentatie gestart met de voorbeeldslides.',
       voorstel: back ? 'Terug in je voorstel.' : 'Nieuw voorstel: vul de gegevens van de klant in.',
-      positionering: back ? 'Terug in je positionering.'
-        : klant ? `Nieuwe positionering voor ${klant}: de klantnaam komt uit je voorstel.` : 'Nieuwe positionering: vul de klantnaam in.',
+      positionering: back ? 'Terug in je positionering.' : 'Nieuwe positionering: vul de klantnaam in.',
     }[type];
     toast(`${text} ${OWN[from]} blijft bewaard bij Soort.`, false, { label: 'ongedaan maken', run: () => history.undo() });
     // Eerste keer een voorstel of positionering: zijn eigen rondleiding (bij het laden doet de shell dat)
@@ -1535,15 +1521,14 @@
   // Opnieuw beginnen met de soort die openstaat: meteen, met "ongedaan maken" in de melding in
   // plaats van een vraag vooraf. De andere soorten blijven bewaard, de badge blijft zoals hij stond
   function startDeck(type) {
-    const klant = type === 'positionering' ? voorstelKlant() : '';
-    Object.assign(state, freshDeck(type, { klant }), { type, dot: true, showNumbers: false });
+    Object.assign(state, freshDeck(type), { type, dot: true, showNumbers: false });
     state.stash = { ...state.stash, [type]: null };
     afterSwitch(true);
     const undo = { label: 'ongedaan maken', run: () => history.undo() };
     const text = {
       regulier: 'Nieuwe presentatie gestart met de voorbeeldslides.',
       voorstel: 'Nieuw voorstel gestart. Vul bij Voorstel de gegevens van de klant in.',
-      positionering: klant ? `Nieuwe positionering voor ${klant} gestart: de klantnaam komt uit je voorstel.` : 'Nieuwe positionering gestart. Vul bij Gegevens de klantnaam in.',
+      positionering: 'Nieuwe positionering gestart. Vul bij Gegevens de klantnaam in.',
     }[type];
     toast(text, false, undo);
   }

@@ -41,25 +41,33 @@
     ],
 
     tone: {
-      intro: 'Pure Minds schrijft informeel-professioneel: zoals een ervaren collega die naast je zit. Warm en direct, maar altijd onderbouwd. We overtuigen met resultaat en uitleg, niet met superlatieven.',
+      intro: 'Pure Minds schrijft professioneel en toegankelijk: zoals een ervaren adviseur die met je aan tafel zit. Helder en direct, altijd onderbouwd. We overtuigen met resultaat en uitleg, niet met superlatieven.',
       // pos: waar Pure Minds staat tussen links (0) en rechts (1)
       scales: [
-        { left: 'Formeel', right: 'informeel', pos: 0.72, where: 'Informeel, nooit amicaal', practice: 'Altijd je/jij, ook in offertes. U alleen als de klant daar zelf om vraagt (bijvoorbeeld overheid, zorg).' },
+        { left: 'Formeel', right: 'informeel', pos: 0.56, where: 'Zakelijk en toegankelijk', practice: 'Je/jij, maar zakelijk: geen spreektaal of grapjes. U als de klant dat vraagt (bijvoorbeeld overheid, zorg).' },
         { left: 'Nuchter', right: 'enthousiast', pos: 0.36, where: 'Nuchter met energie', practice: 'Enthousiasme blijkt uit concrete resultaten (“+184% aanvragen in drie maanden”), niet uit uitroeptekens.' },
-        { left: 'Overtuigend', right: 'informerend', pos: 0.4, where: 'Overtuigend door uit te leggen', practice: 'Eerst het probleem van de klant, dan wat we doen, dan wat het oplevert.' },
+        { left: 'Overtuigend', right: 'informerend', pos: 0.4, where: 'Overtuigend door uit te leggen', practice: 'Altijd in de vaste volgorde: eerst wat het oplevert, dan het probleem van de klant, dan hoe we het gedaan hebben.' },
         { left: 'Technisch', right: 'toegankelijk', pos: 0.8, where: 'Toegankelijk', practice: 'Vaktermen alleen als de lezer ze kent; anders één zin uitleg (“GA4, de meetomgeving van Google”).' },
       ],
+      // De vaste volgorde van een verhaal: resultaat, probleem, aanpak (onder de schalen)
+      order: {
+        title: 'Vaste volgorde',
+        steps: [
+          { title: 'Wat het oplevert', text: 'Begin met het resultaat: “+184% aanvragen in drie maanden.”' },
+          { title: 'Het probleem van de klant', text: 'Dan wat er speelde: “Bezoekers vonden de offerteknop niet.”' },
+          { title: 'Hoe we het gedaan hebben', text: 'Dan pas de aanpak: “De knop staat nu op elke pagina bovenaan.”' },
+        ],
+      },
       rules: [
         'Korte zinnen, actieve vorm. Eén gedachte per zin.',
-        'Koppen met een hoofdletter en vaak een cyaan punt erachter (“Onze belofte.”). Knoppen en labels in kleine letters (“analyseer pagina”, “download pdf”).',
+        'Koppen met een hoofdletter en vaak een cyaan punt erachter (“Onze belofte.”). Knoppen en labels in kleine letters (“lees meer”, “plan een gesprek”).',
         'De naam voluit: Pure Minds Marketing Group (met hoofdletters). In lopende tekst mag Pure Minds. Het webadres altijd klein: pureminds.nl.',
         'Getallen als cijfers bij resultaten (3 maanden, 60%), bedragen als € 1.500,-.',
-        'De slogan ligt vast en is gelijk aan de website: Het performance marketing bureau voor bedrijven die vooruit willen.',
-        'Geen emoji in documenten en presentaties; op social spaarzaam (hooguit één, nooit in de kop).',
+        'Geen emoji in documenten en presentaties; op social spaarzaam (geen overkill, nooit in de kop).',
       ],
       examples: [
         { wel: 'We hebben je Google Ads-account doorgelopen. Drie dingen kosten je nu klikken die niets opleveren.', niet: 'Wij hebben uw account aan een uitgebreide, state-of-the-art analyse onderworpen!' },
-        { wel: 'Je website staat goed, maar bezoekers vinden de offerteknop niet. Dat lossen we op in fase 1.', niet: 'Wij gaan uw online aanwezigheid naar een next level tillen.' },
+        { wel: '+184% aanvragen in drie maanden. Bezoekers vonden de offerteknop niet; die staat nu op elke pagina bovenaan.', niet: 'Wij gaan uw online aanwezigheid naar een next level tillen.' },
         { wel: 'Hulp nodig bij je campagnes? Plan een gratis adviesgesprek via pureminds.nl.', niet: 'Neem NU contact op voor de beste marketing van Nederland!!!' },
       ],
     },
@@ -76,7 +84,7 @@
       minimum: [
         { medium: 'Digitaal (web, social, slides)', min: '80 px', why: 'Daaronder is “marketing group” niet meer leesbaar.' },
         { medium: 'Print', min: '20 mm', why: 'Idem; de fijne letters lopen anders dicht in de druk.' },
-        { medium: 'Favicon en app-icoon', min: '16–64 px', why: 'Uitzondering: alleen het bestaande favicon (assets/brand/favicon.png), nooit een verkleind logo.' },
+        { medium: 'Favicon en app-icoon', min: '16–64 px', why: 'Uitzondering: alleen het bestaande favicon, nooit een verkleind logo.' },
       ],
       donts: [
         { id: 'achtergrond', title: 'Geen achtergrond achter het logo', text: 'Zet het logo direct op de foto of het vlak, zonder eigen kader of vlak erachter.' },
@@ -89,8 +97,8 @@
       added: [
         { title: 'Kleur', text: 'Alleen wit of Inkt. Geen cyaan, magenta, verloop of schaduw op het logo.' },
         { title: 'Contrast', text: 'Op een foto alleen waar het rustig is; leg zo nodig een donker verloop onder de rand van de foto, nooit een kader om het logo.' },
-        { title: 'Plek', text: 'In documenten linksboven, zoals op het briefpapier van de Document Maker; op posts en slides altijd rechtsonder op dezelfde plek. Eén logo per pagina, post of slide.' },
-        { title: 'Bestanden', text: 'Gebruik altijd de originelen uit de styleguide (SVG voor digitaal en print, PNG alleen als het programma geen SVG kent). Nooit overtrekken of een screenshot gebruiken.' },
+        { title: 'Plek', text: 'In documenten linksboven, zoals op het briefpapier; op posts en slides altijd rechtsonder op dezelfde plek. Eén logo per pagina, post of slide.' },
+        { title: 'Bestanden', text: 'Gebruik altijd de originele logobestanden (SVG voor digitaal en print, PNG alleen als het programma geen SVG kent). Nooit overtrekken of een screenshot gebruiken.' },
       ],
     },
 
@@ -103,9 +111,9 @@
         { ok: false, text: 'Geen rand om een witte zeshoek; zet hem op een donkere of gekleurde ondergrond.' },
       ],
       uses: [
-        { id: 'bullet', title: 'Opsommingsteken', text: 'Een klein cyaan zeshoekje vóór een label of bullet (zoals in alle makers).' },
+        { id: 'bullet', title: 'Opsommingsteken', text: 'Een klein cyaan zeshoekje vóór een label of bullet (zoals in al onze templates).' },
         { id: 'frame', title: 'Fotokader', text: 'Een foto in een zeshoek, eventueel met een tweede, iets verschoven cyaan lijn-zeshoek erachter (de “echo”).' },
-        { id: 'holder', title: 'Icoonhouder', text: 'De varianten uit de Icon Finder (assets/icons/Zeshoek/), met afgeronde hoeken van 12% van de straal.' },
+        { id: 'holder', title: 'Icoonhouder', text: 'Vier vaste varianten (cyaan, donker, magenta en wit), met afgeronde hoeken van 12% van de straal.' },
         { id: 'pattern', title: 'Patroon', text: 'Een fijn lijnpatroon van zeshoeken op de achtergrond, wit op 4–7% dekking. Nooit als drukke tegelvloer.' },
       ],
     },
@@ -139,7 +147,7 @@
     /* --- Typografie --- */
 
     type: {
-      intro: 'Eén lettertype voor alles: Pure Minds Sans. De tools laden het als eigen webfont en sluiten het in elke export in.',
+      intro: 'Eén lettertype voor alles: Pure Minds Sans, in print, online en in presentaties.',
       usage: {
         h1: 'Grote titels, één per pagina',
         h2: 'Subtitels en secties',
@@ -218,27 +226,34 @@
     /* --- Iconen --- */
 
     icons: {
-      intro: 'Iconen komen uit de Icon Finder in de Generator Hub: Remix Icon, te zoeken in het Nederlands en Engels. We gebruiken de lijnstijl (Line), los of in de zeshoek, altijd in een effen huiskleur. Uitgesneden in een witte zeshoek gebruik je alleen de volle stijl (Solid/Fill).',
+      intro: 'Iconen komen uit één set: Remix Icon. Altijd de lijnstijl (Line), los of in de zeshoek, in een effen huiskleur. Uitgesneden in een witte zeshoek gebruik je alleen de volle stijl (Solid/Fill).',
       rules: [
         'Standaard de lijnstijl (Line) van Remix Icon, uit één set. Geen iconen van andere sets ernaast.',
         'Uitgesneden in een witte zeshoek: alleen de volle stijl (Solid/Fill) van hetzelfde icoon, nooit de lijnstijl.',
         'In de zeshoek: cyaan (de huisvariant), donker of magenta met een wit lijnicoon, of wit op een donkere ondergrond.',
         'Los: in Inkt, cyaan, blauw, magenta of wit.',
-        'Punt boven en afgeronde hoeken van 12% van de straal, net als de icoonhouders in de makers.',
+        'Punt boven en afgeronde hoeken van 12% van de straal, net als de icoonhouders in onze templates.',
         'Magenta alleen bij de hoofdactie, zoals een knop of cta.',
         'Niet kleiner dan 24 px: op die maat zijn de lijnen getekend.',
       ],
       // Mappen in assets/icons/Zeshoek, met de preset uit js/icons/hex.js
       variants: [
-        { preset: 'cyaan', name: 'Cyaan zeshoek', sub: 'wit icoon · de huisvariant', folder: 'Cyaan zeshoek - wit icoon' },
-        { preset: 'donker', name: 'Donkere zeshoek', sub: 'wit icoon', folder: 'Donkere zeshoek - wit icoon' },
-        { preset: 'magenta', name: 'Magenta zeshoek', sub: 'wit icoon · hoofdactie', folder: 'Magenta zeshoek - wit icoon' },
+        { preset: 'cyaan', name: 'Cyaan zeshoek', sub: 'wit lijnicoon · de huisvariant', folder: 'Cyaan zeshoek - wit icoon' },
+        { preset: 'donker', name: 'Donkere zeshoek', sub: 'wit lijnicoon', folder: 'Donkere zeshoek - wit icoon' },
+        { preset: 'magenta', name: 'Magenta zeshoek', sub: 'wit lijnicoon · hoofdactie', folder: 'Magenta zeshoek - wit icoon' },
         { preset: 'wit', name: 'Witte zeshoek', sub: 'uitgesneden, volle stijl · op donker', folder: 'Witte zeshoek - doorzichtig icoon' },
       ],
       loose: ['inkt', 'cyaan', 'blauw', 'magenta', 'wit'],
       sample: ['line-chart', 'megaphone', 'lightbulb', 'team', 'search', 'mail'],
-      // Wel en niet: hetzelfde icoon uitgesneden in de volle stijl en in de lijnstijl
-      knockout: { icon: 'team', title: 'Uitgesneden', sub: 'wel en niet', wel: 'Volle stijl (Fill): rustig en snel herkenbaar.', niet: 'Lijnstijl (Line): het wit slokt de dunne lijnen op.' },
+      // De pagina in twee groepen: alles in de lijnstijl, en apart de witte zeshoek uitgesneden (vol)
+      groups: {
+        line: { title: 'Lijnstijl (Line)', sub: 'cyaan, donker en magenta zeshoek, en los' },
+        fill: { title: 'Volle stijl (Fill)', sub: 'alleen uitgesneden in de witte zeshoek' },
+      },
+      // Wel en niet bij de lijnstijl: hetzelfde icoon in de cyane zeshoek en los, in lijn en vol
+      lineCheck: { icon: 'team', title: 'Wel en niet', sub: 'lijn wel, vol niet' },
+      // Wel en niet bij de witte zeshoek: hetzelfde icoon uitgesneden in de volle stijl en in de lijnstijl
+      knockout: { icon: 'team', title: 'Wel en niet', sub: 'vol wel, lijn niet', wel: 'Volle stijl (Fill): rustig en snel herkenbaar.', niet: 'Lijnstijl (Line): het wit slokt de dunne lijnen op.' },
       // Waarom uitgesneden alleen vol: kort, voor wie geen ontwerper is
       why: {
         title: 'Waarom uitgesneden vol',
@@ -253,11 +268,11 @@
     /* --- Gebruik --- */
 
     usage: {
-      intro: 'De makers in de Generator Hub passen deze regels vanzelf toe. Begin daar, niet met een leeg bestand.',
+      intro: 'Zo ziet de huisstijl eruit in de praktijk. Begin altijd vanuit een bestaand template, niet met een leeg bestand.',
       makers: [
-        { id: 'insta', name: 'Social posts', tool: 'Insta Post Maker', text: 'Vijf templates: standaard foto, foto met tekst, blog, case en carousel. Cyaan balk, label met zeshoek, logo rechtsonder.', formats: ['standaard foto', 'foto met tekst', 'blog', 'case', 'carousel'] },
-        { id: 'document', name: 'Documenten', tool: 'Document Maker', text: 'Brief, offerte, memo en notitie op het A4-briefpapier: cyaan balk, het logo in Inkt linksboven, de afzender rechts en de bedrijfsgegevens in de voetregel.' },
-        { id: 'presentation', name: 'Presentaties', tool: 'Presentation Maker', text: 'Slides, voorstellen en positioneringen in 16:9. Het logo staat op elke slide rechtsonder, op dezelfde plek.' },
+        { id: 'insta', name: 'Social posts', tool: 'Insta Post Maker', format: '4:5', text: 'Vijf templates: standaard foto, foto met tekst, blog, case en carousel. Cyaan balk, label met zeshoek, logo rechtsonder.', formats: ['standaard foto', 'foto met tekst', 'blog', 'case', 'carousel'] },
+        { id: 'document', name: 'Documenten', tool: 'Document Maker', format: 'A4', text: 'Brief, offerte, memo en notitie op het A4-briefpapier: cyaan balk, het logo in Inkt linksboven, de afzender rechts en de bedrijfsgegevens in de voetregel.' },
+        { id: 'presentation', name: 'Presentaties', tool: 'Presentation Maker', format: '16:9', text: 'Slides, voorstellen en positioneringen in 16:9. Het logo staat op elke slide rechtsonder, op dezelfde plek.' },
       ],
       badge: {
         title: 'Emerce 100-badge',
@@ -265,7 +280,7 @@
         rules: [
           'Wit op donker, zwart op licht; nooit in een andere kleur.',
           'Klein en ondergeschikt aan het logo: in de voetregel van slides en briefpapier, linksonder op posts.',
-          'Alleen de officiële bestanden (assets/brand/emerce), in hun eigen verhouding.',
+          'Alleen de officiële bestanden van Emerce, in hun eigen verhouding.',
           'Buiten de clear space van het logo, en één badge per ontwerp.',
         ],
       },
@@ -336,9 +351,8 @@
 
     // Het colofon: tijdloos, zonder versie of datum. {fotografen} vult model.js in (photoCredits)
     colophon: {
-      signoff: 'Gemaakt met de Pure Minds Generator Hub.',
-      about: 'Dit brandbook beschrijft de huisstijl van Pure Minds Marketing Group. De Brand Styleguide in de Generator Hub is altijd actueel: daar kopieer je elke kleur en download je elk logo.',
-      sources: 'Lettertype: Pure Minds Sans. Iconen: Remix Icon (Remix Icon License v1.0). Deze PDF opent bewerkbaar in Canva en Illustrator.',
+      about: 'Dit brandbook beschrijft de huisstijl van Pure Minds Marketing Group: wie we zijn, hoe we klinken en hoe we eruitzien. Gebruik het bij alles wat we maken, van een social post tot een voorstel.',
+      sources: 'Lettertype: Pure Minds Sans. Iconen: Remix Icon (Remix Icon License v1.0).',
       photos: 'Foto’s: {fotografen}, via Unsplash (Unsplash-licentie).',
       rights: '© Pure Minds Marketing Group. Alle rechten voorbehouden.',
     },
