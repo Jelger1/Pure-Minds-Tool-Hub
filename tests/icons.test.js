@@ -12,6 +12,8 @@ const HEX = require('../js/icons/hex.js');
 
 const root = path.join(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+// Met LF als regeleinde, ook als git op Windows CRLF heeft uitgecheckt
+const lf = (file) => read(file).replace(/\r\n/g, '\n');
 const bestaat = (file) => fs.existsSync(path.join(root, file));
 const padVan = (file) => read(file).match(/\sd="([^"]*)"/)[1];
 
@@ -93,6 +95,19 @@ test('Icon Finder: de volle stijl laadt pas als iemand de witte zeshoek kiest', 
   assert.match(read('js/icons/app.js'), /PM\.url\('js\/icons\/icon-fill-data\.js'\)/);
 });
 
+test('Icon Finder: de witte zeshoek alleen in de volle stijl, nooit een uitgesneden lijnicoon', () => {
+  const app = read('js/icons/app.js');
+  // Laadt de volle stijl niet, dan terug naar cyaan in plaats van de lijnstijl uitsnijden
+  const withFill = app.slice(app.indexOf('function withFill('), app.indexOf('async function ensureFill('));
+  assert.match(withFill, /state\.hexColor = 'cyaan'/);
+  assert.ok(!/lijnstijl met een melding/.test(app));
+  // Downloaden en kopiëren wachten op de volle stijl en stoppen als die er niet is
+  assert.equal((app.match(/if \(!\(await ensureFill\(\)\)\) return;/g) || []).length, 2);
+  // De uitleg zegt kort waarom (in de tool en bij het icoon)
+  assert.match(read('tools/icons.html'), /id="fillNote"[^>]*>.*alleen de <b>volle stijl \(Fill\)<\/b>: het wit slokt dunne lijnen op/);
+  assert.match(app, /Uitgesneden alleen vol: het wit slokt dunne lijnen op/);
+});
+
 test('bronmappen: lijnstijl in de categorieën, de volle stijl in Vol/', () => {
   for (const cat of DATA.categories) {
     const bestanden = fs.readdirSync(path.join(root, 'assets/icons', cat));
@@ -126,11 +141,11 @@ test('Zeshoek: vier mappen met alle iconen, gelijk aan PMHex.svg(); wit in de vo
     const vol = bestaat(`assets/icons/Vol/${cat}/${naam}-fill.svg`) ? `${naam}-fill.svg` : null;
     const bron = padVan(`assets/icons/${cat}/${lijn}`);
     kleuren.forEach((p, n) => {
-      assert.equal(read(`assets/icons/Zeshoek/${MAPPEN[n]}/${cat}/${lijn}`), HEX.svg(bron, { shape: 'hex', ...p }) + '\n', `${MAPPEN[n]}/${cat}/${lijn}`);
+      assert.equal(lf(`assets/icons/Zeshoek/${MAPPEN[n]}/${cat}/${lijn}`), HEX.svg(bron, { shape: 'hex', ...p }) + '\n', `${MAPPEN[n]}/${cat}/${lijn}`);
     });
     const wit = vol || lijn;
     const d = uitsnij[`${cat}/${wit}`] || (vol ? padVan(`assets/icons/Vol/${cat}/${vol}`) : bron);
-    assert.equal(read(`assets/icons/Zeshoek/${WIT}/${cat}/${wit}`), HEX.svg(d, { shape: 'hex', ...HEX.presets.wit }) + '\n', `${WIT}/${cat}/${wit}`);
+    assert.equal(lf(`assets/icons/Zeshoek/${WIT}/${cat}/${wit}`), HEX.svg(d, { shape: 'hex', ...HEX.presets.wit }) + '\n', `${WIT}/${cat}/${wit}`);
   }
   // Elke map alle iconen; de witte map heet naar de volle stijl (naam-fill.svg), geen lijnstijl meer
   for (const map of MAPPEN) {

@@ -892,13 +892,22 @@ als los iconenpakket.
   lijkt ("prulenbak"). De beste treffer staat eerst: een exacte naam, dan
   namen die met het woord beginnen, dan kortere namen.
 - **Vorm en kleur** gelden voor het hele raster, dus wat je ziet,
-  download je (alle iconen zijn lijniconen):
+  download je (lijniconen; uitgesneden in de witte zeshoek alleen de volle
+  stijl, zie hieronder):
   - vorm: *los* of *zeshoek*
   - kleur, altijd effen: inkt, cyaan, blauw, magenta, wit of een eigen kleur
     (los); cyaan, donker of magenta met een wit icoon, wit met een
     uitgesneden (doorzichtig) icoon, of een eigen kleur (zeshoek)
 
   Bij wit worden raster en preview vanzelf donker.
+- **Witte zeshoek: alleen de volle stijl (Fill).** Uitgesneden gebruik je
+  nooit de lijnstijl: het wit slokt dunne uitgesneden lijnen op (op 24 px nog
+  dunner), een vol silhouet heeft minder kleine randjes en is op een scherm
+  sneller herkenbaar. De volle iconen (`js/icons/icon-fill-data.js`) laden pas
+  als je de witte zeshoek kiest; tot dan zijn de iconen onzichtbaar. Laden ze
+  niet, dan springt de kleur terug naar cyaan en komt er geen download: nooit
+  een uitgesneden lijnicoon. Iconen die maar in één stijl bestaan (zoals
+  `bold`) worden uitgesneden zoals ze zijn.
 - **Categorieën:** de knoppen boven het raster tonen per categorie hoeveel
   iconen er bij de zoekterm horen.
 - **Laatst gebruikt:** zonder zoekterm staan iconen die je al gedownload of
@@ -955,7 +964,7 @@ als los iconenpakket.
   | `Cyaan zeshoek - wit icoon` (huisvariant) | `#1ab9e2` | wit |
   | `Donkere zeshoek - wit icoon` | `#303030` | wit |
   | `Magenta zeshoek - wit icoon` | `#b61b50` | wit |
-  | `Witte zeshoek - doorzichtig icoon` | `#ffffff` | uitgesneden |
+  | `Witte zeshoek - doorzichtig icoon` | `#ffffff` | uitgesneden, alleen de volle stijl (`naam-fill.svg`) |
 
   De doorzichtige variant is één samengesteld pad (zeshoek plus icoon, regel
   evenodd), zodat hij in Illustrator, Figma, Canva en PowerPoint werkt. Twee

@@ -1137,18 +1137,36 @@
       label(ctx, 'Regels', x, top + 140, { color: INK });
       rh = bullets(ctx, C.icons.rules, x, top + 186, w, { size: 19, lh: 1.45, color: INK, gap: 0.6 });
     });
-    // Waar je ze vindt: de Icon Finder in de Generator Hub
-    const by = top + 186 + rh + 50;
+    // Waarom uitgesneden vol: drie korte redenen in een tint met een cyane balk
+    const why = C.icons.why;
+    const wy = top + 186 + rh + 32;
+    const pad = 24;
+    const body = K.layoutBody(ctx, why.items.map((it) => `- **${it.title}:** ${it.text}`).join('\n'), w - 2 * pad - 6, {
+      size: 17, weight: 400, emWeight: 700, lh: 1.4, track: 0, itemGap: 0.3,
+    });
+    const wh = pad + 36 + body.height + pad - 8;
     layer(ctx, 'Vormen', () => {
       ctx.fillStyle = TINT;
-      ctx.fillRect(x, by, w, 104);
+      ctx.fillRect(x, wy, w, wh);
       ctx.fillStyle = CYAN;
-      ctx.fillRect(x, by, 6, 104);
+      ctx.fillRect(x, wy, 6, wh);
     });
-    hexIcon(ctx, 'search', x + 30, by + 22, 60, 'cyaan');
     layer(ctx, 'Tekst', () => {
-      line(ctx, 'Icon Finder', x + 112, by + 44, { size: 21, weight: 700, color: INK });
-      line(ctx, 'Generator Hub · tools/icons.html', x + 112, by + 74, { size: 17, color: MUTED });
+      label(ctx, why.title, x + pad + 6, wy + pad, { color: INK });
+      K.drawBody(ctx, body, x + pad + 6, wy + pad + 36, { color: INK, em: INK });
+    });
+    // Waar je ze vindt: de Icon Finder in de Generator Hub
+    const by = wy + wh + 18;
+    layer(ctx, 'Vormen', () => {
+      ctx.fillStyle = TINT;
+      ctx.fillRect(x, by, w, 96);
+      ctx.fillStyle = CYAN;
+      ctx.fillRect(x, by, 6, 96);
+    });
+    hexIcon(ctx, 'search', x + 30, by + 20, 56, 'cyaan');
+    layer(ctx, 'Tekst', () => {
+      line(ctx, 'Icon Finder', x + 108, by + 42, { size: 21, weight: 700, color: INK });
+      line(ctx, 'Generator Hub · tools/icons.html', x + 108, by + 70, { size: 17, color: MUTED });
     });
   }
 
@@ -1354,9 +1372,12 @@
     layer(ctx, 'Vormen', () => rule(ctx, MX, y - 40, CW, RULE_DARK, 2));
     const cols = [MX, 640, 1110];
     const K2 = C.colophon;
+    // Contact: per regel het icoon in de cyane zeshoek (huisvariant), zoals op de afsluiter van de presentaties
+    const contact = [['global', C.contact.web], ['phone', C.contact.phone], ['mail', C.contact.email]];
+    contact.forEach(([icon], i) => hexIcon(ctx, icon, cols[0], y + 66 + i * 52 - 8 - 19, 38, 'cyaan'));
     layer(ctx, 'Tekst', () => {
       label(ctx, 'Contact', cols[0], y, { color: WHITE });
-      [C.contact.web, C.contact.phone, C.contact.email].forEach((t, i) => line(ctx, t, cols[0], y + 66 + i * 40, { size: 24, weight: 700, color: WHITE }));
+      contact.forEach(([, t], i) => line(ctx, t, cols[0] + 52, y + 66 + i * 52, { size: 24, weight: 700, color: WHITE }));
       label(ctx, 'Over dit brandbook', cols[1], y, { color: WHITE });
       const ah = text(ctx, K2.about, cols[1], y + 44, 430, { size: 17, lh: 1.5, color: DIM });
       text(ctx, K2.rights, cols[1], y + 44 + ah + 24, 430, { size: 15, lh: 1.45, color: DIM });

@@ -235,8 +235,9 @@ test('vaste teksten staan er letterlijk in', () => {
   const slogan = spec(inp, 'slogan');
   assert.equal(slogan.layout, 'quote');
   assert.equal(slogan.style, 'quote');
-  assert.ok(slogan.quote.includes('PEACE OF MIND'));
-  assert.ok(!slogan.quote.includes('PIECE'));
+  // Gelijk aan de slogan van de website en het brandbook, in hoofdletters
+  assert.equal(slogan.quote.replace(/\*\*/g, '').replace('\n', ' '), 'HET PERFORMANCE MARKETING BUREAU VOOR BEDRIJVEN DIE VOORUIT WILLEN.');
+  assert.ok(!/MIND YOUR BUSINESS|PEACE OF MIND/.test(slogan.quote));
   assert.ok(Object.isFrozen(P.TEXT) && Object.isFrozen(P.TEXT.catalogus), 'de teksten liggen vast');
   // Het canvas is een interne tool: geen bronvermelding
   assert.ok(!('vpcCredit' in P.TEXT));

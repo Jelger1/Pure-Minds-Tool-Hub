@@ -4,9 +4,10 @@
    Zoeken en bladeren door de Remix-iconen (js/icons/icon-data.js). Het zoeken
    zelf doet PMIconSearch (search.js), met Nederlandse en Engelse woorden; de
    zeshoek komt van PMHex (hex.js), precies zoals maak-zeshoeken.py hem maakt.
-   De lijnstijl; alleen de witte zeshoek met uitgesneden icoon gebruikt de
-   volle stijl (js/icons/icon-fill-data.js, pas geladen als iemand die kiest):
-   een uitgesneden lijnicoon wordt te druk. Vorm en kleur gelden voor het
+   De lijnstijl; de witte zeshoek met uitgesneden icoon gebruikt alleen de
+   volle stijl (js/icons/icon-fill-data.js, pas geladen als iemand die kiest),
+   nooit de lijnstijl: het wit slokt dunne uitgesneden lijnen op, een vol
+   silhouet is rustiger en sneller herkenbaar. Vorm en kleur gelden voor het
    hele raster: wat je ziet, download je.
 
    Toestand:
@@ -162,14 +163,31 @@
   // Wit uitgesneden, maar de volle stijl is er (nog) niet
   const needsFill = (L = looks()) => L.knockout && !FILL;
 
-  // Eerst de volle stijl, dan pas tekenen: nooit even de lijnstijl in de witte zeshoek.
-  // Lukt laden niet, dan de lijnstijl met een melding.
+  // Uitgesneden in de witte zeshoek alleen de volle stijl: eerst die laden, dan pas tekenen.
+  // Tot dan zijn de iconen onzichtbaar (is-loading-fill). Lukt laden niet, dan terug naar
+  // cyaan, de huisvariant: nooit een uitgesneden lijnicoon.
   function withFill(then) {
     if (!needsFill()) return Promise.resolve(then());
+    el.app.classList.add('is-loading-fill');
     return loadFill().catch((err) => {
       console.error('Icon Finder: volle stijl niet geladen.', err);
-      toast('De volle iconen voor de witte zeshoek konden niet worden geladen. Ververs de pagina.', true);
-    }).then(() => then());
+      if (state.shape === 'hex' && state.hexColor === 'wit') {
+        state.hexColor = 'cyaan';
+        buildSwatches();
+      }
+      toast('De witte zeshoek gebruikt alleen volle iconen, en die konden niet worden geladen. Ververs de pagina; tot dan cyaan.', true);
+    }).then(() => {
+      el.app.classList.remove('is-loading-fill');
+      return then();
+    });
+  }
+
+  // Vóór downloaden en kopiëren: false als de witte zeshoek gekozen is en de volle stijl
+  // niet laadt (dan staat de kleur weer op cyaan en komt er niets)
+  async function ensureFill() {
+    if (!needsFill()) return true;
+    await withFill(() => looksChanged());
+    return !!FILL;
   }
 
   /* Het pad en het achtervoegsel van het bronbestand bij de keuze van nu: home-line.svg,
@@ -1172,15 +1190,12 @@
     const words = [...new Set(nl.split(/\s+/).filter(Boolean))].slice(0, 5);
     el.dWords.hidden = !words.length;
     el.dWords.innerHTML = words.length ? `In het Nederlands: ${words.map((w) => `<b>${PM.esc(w)}</b>`).join(', ')}` : '';
-    // Witte zeshoek: waarom dit de volle stijl is (of waarom niet). Zolang de volle stijl
-    // nog laadt niets: anders staat er even "kon niet worden geladen".
-    el.dStyle.hidden = !L.knockout || (needsFill(L) && !!fillLoading);
+    // Witte zeshoek: waarom dit de volle stijl is. Zolang de volle stijl nog laadt niets
+    el.dStyle.hidden = !L.knockout || needsFill(L);
     if (!el.dStyle.hidden) {
       el.dStyle.innerHTML = v.suffix === '-fill'
-        ? '<b>Volle stijl.</b> Uitgesneden gebruiken we het volle icoon: een lijnicoon wordt in het gat te druk.'
-        : ICONS[i][3] && !FILL
-          ? '<b>Lijnstijl.</b> De volle stijl kon niet worden geladen. Ververs de pagina.'
-          : '<b>Eén stijl.</b> Dit icoon bestaat niet in de volle stijl en wordt uitgesneden zoals het is.';
+        ? '<b>Volle stijl (Fill).</b> Uitgesneden alleen vol: het wit slokt dunne lijnen op, een vol silhouet is rustiger en sneller herkenbaar.'
+        : '<b>Eén stijl.</b> Dit icoon bestaat alleen zo en wordt uitgesneden zoals het is.';
     }
     syncStage();
     syncExport();
@@ -1291,7 +1306,7 @@
   const makeFile = (i) => (state.format === 'png' ? makePng(i) : Promise.resolve(makeSvg(i)));
 
   async function saveFile(i) {
-    if (needsFill()) await withFill(() => {});   // net de witte zeshoek gekozen: eerst de volle stijl
+    if (!(await ensureFill())) return;   // net de witte zeshoek gekozen: eerst de volle stijl
     const file = await makeFile(i);
     PM.saveBlob(file.blob, file.name);
     remember(i);
@@ -1356,7 +1371,7 @@
       return;
     }
     PM.run(el.copyBtn, 'kopiëren…', async () => {
-      if (needsFill()) await withFill(() => {});
+      if (!(await ensureFill())) return;
       if (state.format === 'png') {
         await copyImage(i);
         toast('Afbeelding gekopieerd. Plak hem in PowerPoint, Google Slides, Canva of Word.');
@@ -1486,13 +1501,7 @@
 
   // Witte zeshoek bewaard: eerst de volle stijl laden. Tot dan zijn de iconen onzichtbaar,
   // zodat je nooit even de lijnstijl uitgesneden ziet.
-  if (needsFill()) {
-    el.app.classList.add('is-loading-fill');
-    withFill(() => {
-      el.app.classList.remove('is-loading-fill');
-      looksChanged({ tiles: true });
-    });
-  }
+  if (needsFill()) withFill(() => looksChanged({ tiles: true }));
 
   el.q.value = state.query;
   buildSwatches();

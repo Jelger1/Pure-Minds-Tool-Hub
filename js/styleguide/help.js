@@ -80,7 +80,7 @@
     },
     'icoonvarianten': {
       title: 'Vier zeshoeken',
-      text: 'Cyaan is de huisvariant. Donker en magenta hebben een wit lijnicoon; magenta alleen bij de hoofdactie. Wit heeft een uitgesneden icoon in de volle stijl (Fill) en staat op een donkere ondergrond.',
+      text: 'Cyaan is de huisvariant. Donker en magenta hebben een wit lijnicoon; magenta alleen bij de hoofdactie. Wit heeft een uitgesneden icoon, alleen in de volle stijl (Fill): dunne lijnen worden in het wit opgeslokt. Wit staat op een donkere ondergrond.',
     },
     'emerce': {
       title: 'Emerce 100-badge',

@@ -606,6 +606,10 @@
     </li>`;
   }).join('');
 
+  // Waarom uitgesneden vol: dezelfde drie redenen als op de pagina Iconen
+  $('#iconWhy').innerHTML = `<b>${esc(C.icons.why.title)}?</b>
+    <ul>${C.icons.why.items.map((it) => `<li><b>${esc(it.title)}:</b> ${esc(it.text)}</li>`).join('')}</ul>`;
+
   /* ---------------------------------------------------------------------------
      Gebruik: de badge downloaden
      ------------------------------------------------------------------------- */

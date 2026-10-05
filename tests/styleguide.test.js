@@ -81,7 +81,7 @@ test('missie, visie en kernwaarden staan er letterlijk in (opgeschoond)', () => 
     ['Inventief', 'Opvolgen van de technologische vooruitgang om deze creatief te implementeren in de diensten voor onze klanten.'],
   ]);
   assert.equal(C.company, 'Pure Minds Marketing Group');
-  assert.equal(C.slogan, 'We mind your business, for your peace of mind.');
+  assert.equal(C.slogan, 'Het performance marketing bureau voor bedrijven die vooruit willen.');   // gelijk aan de website
 });
 
 test('de correcties op v2.0 zijn doorgevoerd, en on-aangetapt blijft', () => {
@@ -166,6 +166,22 @@ test('de iconen op de pagina’s zijn gelijk aan assets/icons', () => {
   }
   for (const n of C.icons.sample) assert.ok(C.iconPaths[n], `voorbeeldicoon ${n}`);
   assert.ok(C.iconPaths[C.icons.knockout.icon], 'het icoon van wel en niet');
+});
+
+test('uitgesneden in de witte zeshoek alleen vol, met kort waarom', () => {
+  // De regel, en de drie redenen: optische uitloop, rust, herkenbaarheid (kort)
+  assert.ok(C.icons.rules.some((r) => /^Uitgesneden in een witte zeshoek: alleen de volle stijl .*nooit de lijnstijl/.test(r)));
+  assert.match(C.icons.intro, /alleen de volle stijl/);
+  assert.deepEqual(C.icons.why.items.map((it) => it.title), ['Optische uitloop', 'Rust', 'Herkenbaarheid']);
+  for (const it of C.icons.why.items) assert.ok(it.text.split(/\s+/).length <= 8, `${it.title}: kort houden`);
+  // Wel is vol, niet is lijn
+  assert.match(C.icons.knockout.wel, /^Volle stijl \(Fill\)/);
+  assert.match(C.icons.knockout.niet, /^Lijnstijl \(Line\)/);
+  // Ook in het paneel en in de uitleg achter de [?]
+  const html = read('tools/styleguide.html');
+  assert.match(html, /id="iconWhy"/);
+  assert.match(html, /Uitgesneden in een witte zeshoek \(cutout\) gebruik je alleen de volle stijl/);
+  assert.match(helpData().help.icoonvarianten.text, /alleen in de volle stijl \(Fill\)/);
 });
 
 test('de volle stijl (Fill) op de pagina’s is gelijk aan assets/icons/Vol', () => {

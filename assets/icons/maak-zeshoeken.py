@@ -2,10 +2,11 @@
 Zet alle Remix-iconen in deze map om naar Pure Minds-zeshoekiconen (punt boven).
 
 De lijnstijl (naam-line.svg in de categoriemappen); iconen in één stijl (zonder
--line, zoals bold.svg) doen gewoon mee. Alleen de witte zeshoek met uitgesneden
-icoon gebruikt de volle stijl (naam-fill.svg uit Vol/<categorie>/): een
-uitgesneden lijnicoon is een wirwar van dunne randjes. Een icoon zonder volle
-stijl (de iconen in één stijl) wordt uitgesneden zoals het is.
+-line, zoals bold.svg) doen gewoon mee. De witte zeshoek met uitgesneden icoon
+gebruikt alleen de volle stijl (naam-fill.svg uit Vol/<categorie>/), nooit de
+lijnstijl: het wit slokt dunne uitgesneden lijnen op, een vol silhouet is
+rustiger en sneller herkenbaar. Een icoon zonder volle stijl (de iconen in één
+stijl) wordt uitgesneden zoals het is.
 Er komen vier varianten, elk in een eigen map onder Zeshoek/, met dezelfde
 categorieën en bestandsnamen als het origineel (in de witte map naam-fill.svg):
 - Cyaan zeshoek - wit icoon:         effen Pure Cyaan (#1ab9e2), wit icoon (de huisvariant)
@@ -527,7 +528,7 @@ OVERZICHT = '''<!doctype html>
   <input id="zoek" type="search" placeholder="Zoek een icoon, bijvoorbeeld mail of chart" autofocus>
   <div class="achtergrond" id="achtergronden">Achtergrond</div>
   <span id="telling"></span>
-  <p id="uitleg" hidden>Uitgesneden in de witte zeshoek gebruik je de <b>volle stijl (Fill)</b>: met lijnen wordt het te druk.</p>
+  <p id="uitleg" hidden>Uitgesneden in de witte zeshoek alleen de <b>volle stijl (Fill)</b>: het wit slokt dunne lijnen op, een vol silhouet is rustiger en sneller herkenbaar.</p>
 </header>
 <main id="lijst"></main>
 <div id="melding"></div>

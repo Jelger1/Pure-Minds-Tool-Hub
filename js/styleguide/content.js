@@ -24,7 +24,7 @@
     company: 'Pure Minds Marketing Group',
     short: 'Pure Minds',
     domain: 'pureminds.nl',
-    slogan: 'We mind your business, for your peace of mind.',
+    slogan: 'Het performance marketing bureau voor bedrijven die vooruit willen.',
     contact: { web: 'www.pureminds.nl', phone: '045 - 3690530', email: 'info@pureminds.nl' },
 
     /* --- Merk --- */
@@ -54,7 +54,7 @@
         'Koppen met een hoofdletter en vaak een cyaan punt erachter (“Onze belofte.”). Knoppen en labels in kleine letters (“analyseer pagina”, “download pdf”).',
         'De naam voluit: Pure Minds Marketing Group (met hoofdletters). In lopende tekst mag Pure Minds. Het webadres altijd klein: pureminds.nl.',
         'Getallen als cijfers bij resultaten (3 maanden, 60%), bedragen als € 1.500,-.',
-        'De slogan blijft Engels en ongewijzigd: We mind your business, for your peace of mind.',
+        'De slogan ligt vast en is gelijk aan de website: Het performance marketing bureau voor bedrijven die vooruit willen.',
         'Geen emoji in documenten en presentaties; op social spaarzaam (hooguit één, nooit in de kop).',
       ],
       examples: [
@@ -98,7 +98,7 @@
       intro: 'De zeshoek komt uit het logo en is het herkenbaarste element na het logo zelf. Zo gebruik je hem goed:',
       rules: [
         { ok: true, text: 'Punt boven, zoals in het logo. Nooit plat liggend.' },
-        { ok: true, text: 'Effen cyaan, donker of magenta met een wit icoon, of wit met een uitgesneden icoon in de volle stijl.' },
+        { ok: true, text: 'Effen cyaan, donker of magenta met een wit lijnicoon, of wit met een uitgesneden icoon, dan alleen in de volle stijl.' },
         { ok: false, text: 'Geen verloop en geen blauw (#1B71A8) als vlak.' },
         { ok: false, text: 'Geen rand om een witte zeshoek; zet hem op een donkere of gekleurde ondergrond.' },
       ],
@@ -218,11 +218,11 @@
     /* --- Iconen --- */
 
     icons: {
-      intro: 'Iconen komen uit de Icon Finder in de Generator Hub: Remix Icon, te zoeken in het Nederlands en Engels. We gebruiken de lijnstijl (Line), los of in de zeshoek, altijd in een effen huiskleur. Alleen uitgesneden in een witte zeshoek gebruik je de volle stijl (Solid/Fill).',
+      intro: 'Iconen komen uit de Icon Finder in de Generator Hub: Remix Icon, te zoeken in het Nederlands en Engels. We gebruiken de lijnstijl (Line), los of in de zeshoek, altijd in een effen huiskleur. Uitgesneden in een witte zeshoek gebruik je alleen de volle stijl (Solid/Fill).',
       rules: [
         'Standaard de lijnstijl (Line) van Remix Icon, uit één set. Geen iconen van andere sets ernaast.',
-        'Uitgesneden iconen in een witte zeshoek: altijd de volle stijl (Solid/Fill) van hetzelfde icoon. Dunne lijnen in een uitsparing maken het beeld onrustig.',
-        'In de zeshoek: cyaan (de huisvariant), donker of magenta met een wit lijnicoon, of wit met een uitgesneden icoon in de volle stijl, op een donkere ondergrond.',
+        'Uitgesneden in een witte zeshoek: alleen de volle stijl (Solid/Fill) van hetzelfde icoon, nooit de lijnstijl.',
+        'In de zeshoek: cyaan (de huisvariant), donker of magenta met een wit lijnicoon, of wit op een donkere ondergrond.',
         'Los: in Inkt, cyaan, blauw, magenta of wit.',
         'Punt boven en afgeronde hoeken van 12% van de straal, net als de icoonhouders in de makers.',
         'Magenta alleen bij de hoofdactie, zoals een knop of cta.',
@@ -238,7 +238,16 @@
       loose: ['inkt', 'cyaan', 'blauw', 'magenta', 'wit'],
       sample: ['line-chart', 'megaphone', 'lightbulb', 'team', 'search', 'mail'],
       // Wel en niet: hetzelfde icoon uitgesneden in de volle stijl en in de lijnstijl
-      knockout: { icon: 'team', title: 'Uitgesneden', sub: 'wel en niet', wel: 'Volle stijl (Fill): een rustig silhouet.', niet: 'Lijnstijl (Line): dunne lijnen worden onrustig.' },
+      knockout: { icon: 'team', title: 'Uitgesneden', sub: 'wel en niet', wel: 'Volle stijl (Fill): rustig en snel herkenbaar.', niet: 'Lijnstijl (Line): het wit slokt de dunne lijnen op.' },
+      // Waarom uitgesneden alleen vol: kort, voor wie geen ontwerper is
+      why: {
+        title: 'Waarom uitgesneden vol',
+        items: [
+          { title: 'Optische uitloop', text: 'het wit slokt dunne lijnen op.' },
+          { title: 'Rust', text: 'minder kleine randjes.' },
+          { title: 'Herkenbaarheid', text: 'meer massa, sneller gezien.' },
+        ],
+      },
     },
 
     /* --- Gebruik --- */
@@ -403,6 +412,14 @@
     mail: {
       file: 'Business/mail-line.svg', d: 'M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z',
       fillFile: 'Vol/Business/mail-fill.svg', fill: 'M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM12.0606 11.6829L5.64722 6.2377L4.35278 7.7623L12.0731 14.3171L19.6544 7.75616L18.3456 6.24384L12.0606 11.6829Z',
+    },
+    phone: {
+      file: 'Device/phone-line.svg', d: 'M9.36556 10.6821C10.302 12.3288 11.6712 13.698 13.3179 14.6344L14.2024 13.3961C14.4965 12.9845 15.0516 12.8573 15.4956 13.0998C16.9024 13.8683 18.4571 14.3353 20.0789 14.4637C20.599 14.5049 21 14.9389 21 15.4606V19.9234C21 20.4361 20.6122 20.8657 20.1022 20.9181C19.5723 20.9726 19.0377 21 18.5 21C9.93959 21 3 14.0604 3 5.5C3 4.96227 3.02742 4.42771 3.08189 3.89776C3.1343 3.38775 3.56394 3 4.07665 3H8.53942C9.0611 3 9.49513 3.40104 9.5363 3.92109C9.66467 5.54288 10.1317 7.09764 10.9002 8.50444C11.1427 8.9484 11.0155 9.50354 10.6039 9.79757L9.36556 10.6821ZM6.84425 10.0252L8.7442 8.66809C8.20547 7.50514 7.83628 6.27183 7.64727 5H5.00907C5.00303 5.16632 5 5.333 5 5.5C5 12.9558 11.0442 19 18.5 19C18.667 19 18.8337 18.997 19 18.9909V16.3527C17.7282 16.1637 16.4949 15.7945 15.3319 15.2558L13.9748 17.1558C13.4258 16.9425 12.8956 16.6915 12.3874 16.4061L12.3293 16.373C10.3697 15.2587 8.74134 13.6303 7.627 11.6707L7.59394 11.6126C7.30849 11.1044 7.05754 10.5742 6.84425 10.0252Z',
+      fillFile: 'Vol/Device/phone-fill.svg', fill: 'M21 16.42V19.9561C21 20.4811 20.5941 20.9167 20.0705 20.9537C19.6331 20.9846 19.2763 21 19 21C10.1634 21 3 13.8366 3 5C3 4.72371 3.01545 4.36687 3.04635 3.9295C3.08337 3.40588 3.51894 3 4.04386 3H7.5801C7.83678 3 8.05176 3.19442 8.07753 3.4498C8.10067 3.67907 8.12218 3.86314 8.14207 4.00202C8.34435 5.41472 8.75753 6.75936 9.3487 8.00303C9.44359 8.20265 9.38171 8.44159 9.20185 8.57006L7.04355 10.1118C8.35752 13.1811 10.8189 15.6425 13.8882 16.9565L15.4271 14.8019C15.5572 14.6199 15.799 14.5573 16.001 14.6532C17.2446 15.2439 18.5891 15.6566 20.0016 15.8584C20.1396 15.8782 20.3225 15.8995 20.5502 15.9225C20.8056 15.9483 21 16.1633 21 16.42Z',
+    },
+    global: {
+      file: 'Business/global-line.svg', d: 'M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM9.71002 19.6674C8.74743 17.6259 8.15732 15.3742 8.02731 13H4.06189C4.458 16.1765 6.71639 18.7747 9.71002 19.6674ZM10.0307 13C10.1811 15.4388 10.8778 17.7297 12 19.752C13.1222 17.7297 13.8189 15.4388 13.9693 13H10.0307ZM19.9381 13H15.9727C15.8427 15.3742 15.2526 17.6259 14.29 19.6674C17.2836 18.7747 19.542 16.1765 19.9381 13ZM4.06189 11H8.02731C8.15732 8.62577 8.74743 6.37407 9.71002 4.33256C6.71639 5.22533 4.458 7.8235 4.06189 11ZM10.0307 11H13.9693C13.8189 8.56122 13.1222 6.27025 12 4.24799C10.8778 6.27025 10.1811 8.56122 10.0307 11ZM14.29 4.33256C15.2526 6.37407 15.8427 8.62577 15.9727 11H19.9381C19.542 7.8235 17.2836 5.22533 14.29 4.33256Z',
+      fillFile: 'Vol/Business/global-fill.svg', fill: 'M2.04932 12.9999H7.52725C7.70624 16.2688 8.7574 19.3053 10.452 21.8809C5.98761 21.1871 2.5001 17.5402 2.04932 12.9999ZM2.04932 10.9999C2.5001 6.45968 5.98761 2.81276 10.452 2.11902C8.7574 4.69456 7.70624 7.73111 7.52725 10.9999H2.04932ZM21.9506 10.9999H16.4726C16.2936 7.73111 15.2425 4.69456 13.5479 2.11902C18.0123 2.81276 21.4998 6.45968 21.9506 10.9999ZM21.9506 12.9999C21.4998 17.5402 18.0123 21.1871 13.5479 21.8809C15.2425 19.3053 16.2936 16.2688 16.4726 12.9999H21.9506ZM9.53068 12.9999H14.4692C14.2976 15.7828 13.4146 18.3732 11.9999 20.5915C10.5852 18.3732 9.70229 15.7828 9.53068 12.9999ZM9.53068 10.9999C9.70229 8.21709 10.5852 5.62672 11.9999 3.40841C13.4146 5.62672 14.2976 8.21709 14.4692 10.9999H9.53068Z',
     },
     image: {
       file: 'Media/image-line.svg', d: 'M2.9918 21C2.44405 21 2 20.5551 2 20.0066V3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918ZM20 15V5H4V19L14 9L20 15ZM20 17.8284L14 11.8284L6.82843 19H20V17.8284ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z',

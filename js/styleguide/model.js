@@ -144,7 +144,7 @@
       'kleur-toepassen': [C.colors.ratio, C.colors.contrast.map((r) => r[2]), C.colors.contrastNote, C.colors.why],
       typografie: [C.type.intro, Object.values(C.type.usage), C.type.notes, C.type.legend],
       beeldtaal: [C.imagery.intro, C.imagery.sections, C.imagery.frames, C.imagery.photoNote],
-      iconen: [C.icons.intro, C.icons.rules, C.icons.variants.map((v) => `${v.name} ${v.sub}`), [k.title, k.wel, k.niet]],
+      iconen: [C.icons.intro, C.icons.rules, C.icons.variants.map((v) => `${v.name} ${v.sub}`), [k.title, k.wel, k.niet], C.icons.why],
       toepassingen: [C.usage.intro, C.usage.makers.filter((m) => m.id !== 'document')],
       documenten: [C.usage.makers.filter((m) => m.id === 'document'), C.usage.badge],
       colofon: [{ ...C.colophon, photos: photoLine(C) }, C.contact, C.photos.map((p) => p.by)],
