@@ -22,7 +22,7 @@
                   nieuw tabblad ("open de web-app"); 'lokaal' = downloaden en op je
                   eigen computer starten ("hoe start je hem?" plus "direct downloaden")
      guide        bij 'lokaal': id van de <dialog> met de uitleg in index.html
-     file         bij 'lokaal': wat je downloadt, naast "direct downloaden" ('zip 0,2 MB')
+     file         bij 'lokaal': wat je downloadt, naast "direct downloaden" ('zip 0,6 MB')
      description  één korte zin op de kaart: wat maak je ermee
      exports      hoe je het meeneemt (PNG, PDF, Word ...); bij tools van buiten
                   de hub: wat je eruit krijgt ("je krijgt ...")
@@ -186,9 +186,9 @@ window.PM_TOOLS = [
     kind: 'lokaal',
     href: 'https://github.com/Jelger1/consent-check/archive/refs/heads/main.zip',
     guide: 'guide-consent',
-    file: 'zip 0,2 MB',
+    file: 'zip 0,6 MB',
     description: 'Meet per website welke cookies en trackers er vóór en ná het cookie-akkoord laden.',
-    exports: ['8 bevindingen', 'PDF', 'JSON'],
+    exports: ['12 bevindingen', 'prioriteiten', 'PDF', 'JSON'],
     status: 'nieuw',
     newUntil: '2026-12-01',
   },
