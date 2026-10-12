@@ -455,7 +455,10 @@
     return { photo };
   }
 
-  // 5. Informatieve carousel: nummer in zeshoek, titel + tekst, swipe-indicator
+  // 5. Informatieve carousel: nummer in zeshoek, titel + tekst, swipe-indicator.
+  //    Een slide zonder nummer (numbered: false) is een opener of afsluiter:
+  //    geen zeshoek, een grotere titel en het blok optisch in het midden. Hij
+  //    telt niet mee, dus na een hook is de eerste tip gewoon 01.
   function tplCarousel(ctx, fr, d, env) {
     const pal = PAL;
     paintBackground(ctx, fr);
@@ -468,30 +471,35 @@
     drawLabel(ctx, fr, d.label, pal);
     labelRegion(ctx, fr, d.label);
 
-    // Slidenummer in een cyaan zeshoek, zoals de kernwaarden in het brandbook
-    const r = 46;
-    const bx = fr.m + (r * SQRT3) / 2;
-    const by = fr.contentTop + r;
-    hexPath(ctx, bx, by, r);
-    ctx.fillStyle = COLORS.cyan;
-    ctx.fill();
-    setFont(ctx, 800, 32, 0);
-    const num = String(index + 1).padStart(2, '0');
-    ctx.fillStyle = COLORS.ink;
-    ctx.fillText(num, bx - ctx.measureText(num).width / 2, by + (32 * CAP) / 2);
-    region('slide', bx - (r * SQRT3) / 2, by - r, r * SQRT3, r * 2);
-
-    const top = by + r + 48;
+    const numbered = slide.numbered !== false;
+    let top = fr.contentTop;
+    if (numbered) {
+      // Slidenummer in een cyaan zeshoek, zoals de kernwaarden in het brandbook
+      const r = 46;
+      const bx = fr.m + (r * SQRT3) / 2;
+      const by = fr.contentTop + r;
+      hexPath(ctx, bx, by, r);
+      ctx.fillStyle = COLORS.cyan;
+      ctx.fill();
+      setFont(ctx, 800, 32, 0);
+      const count = slides.slice(0, index + 1).filter((s) => s && s.numbered !== false).length;
+      const num = String(count).padStart(2, '0');
+      ctx.fillStyle = COLORS.ink;
+      ctx.fillText(num, bx - ctx.measureText(num).width / 2, by + (32 * CAP) / 2);
+      region('slide', bx - (r * SQRT3) / 2, by - r, r * SQRT3, r * 2);
+      top = by + r + 48;
+    }
     const areaH = fr.contentBottom - top;
     const maxW = fr.contentW - 16;
     const titleRuns = runsFrom(slide.title, { dot: d.dot });
 
     // Titel en tekst samen verkleinen tot ze passen, in dezelfde verhouding
+    const baseSize = numbered ? titleSize(72, d) : titleSize(88, d);
     let title;
     let body;
     let gap;
     for (let k = 1; k >= 0.5; k -= 0.04) {
-      title = layoutText(ctx, titleRuns, maxW, { ...TYPE.title, size: Math.round(titleSize(72, d) * k) });
+      title = layoutText(ctx, titleRuns, maxW, { ...TYPE.title, size: Math.round(baseSize * k) });
       body = layoutBody(ctx, slide.body, maxW, { ...TYPE.body, size: Math.max(22, Math.round(36 * k)) });
       gap = title.lines.length && body.items.length ? Math.round(36 * k) : 0;
       if (title.height + gap + body.height <= areaH) break;
@@ -501,6 +509,8 @@
       }
     }
 
+    // Zonder nummer: iets boven het midden, daar valt het oog eerst
+    if (!numbered) top += Math.max(0, Math.round((areaH - (title.height + gap + body.height)) * 0.42));
     drawText(ctx, title, fr.m, top, { color: pal.text, em: pal.em });
     drawBody(ctx, body, fr.m, top + title.height + gap, { color: pal.body, em: pal.text });
     textRegion('title', title, fr.m, top);

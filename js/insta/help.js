@@ -91,6 +91,10 @@
       title: 'Slides',
       text: 'Een carousel heeft hoogstens 20 slides; eerder en later veranderen de volgorde. De laatste slide krijgt vanzelf geen swipe-aanwijzing. Staat de Emerce 100-badge aan, dan staat hij alleen op die laatste slide.',
     },
+    'slidenummer': {
+      title: 'Nummer in zeshoek',
+      text: 'Zet het nummer uit voor een slide die geen tip is, zoals de hook vooraan of de afsluiter. Die slide krijgt een grotere titel, iets boven het midden. Hij telt niet mee: de eerste slide met nummer is 01.',
+    },
     'opsomming': {
       title: 'Opsomming',
       text: 'Begin een regel met een streepje en een spatie (- ) en hij wordt een punt met een cyaan zeshoekje. Een lege regel geeft wat extra ruimte. Past het niet, dan worden titel en tekst samen kleiner.',

@@ -81,10 +81,11 @@
           label: 'pure kennis',
           active: 0,
           titleSize: 'normaal',
+          // De hook en de afsluiter zonder nummer: de eerste les is 01
           slides: [
-            { title: 'Zo schrijf je een advertentie die wél klikt', body: 'Vijf lessen uit honderden Google Ads-accounts. Swipe mee.', last: false },
-            { title: 'Begin met het zoekwoord', body: 'Laat het **zoekwoord** terugkomen in je eerste kop.\n- herkenbaar voor de zoeker\n- hogere kwaliteitsscore\n- lagere klikprijs', last: false },
-            { title: 'Hulp nodig bij je campagnes?', body: 'Plan een gratis adviesgesprek via **pureminds.nl**.', last: true },
+            { title: 'Zo schrijf je een advertentie die wél klikt', body: 'Vijf lessen uit honderden Google Ads-accounts. Swipe mee.', numbered: false, last: false },
+            { title: 'Begin met het zoekwoord', body: 'Laat het **zoekwoord** terugkomen in je eerste kop.\n- herkenbaar voor de zoeker\n- hogere kwaliteitsscore\n- lagere klikprijs', numbered: true, last: false },
+            { title: 'Hulp nodig bij je campagnes?', body: 'Plan een gratis adviesgesprek via **pureminds.nl**.', numbered: false, last: true },
           ],
         },
       },
@@ -113,7 +114,8 @@
   // Een toestand gezond maken (na laden of ongedaan maken)
   function normalize(state) {
     const c = state.data.carousel;
-    c.slides = c.slides.filter(isObj).map((s) => ({ title: String(s.title || ''), body: String(s.body || ''), last: false }));
+    // numbered ontbrak vóór de slides zonder nummer: een oud concept houdt al zijn nummers
+    c.slides = c.slides.filter(isObj).map((s) => ({ title: String(s.title || ''), body: String(s.body || ''), numbered: s.numbered !== false, last: false }));
     if (!c.slides.length) c.slides = defaults().data.carousel.slides;
     c.active = Math.min(Math.max(0, c.active | 0), c.slides.length - 1);
     c.slides.forEach((s, i) => { s.last = i === c.slides.length - 1; });
@@ -210,6 +212,7 @@
     slideNo: $('#slideNo'),
     sTitle: $('#sTitle'),
     sBody: $('#sBody'),
+    sNumbered: $('#sNumbered'),
     label: $('#fLabel'),
     dot: $('#dotToggle'),
     badge: $('#badgeToggle'),
@@ -635,6 +638,7 @@
     el.slideNo.textContent = `slide ${c.active + 1} van ${c.slides.length}`;
     el.sTitle.value = slide.title;
     el.sBody.value = slide.body;
+    el.sNumbered.checked = slide.numbered !== false;
     $('#slideLeft').disabled = c.active === 0;
     $('#slideRight').disabled = c.active === c.slides.length - 1;
     $('#slideDel').disabled = c.slides.length === 1;
@@ -656,7 +660,7 @@
 
   function addSlide() {
     const c = carousel();
-    c.slides.splice(c.active + 1, 0, { title: '', body: '', last: false });
+    c.slides.splice(c.active + 1, 0, { title: '', body: '', numbered: true, last: false });
     c.active += 1;
     slidesChanged();
     el.sTitle.focus();
@@ -671,6 +675,12 @@
     e.stopPropagation();
     carousel().slides[carousel().active].body = el.sBody.value;
     changed(`slide.${carousel().active}.body`);
+  });
+
+  el.sNumbered.addEventListener('change', (e) => {
+    e.stopPropagation();
+    carousel().slides[carousel().active].numbered = el.sNumbered.checked;
+    changed(null);
   });
 
   function moveSlide(delta) {
