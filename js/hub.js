@@ -197,14 +197,14 @@
     $('makeZone').id = first.id;
     $('makerList').innerHTML = first.list.map(maker).join('');
     $('zones').insertAdjacentHTML('beforeend', rest.map((g) => `
-      <section class="zone zone--side${g.tone === 'dark' ? ' zone--dark' : ''}" id="${esc(g.id)}" aria-labelledby="zone-${esc(g.id)}">
+      <section class="zone ${g.place === 'bottom' ? 'zone--bottom' : 'zone--side'}${g.tone === 'dark' ? ' zone--dark' : ''}" id="${esc(g.id)}" aria-labelledby="zone-${esc(g.id)}">
         <div class="zone__head">
           <h2 class="zone__title zone__title--sm" id="zone-${esc(g.id)}">${heading(g)}</h2>
           ${g.lead ? `<p class="zone__lead">${esc(g.lead)}</p>` : ''}
         </div>
         <ul class="checks">${g.list.map(check).join('')}</ul>
       </section>`).join(''));
-    if (rest.length) $('zones').classList.add('has-side');
+    if (rest.some((g) => g.place !== 'bottom')) $('zones').classList.add('has-side');
   }
 
   /* ---------------------------------------------------------------------------

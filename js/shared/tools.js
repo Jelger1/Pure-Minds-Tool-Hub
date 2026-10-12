@@ -55,9 +55,12 @@
 //   question  kop als vraag (niet bij de eerste: die staat in index.html)
 //   lead      één regel uitleg onder de kop
 //   tone      'dark' = donker vlak met zeshoekpatroon
+//   place     'bottom' = over de volle breedte onder de andere zones (anders in de zijkolom)
 window.PM_GROUPS = [
   { id: 'design', name: 'Design & content' },
   { id: 'techniek', name: 'Techniek & analyse', question: 'Wat wil je checken?', tone: 'dark', lead: 'Deze tools openen buiten de hub: in een nieuw tabblad of op je eigen computer.' },
+  // Tools in de huisstijl van een klant, niet van Pure Minds: elke klant met een eigen tool komt hier bij
+  { id: 'klanten', name: 'Voor klanten', question: 'Maak je iets voor een klant?', place: 'bottom', lead: 'Post makers in de huisstijl van onze klanten. Ze openen in een nieuw tabblad.' },
 ];
 
 window.PM_TOOLS = [
@@ -222,6 +225,17 @@ window.PM_TOOLS = [
     href: 'https://keyword-focus-intent-check.vercel.app/',
     description: 'Past je pagina bij het focuszoekwoord en de zoekintentie? En wat mist er dan nog?',
     exports: ['intentcheck', 'contentbriefing', 'PDF', 'markdown'],
+    status: 'nieuw',
+    newUntil: '2026-12-01',
+  },
+  {
+    id: 'speedstar',
+    name: 'Speedstar Post Maker',
+    group: 'klanten',
+    kind: 'web',
+    href: 'https://jelger1.github.io/Speedstar-Post-Maker/',
+    description: 'On-brand Instagram-posts voor Speedstar Logistics in vier templates, met een AI-assistent in hun tone of voice.',
+    exports: ['4:5-post', 'PNG', 'JPG'],
     status: 'nieuw',
     newUntil: '2026-12-01',
   },

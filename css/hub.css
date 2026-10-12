@@ -190,6 +190,12 @@
   .check__cta { flex: 1 1 100%; justify-content: space-between; }
 }
 
+/* --- Voor klanten: over de volle breedte onder de rest, licht, de kaartjes in een raster --- */
+
+.zone--bottom { grid-column: 1 / -1; padding-top: 1.5rem; border-top: 1px solid var(--pm-line); }
+.zone--bottom .checks { grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
+.zone--bottom .check { border: 1px solid var(--pm-border); }
+
 /* --- Voet: de ontwikkelaarsnotitie staat ingeklapt, de gebruiker heeft hem niet nodig --- */
 
 .hub__foot {
