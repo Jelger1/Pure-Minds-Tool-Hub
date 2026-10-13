@@ -266,6 +266,13 @@
       text: 'Hier staan al je slides. Klik op een slide om hem te bewerken. Verplaatsen doe je met naar voren en naar achteren bij de gekozen slide, of door te slepen.',
       doe: { event: 'click', hint: 'Klik op een andere slide' },
     },
+    // De bieb: opslaan om later aan te passen, en wat je kiest bij opnieuw opslaan
+    {
+      id: 'opslaan', target: 'opslaan',
+      title: 'Sla je presentatie op',
+      text: 'Klik op opslaan: je presentatie blijft 14 dagen in je bieb. Pas je hem later aan? Sla dan opnieuw op en kies: vorige versie overschrijven of als nieuw opslaan.',
+      doe: { event: 'click', hint: 'Klik op opslaan' },
+    },
     {
       id: 'download', target: 'download',
       title: 'Download je presentatie',
@@ -362,6 +369,13 @@ window.PM_HELP.voorstel = {
       title: 'Emerce 100 erbij?',
       text: 'Pure Minds staat in de Emerce 100: een sterk keurmerk in een voorstel. Zet het knopje aan en de badge staat klein rechtsonder op elke slide. Standaard staat hij uit.',
     },
+    // De bieb: opslaan om later aan te passen, en wat je kiest bij opnieuw opslaan
+    {
+      id: 'opslaan', target: 'opslaan',
+      title: 'Sla je voorstel op',
+      text: 'Klik op opslaan: je voorstel blijft 14 dagen in je bieb. Pas je het later aan? Sla dan opnieuw op en kies: vorige versie overschrijven of als nieuw opslaan.',
+      doe: { event: 'click', hint: 'Klik op opslaan' },
+    },
     {
       id: 'download', target: 'download',
       title: 'Download je voorstel',
@@ -416,6 +430,13 @@ window.PM_HELP.positionering = {
       id: 'badge', target: 'badge',
       title: 'Emerce 100 erbij?',
       text: 'Pure Minds staat in de Emerce 100. Zet het knopje aan en de badge staat klein rechtsonder op elke slide, ook in de PDF en PowerPoint. Standaard staat hij uit.',
+    },
+    // De bieb: opslaan om later aan te passen, en wat je kiest bij opnieuw opslaan
+    {
+      id: 'opslaan', target: 'opslaan',
+      title: 'Sla je positionering op',
+      text: 'Klik op opslaan: je positionering blijft 14 dagen in je bieb. Pas je hem later aan? Sla dan opnieuw op en kies: vorige versie overschrijven of als nieuw opslaan.',
+      doe: { event: 'click', hint: 'Klik op opslaan' },
     },
     {
       id: 'download', target: 'download',

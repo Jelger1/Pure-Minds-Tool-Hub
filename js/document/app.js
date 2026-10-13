@@ -1322,10 +1322,10 @@
   }
 
   // Een export is klaar: de rondleiding kan verder
-  // Een export is klaar: de rondleiding kan verder, en het document gaat (stil) in de bieb
+  // Een export is klaar: de rondleiding kan verder, en een nieuw document gaat (stil) in de bieb
   const downloaded = () => {
     if (PM.tour) PM.tour.signal('download');
-    if (lib) lib.save({ quiet: true });
+    if (lib) lib.autoSave();
   };
 
   // Bewerkbare vector-PDF: de pagina's worden ongeschaald gekloond (de preview

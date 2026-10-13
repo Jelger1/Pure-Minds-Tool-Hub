@@ -181,6 +181,13 @@
       text: 'Zo wordt je document geprint. Klik op een onderdeel, zoals de titel of het adres, en je springt naar het veld. Klik je in de tekst, dan staat je cursor precies daar.',
       doe: { event: 'click', hint: 'Klik op een onderdeel in de preview' },
     },
+    // De bieb: opslaan om later aan te passen, en wat je kiest bij opnieuw opslaan
+    {
+      id: 'opslaan', target: 'opslaan',
+      title: 'Sla je document op',
+      text: 'Klik op opslaan: je document blijft 14 dagen in je bieb. Pas je het later aan? Sla dan opnieuw op en kies: vorige versie overschrijven of als nieuw opslaan.',
+      doe: { event: 'click', hint: 'Klik op opslaan' },
+    },
     {
       id: 'download', target: 'download',
       title: 'Download je document',

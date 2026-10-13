@@ -7,13 +7,20 @@
    miniatuur), het ontwerp zelf in IndexedDB (library:<id>, met eigen kopieën
    van de bestanden, zodat het opruimen in een maker ze niet weggooit).
 
-   Een ontwerp blijft 14 dagen na de laatste keer bewaren staan; daarna ruimt
-   elke pagina met de bieb het op. Bij elke download bewaart een maker zijn
-   ontwerp ook vanzelf.
+   Een ontwerp blijft 14 dagen na de laatste keer opslaan staan; daarna ruimt
+   elke pagina met de bieb het op.
+
+   Opslaan (de knop in de appbalk, #libSave): staat het ontwerp nog niet in de
+   bieb, dan meteen; staat het er al, dan de vraag of je de vorige versie
+   overschrijft of het als nieuw opslaat. Vanzelf opslaan overschrijft nooit:
+   een download slaat alleen op wat nog niet in de bieb staat, en wie een ander
+   ontwerp opent terwijl het open ontwerp gewijzigd is, krijgt dat als nieuwe
+   versie in de bieb. Een stip op de knop: er zijn wijzigingen die nog niet in
+   de bieb staan.
 
      PM.library.list(tool?)       de bewaarde ontwerpen, nieuwste eerst (verlopen weg)
      PM.library.remove(id)        een ontwerp weggooien
-     PM.library.attach(opts)      de bieb in een maker; geeft { save, open, touch, detach }
+     PM.library.attach(opts)      de bieb in een maker; geeft { save, autoSave, open, touch, detach }
        opts.tool                  id uit js/shared/tools.js (titel via draft.summary)
        opts.slot()                optioneel: soort binnen de tool (de presentatie heeft er drie)
        opts.getState()            de toestand die bewaard wordt
@@ -25,10 +32,8 @@
        opts.openId                uit de link van het dashboard (?bieb=<id>, of 'lijst')
      controller.isClean(slot)     staat dat soort ongewijzigd in de bieb? (niets te bewaren)
 
-   De maker roept touch() bij elke wijziging (iets om te bewaren), detach() bij
-   een nieuw, leeg ontwerp, en save({ quiet: true }) na een download. Wie een
-   ander ontwerp opent terwijl het open ontwerp gewijzigd is, verliest niets:
-   dat wordt eerst bewaard.
+   De maker roept touch() bij elke wijziging (iets om op te slaan), detach() bij
+   een nieuw, leeg ontwerp, en autoSave() na een download.
    ============================================================================= */
 (function (global) {
   'use strict';
@@ -64,12 +69,15 @@
     return n === 1 ? 'nog 1 dag' : `nog ${n} dagen`;
   }
 
-  // "vandaag bewaard", "gisteren bewaard", "3 dagen geleden bewaard"
+  // "opgeslagen vandaag om 15:27", "opgeslagen gisteren om 9:05", "opgeslagen 3 dagen geleden":
+  // met de tijd erbij zie je twee versies van hetzelfde ontwerp uit elkaar
   function savedText(at, now) {
     const midnight = (t) => new Date(t).setHours(0, 0, 0, 0);
     const days = Math.round((midnight(now) - midnight(at)) / DAY);
-    if (days <= 0) return 'vandaag bewaard';
-    return days === 1 ? 'gisteren bewaard' : `${days} dagen geleden bewaard`;
+    const d = new Date(at);
+    const clock = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+    if (days <= 0) return `opgeslagen vandaag om ${clock}`;
+    return days === 1 ? `opgeslagen gisteren om ${clock}` : `opgeslagen ${days} dagen geleden`;
   }
 
   const cleanTitle = (t) => String(t || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
@@ -134,6 +142,7 @@
 
   const esc = PM.esc;
   const ICON = {
+    close: '<svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.59 16.95 5.64l1.41 1.41L13.41 12l4.95 4.95-1.41 1.41L12 13.41l-4.95 4.95-1.41-1.41L10.59 12 5.64 7.05l1.41-1.41z"/></svg>',
     del: '<svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 11H11V17H9V11ZM13 11H15V17H13V11ZM9 4V6H15V4H9Z"/></svg>',
   };
 
@@ -147,6 +156,15 @@
 
     const body = global.document.querySelector('[data-lib]');
     const button = global.document.getElementById('libBtn');
+    const saveBtn = global.document.getElementById('libSave');
+
+    // De stip op opslaan: er zijn wijzigingen die nog niet in de bieb staan
+    function syncDot() {
+      if (!saveBtn) return;
+      const unsaved = !!readCurrent().dirty;
+      saveBtn.classList.toggle('has-dot', unsaved);
+      saveBtn.title = unsaved ? 'Opslaan in je bieb: er zijn wijzigingen die nog niet zijn opgeslagen' : 'Opgeslagen in je bieb';
+    }
 
     function summary(state) {
       try {
@@ -165,7 +183,10 @@
     function touch() {
       if (applying) return;
       const cur = readCurrent();
-      if (!cur.dirty) writeCurrent({ ...cur, dirty: true });
+      if (!cur.dirty) {
+        writeCurrent({ ...cur, dirty: true });
+        syncDot();
+      }
     }
 
     function detach() {
@@ -174,7 +195,7 @@
     }
 
     /**
-     * Bewaren: het open ontwerp werkt zijn plek in de bieb bij (weer 14 dagen), of komt
+     * Opslaan: het open ontwerp overschrijft zijn plek in de bieb (weer 14 dagen), of komt
      * er nieuw in. asNew: altijd als nieuw. state: een ander ontwerp dan het open ontwerp
      * (zonder miniatuur, niet gekoppeld). quiet: zonder melding.
      */
@@ -190,7 +211,7 @@
       const id = existing ? existing.id : `${Date.now().toString(36)}${PM.uid()}`;
       const ok = await PM.idb.set(recordKey(id), { id, tool, state, files, v: 1 });
       if (ok == null) {
-        if (!quiet) PM.toast('Bewaren in je bieb lukte niet. Misschien is de opslag van je browser vol, of staat hij in een privévenster.', true);
+        if (!quiet) PM.toast('Opslaan in je bieb lukte niet. Misschien is de opslag van je browser vol, of staat hij in een privévenster.', true);
         return null;
       }
       let thumb = '';
@@ -225,9 +246,76 @@
         }
       }
       if (!other) writeCurrent({ id, dirty: false });
-      if (!quiet) PM.toast(`${existing ? 'Bijgewerkt in je bieb' : 'Bewaard in je bieb'}: ${entry.title}. Hij blijft staan tot ${dateText(entry.expires)}.`);
+      if (!quiet) PM.toast(`${existing ? 'Opgeslagen over de vorige versie' : 'Opgeslagen in je bieb'}: ${entry.title}. Hij blijft staan tot ${dateText(entry.expires)}.`);
       render();
       return entry;
+    }
+
+    // Na een download: alleen opslaan wat nog niet in de bieb staat (nooit overschrijven)
+    function autoSave() {
+      return currentEntry() ? Promise.resolve(null) : save({ quiet: true });
+    }
+
+    /* --- De vraag bij opslaan: overschrijven of als nieuw --- */
+
+    let askDialog = null;
+    function ask(entry) {
+      if (!askDialog) {
+        askDialog = global.document.createElement('dialog');
+        askDialog.className = 'keys lib-ask';
+        askDialog.setAttribute('aria-labelledby', 'libAskTitle');
+        global.document.body.appendChild(askDialog);
+      }
+      askDialog.innerHTML = `
+        <div class="keys__head">
+          <h2 class="keys__title" id="libAskTitle">Opslaan<span class="dot">.</span></h2>
+          <button type="button" class="panel__close keys__close" data-choice="" aria-label="Annuleren">${ICON.close}</button>
+        </div>
+        <div class="lib-ask__body">
+          <p class="lib-ask__lead">Dit ontwerp staat al in je bieb als <b>${esc(entry.title)}</b>, ${esc(savedText(entry.savedAt, Date.now()))}.</p>
+          <button type="button" class="lib-ask__choice" data-choice="over" autofocus>
+            <b>Vorige versie overschrijven</b>
+            <span>Je past hetzelfde ontwerp aan. In je bieb blijft één versie staan: deze.</span>
+          </button>
+          <button type="button" class="lib-ask__choice" data-choice="new">
+            <b>Opslaan als nieuw ontwerp</b>
+            <span>De vorige versie blijft ook staan. Handig voor een tweede variant of een andere klant.</span>
+          </button>
+          <button type="button" class="linkbtn lib-ask__cancel" data-choice="">annuleren</button>
+        </div>`;
+      return new Promise((resolve) => {
+        const done = (choice) => {
+          askDialog.onclick = null;
+          askDialog.onclose = null;
+          if (askDialog.open) askDialog.close();
+          resolve(choice);
+        };
+        askDialog.onclick = (e) => {
+          if (e.target === askDialog) return done(null);   // klik op de achtergrond
+          const b = e.target.closest('[data-choice]');
+          if (b) done(b.dataset.choice || null);
+        };
+        askDialog.onclose = () => done(null);   // Escape
+        if (typeof askDialog.showModal === 'function') askDialog.showModal();
+        else askDialog.setAttribute('open', '');
+        const first = askDialog.querySelector('[data-choice="over"]');
+        if (first) first.focus();
+      });
+    }
+
+    // De knop opslaan: nieuw meteen; al in de bieb met wijzigingen: eerst de vraag
+    async function saveClick() {
+      const entry = currentEntry();
+      if (!entry) return save();
+      if (!readCurrent().dirty) {
+        const saved = await save({ quiet: true });
+        if (saved) PM.toast(`Al opgeslagen, er is niets veranderd. ${saved.title} blijft nu staan tot ${dateText(saved.expires)}.`);
+        return saved;
+      }
+      const choice = await ask(entry);
+      if (choice === 'over') return save();
+      if (choice === 'new') return save({ asNew: true });
+      return null;
     }
 
     async function open(id) {
@@ -239,10 +327,11 @@
         render();
         return false;
       }
-      // Niets kwijtraken: wat er open stond en gewijzigd is, eerst bewaren
+      // Niets kwijtraken en niets overschrijven: wat er open stond en gewijzigd is, eerst als
+      // nieuwe versie in de bieb
       const before = readCurrent();
       let kept = null;
-      if (before.dirty && before.id !== id) kept = await save({ quiet: true });
+      if (before.dirty && before.id !== id) kept = await save({ quiet: true, asNew: true });
       const prev = readCurrent();
       for (const [key, blob] of Object.entries(record.files || {})) await PM.idb.set(key, blob);
       applying = true;
@@ -261,7 +350,7 @@
           render();
         },
       } : null;
-      PM.toast(`Geopend uit je bieb: ${entry.title}.${kept ? ` Wat je open had, staat ook in je bieb (${kept.title}).` : ''}`, false, undo);
+      PM.toast(`Geopend uit je bieb: ${entry.title}.${kept ? ` Wat je open had, staat ook in je bieb, als nieuwe versie (${kept.title}).` : ''}`, false, undo);
       render();
       return true;
     }
@@ -285,7 +374,7 @@
       } : null);
     }
 
-    /* --- De popover: bewaren, en de lijst met openen en weggooien --- */
+    /* --- De popover: de lijst met openen en weggooien --- */
 
     function itemHtml(e, isCurrent, now) {
       const n = daysLeft(e, now);
@@ -300,7 +389,7 @@
           <span class="lib__txt">
             <b class="lib__title">${esc(e.title)}</b>
             ${e.sub ? `<span class="lib__meta">${esc(e.sub)}</span>` : ''}
-            <span class="lib__meta">${esc(savedText(e.savedAt, now))} · <span class="lib__left${n <= 2 ? ' is-soon' : ''}">${esc(leftText(n))}</span></span>
+            <span class="lib__meta lib__when">${esc(savedText(e.savedAt, now))} · <span class="lib__left${n <= 2 ? ' is-soon' : ''}">${esc(leftText(n))}</span></span>
           </span>
           ${isCurrent
             ? '<span class="lib__open">nu open</span>'
@@ -313,32 +402,28 @@
       const entries = list(tool);
       const count = button && button.querySelector('[data-lib-count]');
       if (count) count.textContent = entries.length ? String(entries.length) : '';
+      syncDot();
       if (!body) return;
       const now = Date.now();
       const cur = currentEntry();
       body.innerHTML = `
-        <p class="lib__lead">Bewaar je ontwerp om het later nog aan te passen. Het blijft ${DAYS} dagen staan, in deze browser. Bij elke download bewaren we het ook vanzelf.</p>
-        <div class="popover__row">
-          <button type="button" class="btn btn-outline btn-sm" data-lib-save>${cur ? 'werk bij in je bieb' : 'bewaar dit ontwerp'}</button>
-          ${cur ? '<button type="button" class="btn btn-quiet btn-sm" data-lib-new>als nieuw bewaren</button>' : ''}
-        </div>
+        <p class="lib__lead">Je opgeslagen ontwerpen. Ze blijven ${DAYS} dagen staan na de laatste keer opslaan, in deze browser. Opslaan doe je met de knop links van bieb.</p>
         ${entries.length
-          ? `<ul class="lib__list" aria-label="Bewaard in je bieb">${entries.map((e) => itemHtml(e, cur && cur.id === e.id, now)).join('')}</ul>`
-          : `<p class="lib__empty">Nog niets bewaard. Wat je hier bewaart, vind je ook terug op het dashboard.</p>`}`;
+          ? `<ul class="lib__list" aria-label="Opgeslagen in je bieb">${entries.map((e) => itemHtml(e, cur && cur.id === e.id, now)).join('')}</ul>`
+          : `<p class="lib__empty">Nog niets opgeslagen. Klik op opslaan; wat je opslaat, vind je hier en op het dashboard terug.</p>`}`;
     }
 
     if (body) {
       body.addEventListener('click', (e) => {
         const t = e.target.closest('button');
         if (!t) return;
-        if (t.hasAttribute('data-lib-save')) save();
-        else if (t.hasAttribute('data-lib-new')) save({ asNew: true });
-        else if (t.dataset.libOpen) open(t.dataset.libOpen);
+        if (t.dataset.libOpen) open(t.dataset.libOpen);
         else if (t.dataset.libDel) removeEntry(t.dataset.libDel);
       });
     }
     // Elke keer dat je hem opent de stand van nu (dagen, wat er open staat)
     if (button) button.addEventListener('click', render);
+    if (saveBtn) saveBtn.addEventListener('click', saveClick);
     render();
 
     // Van het dashboard: een ontwerp openen, of de lijst tonen
@@ -351,7 +436,7 @@
       return !!(cur && cur.id && !cur.dirty && list(tool).some((e) => e.id === cur.id));
     }
 
-    return { save, open, touch, detach, render, isClean };
+    return { save, autoSave, saveClick, open, touch, detach, render, isClean };
   }
 
   PM.library = { ...api, list, remove, attach };

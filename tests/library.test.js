@@ -47,10 +47,10 @@ test('hoe lang nog, in hele dagen', () => {
   assert.equal(L.leftText(0), 'verdwijnt vandaag');
 });
 
-test('wanneer bewaard: vandaag, gisteren of zoveel dagen geleden', () => {
-  assert.equal(L.savedText(NOW - 60 * 1000, NOW), 'vandaag bewaard');
-  assert.equal(L.savedText(NOW - DAY, NOW), 'gisteren bewaard');
-  assert.equal(L.savedText(NOW - 5 * DAY, NOW), '5 dagen geleden bewaard');
+test('wanneer opgeslagen: vandaag en gisteren met de tijd, zodat je twee versies uit elkaar ziet', () => {
+  assert.equal(L.savedText(NOW - 60 * 1000, NOW), 'opgeslagen vandaag om 14:59');
+  assert.equal(L.savedText(new Date(2026, 9, 12, 9, 5).getTime(), NOW), 'opgeslagen gisteren om 9:05');
+  assert.equal(L.savedText(NOW - 5 * DAY, NOW), 'opgeslagen 5 dagen geleden');
 });
 
 test('titels zonder nadruk-tekens en dubbele spaties', () => {
@@ -71,7 +71,9 @@ test('de drie makers hebben de bieb: knop, popover en script, en het dashboard l
     assert.match(app, new RegExp(`PM\\.library\\.attach\\(\\{\\s*tool: '${tool}'`), `${tool}: gekoppeld`);
     assert.match(app, /lib\.touch\(\)/, `${tool}: wijzigingen`);
     assert.match(app, /lib\.detach\(\)/, `${tool}: nieuw ontwerp`);
-    assert.match(app, /lib\.save\(\{ quiet: true \}\)/, `${tool}: na een download`);
+    assert.match(app, /lib\.autoSave\(\)/, `${tool}: na een download`);
+    assert.match(html, /id="libSave"[^>]*data-tour="opslaan"/, `${tool}: knop opslaan`);
+    assert.match(read(`js/${tool}/help.js`), /id: 'opslaan', target: 'opslaan'/, `${tool}: opslaan in de rondleiding`);
     assert.match(app, /openId: start\.bieb/, `${tool}: link van het dashboard`);
   }
   assert.ok(read('index.html').includes('js/shared/library.js'));

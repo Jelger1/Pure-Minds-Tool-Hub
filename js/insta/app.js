@@ -1093,10 +1093,10 @@
   const saveFile = ({ blob, name }) => PM.saveBlob(blob, name);
   const run = PM.run;
   // Een download is klaar: de rondleiding kan verder
-  // Een download is klaar: de rondleiding kan verder, en het ontwerp gaat (stil) in de bieb
+  // Een download is klaar: de rondleiding kan verder, en een nieuw ontwerp gaat (stil) in de bieb
   const downloaded = () => {
     if (window.PM.tour) PM.tour.signal('download');
-    if (lib) lib.save({ quiet: true });
+    if (lib) lib.autoSave();
   };
 
   // Het lege fotovak ("sleep hier je foto") gaat mee in een download, net als in de preview

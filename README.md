@@ -1155,27 +1155,32 @@ ook bewaard.
 
 ### De bieb
 
-In de drie makers staat rechtsboven **bieb** (`js/shared/library.js`). Daar
-bewaar je je ontwerp om het later nog aan te passen, in plaats van het opnieuw
-te maken. Een ontwerp blijft 14 dagen staan na de laatste keer bewaren; daarna
-ruimt elke pagina met de bieb het op. Bij elke download bewaart een maker zijn
-ontwerp ook vanzelf, en het dashboard toont per maker wat er in je bieb staat
-(een klik opent het via `?bieb=<id>`).
+In de drie makers staan rechtsboven **opslaan** en **bieb**
+(`js/shared/library.js`). Opslaan zet je ontwerp in de bieb om het later nog
+aan te passen, in plaats van het opnieuw te maken. Een ontwerp blijft 14 dagen
+staan na de laatste keer opslaan; daarna ruimt elke pagina met de bieb het op.
+Het dashboard toont per maker wat er in je bieb staat (een klik opent het via
+`?bieb=<id>`). De rondleiding van elke maker heeft een stap *Sla je … op*.
 
 - **Opslag:** de lijst in `localStorage` (`pm-library-v1`, met een kleine
   miniatuur), het ontwerp in IndexedDB (`library:<id>`) met eigen kopieën van
   foto's, logo's en handtekening. Alleen in deze browser, niet gedeeld.
-- **Bijwerken of nieuw:** een ontwerp dat uit de bieb komt of daar bewaard is,
-  werkt bij bewaren zijn plek bij (weer 14 dagen); *als nieuw bewaren* maakt
-  een tweede. *Alles wissen* of *nieuw* koppelt los.
-- **Niets kwijt:** open je een ander ontwerp terwijl het open ontwerp
-  gewijzigd is, dan gaat dat eerst in de bieb. Openen is één stap om ongedaan
-  te maken.
+- **Overschrijven of nieuw:** staat het ontwerp nog niet in de bieb, dan slaat
+  opslaan het meteen op. Staat het er al en is er iets veranderd, dan vraagt
+  opslaan: *vorige versie overschrijven* of *opslaan als nieuw ontwerp*. Zonder
+  wijzigingen begint alleen de 14 dagen opnieuw. *Alles wissen* of *nieuw*
+  koppelt los. Een stip op opslaan: er zijn wijzigingen die nog niet in de
+  bieb staan.
+- **Vanzelf, nooit overschrijven:** een download slaat alleen op wat nog niet
+  in de bieb staat. Open je een ander ontwerp terwijl het open ontwerp
+  gewijzigd is, dan komt dat eerst als nieuwe versie in de bieb. Openen is één
+  stap om ongedaan te maken.
 - **Presentaties:** alleen de soort die openstaat (presentatie, voorstel of
   positionering), elk met een eigen plek. Een andere soort openen werkt als
   wisselen: wat openstaat gaat naar Soort.
-- **Een maker koppelen:** `PM.library.attach({ tool, getState, fileKeys, apply,
-  thumb, undo, close, openId })`; roep `touch()` bij elke wijziging, `detach()`
-  bij een nieuw ontwerp en `save({ quiet: true })` na een download.
+- **Een maker koppelen:** knoppen `#libSave` en `#libBtn` met `#libPop` in de
+  appbalk, en `PM.library.attach({ tool, getState, fileKeys, apply, thumb,
+  undo, close, openId })`; roep `touch()` bij elke wijziging, `detach()` bij een
+  nieuw ontwerp en `autoSave()` na een download.
 
 Vervang je een logo in `assets/brand/`, draai dan `npm run brand`.

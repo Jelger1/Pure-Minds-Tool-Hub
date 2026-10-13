@@ -2405,8 +2405,8 @@
     return PM.run(btn, busy, async (progress) => {
       const done = await task(progress);
       if (PM.tour) PM.tour.signal('download');
-      // Wat je downloadt, gaat ook (stil) in de bieb
-      if (lib) lib.save({ quiet: true });
+      // Wat je downloadt en nog niet in de bieb staat, gaat er (stil) in
+      if (lib) lib.autoSave();
       return done;
     });
   }

@@ -182,6 +182,13 @@
       title: 'Bekijk je post',
       text: 'Zo wordt je post, precies zoals je hem downloadt. Staat er een foto in? Sleep hem hier op zijn plek. Is een tekst te lang, dan zie je eronder een melding.',
     },
+    // De bieb: opslaan om later aan te passen, en wat je kiest bij opnieuw opslaan
+    {
+      id: 'opslaan', target: 'opslaan',
+      title: 'Sla je post op',
+      text: 'Klik op opslaan: je post blijft 14 dagen in je bieb. Pas je hem later aan? Sla dan opnieuw op en kies: vorige versie overschrijven of als nieuw opslaan.',
+      doe: { event: 'click', hint: 'Klik op opslaan' },
+    },
     {
       id: 'download', target: 'download',
       title: 'Download je post',
@@ -191,7 +198,7 @@
     {
       id: 'klaar',
       title: 'Je post is klaar',
-      text: 'Deze rondleiding en de sneltoetsen vind je altijd terug in het hulpmenu rechtsboven. Tip: je tekst en foto blijven in deze browser bewaard, dus morgen ga je verder waar je bleef.',
+      text: 'Deze rondleiding en de sneltoetsen vind je altijd terug in het hulpmenu rechtsboven. Tip: je opgeslagen posts vind je onder bieb en op het dashboard, 14 dagen lang.',
     },
   ],
 
