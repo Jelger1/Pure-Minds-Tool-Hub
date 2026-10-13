@@ -99,6 +99,10 @@
       title: 'Foto staat',
       text: 'In zeshoek: rechtsboven, met de titel ernaast en de tekst eronder. Als achtergrond: de foto vult de slide, donker gemaakt zodat de witte tekst goed leesbaar blijft.',
     },
+    'donkere-laag': {
+      title: 'Donkere laag',
+      text: 'Hoe donker de achtergrondfoto wordt achter de tekst, per slide: standaard 80%. Hoger maakt de witte tekst beter leesbaar, lager laat meer van de foto zien.',
+    },
     'slidenummer': {
       title: 'Nummer in zeshoek',
       text: 'Zet het nummer uit voor een slide die geen tip is, zoals de hook vooraan of de afsluiter. Die slide krijgt een grotere titel, iets boven het midden. Hij telt niet mee: de eerste slide met nummer is 01.',

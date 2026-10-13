@@ -475,7 +475,8 @@
   //    env.slidePhotos[index], uitsnede in slide.crop), op twee manieren:
   //      - zeshoek: rechtsboven, over de rand, met de cyaan echo (zoals de blog);
   //        de titel staat in de kolom ernaast, de tekst begint onder de zeshoek
-  //      - achtergrond: het hele vlak, onder een effen laag Inkt (zoals de case)
+  //      - achtergrond: het hele vlak, onder een effen laag Inkt (zoals de case);
+  //        hoe donker staat per slide in slide.darken (30-100%, standaard 80)
   function tplCarousel(ctx, fr, d, env) {
     const pal = PAL;
     const slides = Array.isArray(d.slides) && d.slides.length ? d.slides : [{ title: '', body: '' }];
@@ -492,7 +493,8 @@
       photo = drawPhoto(ctx, img, { x: 0, y: 0, w: fr.w, h: fr.h }, slide.crop);
       region('photo', 0, 0, fr.w, fr.h);
       // Zonder foto lichter, zodat "sleep hier je foto" te lezen blijft
-      ctx.fillStyle = rgba(COLORS.ink, img ? 0.8 : 0.4);
+      const darken = clamp((slide.darken != null ? Number(slide.darken) : 80) / 100, 0, 1);
+      ctx.fillStyle = rgba(COLORS.ink, img ? darken : 0.4);
       ctx.fillRect(0, 0, fr.w, fr.h);
       hexPattern(ctx, fr, { color: '#ffffff', alpha: 0.08, x0: 0, y0: 0, x1: 0, y1: fr.h * 0.8 });
     } else {

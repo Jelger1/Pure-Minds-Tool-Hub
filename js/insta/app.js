@@ -127,6 +127,7 @@
       photoStyle: s.photoStyle === 'achtergrond' ? 'achtergrond' : 'zeshoek',
       photoKey: typeof s.photoKey === 'string' ? s.photoKey : '',
       crop: cropOf(s.crop),
+      darken: num(s.darken, 30, 100, 80),   // donkere laag over een achtergrondfoto, in %
     };
   }
 
@@ -249,6 +250,7 @@
     photoField: $('#photoField'),
     slidePhotoStyle: $('#slidePhotoStyle'),
     slidePhotoHint: $('#slidePhotoHint'),
+    slideDarken: $('#slideDarken'),
     photoThumb: $('#photoThumb'),
     photoName: $('#photoName'),
     photoSize: $('#photoSize'),
@@ -683,6 +685,8 @@
     el.sNumbered.checked = slide.numbered !== false;
     $$('[data-slide-photo]').forEach((b) => { b.checked = !!slide.photo; });
     $$('input[name="slidePhotoStyle"]').forEach((r) => { r.checked = r.value === slide.photoStyle; });
+    $('#sDarken').value = String(slide.darken);
+    $('#sDarkenVal').textContent = `${slide.darken}%`;
     $$('[data-slide-no]').forEach((n) => { n.textContent = `slide ${c.active + 1}`; });
     syncPhotoUI();
     syncCrop();
@@ -745,8 +749,16 @@
     e.stopPropagation();
     if (!r.checked) return;
     activeSlide().photoStyle = r.value;
+    syncPhotoUI();
     changed(null);
   }));
+  $('#sDarken').addEventListener('input', (e) => {
+    e.stopPropagation();
+    const slide = activeSlide();
+    slide.darken = Number(e.target.value);
+    $('#sDarkenVal').textContent = `${slide.darken}%`;
+    changed(`slide.${carousel().active}.darken`);
+  });
 
   function moveSlide(delta) {
     const c = carousel();
@@ -835,6 +847,7 @@
     el.photoField.hidden = off;
     el.slidePhotoStyle.hidden = !isCarousel() || off;
     el.slidePhotoHint.hidden = !off;
+    el.slideDarken.hidden = !isCarousel() || off || activeSlide().photoStyle !== 'achtergrond';
     el.photoCard.hidden = !has;
     el.photoDrop.hidden = has || off;
     el.cropControls.hidden = !has;

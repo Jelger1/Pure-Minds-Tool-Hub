@@ -156,6 +156,10 @@
             <input type="radio" name="slidePhotoStyle" id="sps-bg" value="achtergrond"><label for="sps-bg"><b>als achtergrond</b></label>
           </div>
         </div>
+        <div class="field" id="slideDarken" data-for="carousel">
+          <label class="label" for="sDarken">Donkere laag over de foto <button type="button" class="help" data-help="donkere-laag"></button><output id="sDarkenVal">80%</output></label>
+          <input type="range" id="sDarken" min="30" max="100" step="1" value="80">
+        </div>
 
         <label class="switch" data-for="case">
           <input type="checkbox" data-bind="photoBg" id="photoBgToggle">
