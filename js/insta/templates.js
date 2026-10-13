@@ -459,17 +459,46 @@
   //    Een slide zonder nummer (numbered: false) is een opener of afsluiter:
   //    geen zeshoek, een grotere titel en het blok optisch in het midden. Hij
   //    telt niet mee, dus na een hook is de eerste tip gewoon 01.
+  //    Elke slide kan een eigen foto hebben (slide.photo, beeld in
+  //    env.slidePhotos[index], uitsnede in slide.crop), op twee manieren:
+  //      - zeshoek: rechtsboven, over de rand, met de cyaan echo (zoals de blog);
+  //        de titel staat in de kolom ernaast, de tekst begint onder de zeshoek
+  //      - achtergrond: het hele vlak, onder een effen laag Inkt (zoals de case)
   function tplCarousel(ctx, fr, d, env) {
     const pal = PAL;
-    paintBackground(ctx, fr);
-
     const slides = Array.isArray(d.slides) && d.slides.length ? d.slides : [{ title: '', body: '' }];
     const index = clamp(env.slideIndex != null ? env.slideIndex : d.active || 0, 0, slides.length - 1);
     const slide = slides[index] || {};
     const last = !!slide.last;
 
-    drawLabel(ctx, fr, d.label, pal);
-    labelRegion(ctx, fr, d.label);
+    const mode = slide.photo ? (slide.photoStyle === 'achtergrond' ? 'bg' : 'hex') : null;
+    const img = (env.slidePhotos || [])[index] || null;
+    let photo = null;
+    let colW = fr.contentW;   // breedte van label en titel
+    let hexBottom = 0;        // de tekst begint pas onder de zeshoek (met echo)
+    if (mode === 'bg') {
+      photo = drawPhoto(ctx, img, { x: 0, y: 0, w: fr.w, h: fr.h }, slide.crop);
+      region('photo', 0, 0, fr.w, fr.h);
+      // Zonder foto lichter, zodat "sleep hier je foto" te lezen blijft
+      ctx.fillStyle = rgba(COLORS.ink, img ? 0.8 : 0.4);
+      ctx.fillRect(0, 0, fr.w, fr.h);
+      hexPattern(ctx, fr, { color: '#ffffff', alpha: 0.08, x0: 0, y0: 0, x1: 0, y1: fr.h * 0.8 });
+    } else {
+      paintBackground(ctx, fr);
+    }
+    if (mode === 'hex') {
+      const r = fr.story ? 290 : 250;
+      const cx = fr.w + 34 - (r * SQRT3) / 2;
+      const cy = fr.labelTop - 44 + r;
+      hexEcho(ctx, cx, cy, r);
+      photo = drawPhoto(ctx, img, { x: cx - (r * SQRT3) / 2, y: cy - r, w: r * SQRT3, h: r * 2, hex: { cx, cy, r } }, slide.crop);
+      region('photo', cx - (r * SQRT3) / 2, cy - r, Math.min(r * SQRT3, fr.w - (cx - (r * SQRT3) / 2)), r * 2);
+      colW = cx - r * 0.17 - (r * SQRT3) / 2 - fr.m - 44;
+      hexBottom = cy + r * 1.15;
+    }
+
+    drawLabel(ctx, fr, d.label, pal, colW);
+    labelRegion(ctx, fr, d.label, colW);
 
     const numbered = slide.numbered !== false;
     let top = fr.contentTop;
@@ -491,30 +520,38 @@
     }
     const areaH = fr.contentBottom - top;
     const maxW = fr.contentW - 16;
+    const titleW = mode === 'hex' ? colW : maxW;
     const titleRuns = runsFrom(slide.title, { dot: d.dot });
 
-    // Titel en tekst samen verkleinen tot ze passen, in dezelfde verhouding
-    const baseSize = numbered ? titleSize(72, d) : titleSize(88, d);
+    // Titel en tekst samen verkleinen tot ze passen, in dezelfde verhouding.
+    // Met een zeshoek begint de tekst (over de volle breedte) pas onder de foto
+    // Naast een zeshoek is de kolom smaller: ook een hook begint dan op 72
+    const baseSize = numbered || mode === 'hex' ? titleSize(72, d) : titleSize(88, d);
     let title;
     let body;
     let gap;
+    let bodyOffset;
     for (let k = 1; k >= 0.5; k -= 0.04) {
-      title = layoutText(ctx, titleRuns, maxW, { ...TYPE.title, size: Math.round(baseSize * k) });
+      title = layoutText(ctx, titleRuns, titleW, { ...TYPE.title, size: Math.round(baseSize * k) });
       body = layoutBody(ctx, slide.body, maxW, { ...TYPE.body, size: Math.max(22, Math.round(36 * k)) });
       gap = title.lines.length && body.items.length ? Math.round(36 * k) : 0;
-      if (title.height + gap + body.height <= areaH) break;
-      if (k - 0.04 < 0.5) {
+      bodyOffset = title.height + gap;
+      if (mode === 'hex' && body.items.length) bodyOffset = Math.max(bodyOffset, hexBottom + Math.round(40 * k) - top);
+      const fits = bodyOffset + body.height <= areaH;
+      // In de smalle kolom naast de zeshoek nooit midden in een woord afbreken
+      if (fits && !(mode === 'hex' && title.broken)) break;
+      if (!fits && k - 0.04 < 0.5) {
         flags.overflow = true;
         over.push('body');
       }
     }
 
-    // Zonder nummer: iets boven het midden, daar valt het oog eerst
-    if (!numbered) top += Math.max(0, Math.round((areaH - (title.height + gap + body.height)) * 0.42));
+    // Zonder nummer: iets boven het midden, daar valt het oog eerst (niet naast een zeshoek)
+    if (!numbered && mode !== 'hex') top += Math.max(0, Math.round((areaH - (bodyOffset + body.height)) * 0.42));
     drawText(ctx, title, fr.m, top, { color: pal.text, em: pal.em });
-    drawBody(ctx, body, fr.m, top + title.height + gap, { color: pal.body, em: pal.text });
+    drawBody(ctx, body, fr.m, top + bodyOffset, { color: pal.body, em: pal.text });
     textRegion('title', title, fr.m, top);
-    region('body', fr.m, top + title.height + gap, maxW, body.height);
+    region('body', fr.m, top + bodyOffset, maxW, body.height);
 
     // De laatste slide nodigt niet uit om door te swipen
     if (!last) {
@@ -523,7 +560,7 @@
     }
     // Badge alleen op de laatste slide: daar is linksonder vrij en staat de
     // afsluiter; op elke slide zou het een watermerk worden
-    return { photo: null, slideIndex: index, last, badge: last };
+    return { photo, slideIndex: index, last, badge: last };
   }
 
   const TEMPLATES = {
@@ -541,7 +578,7 @@
   /**
    * Tekent de post op `canvas`.
    *   state: { template, format, dot, badge, data: { [template]: {...} } }
-   *   env:   { photo, clientLogo, logo, badge, crop, slideIndex }
+   *   env:   { photo, clientLogo, logo, badge, crop, slideIndex, slidePhotos }
    *   opts:  { scale } — 1 = 1080 px breed
    */
   function renderPost(canvas, state, env, opts = {}) {

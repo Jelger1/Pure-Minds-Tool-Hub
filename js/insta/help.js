@@ -17,7 +17,7 @@
                  'click' op het doel, of signal '<naam>' dat de tool zelf
                  geeft: 'nadruk', 'foto' en 'download'.
                hint staat bij de stap zolang hij wacht. Is het doel in dit
-               template niet zichtbaar (geen foto in een carousel, geen cyaan
+               template niet zichtbaar (een slide zonder foto, geen cyaan
                in een case), dan slaat de rondleiding de stap over.
      keys      het venster met sneltoetsen: [toets, wat hij doet]. Ctrl is op
                een Mac de Cmd-toets.
@@ -90,6 +90,14 @@
     'slides': {
       title: 'Slides',
       text: 'Een carousel heeft hoogstens 20 slides; eerder en later veranderen de volgorde. De laatste slide krijgt vanzelf geen swipe-aanwijzing. Staat de Emerce 100-badge aan, dan staat hij alleen op die laatste slide.',
+    },
+    'foto-op-slide': {
+      title: 'Foto op deze slide',
+      text: 'Elke slide kan een eigen foto hebben. Zet hem aan op de slides waar een beeld helpt, bijvoorbeeld de hook vooraan. Kiezen, verschuiven en inzoomen doe je bij Foto.',
+    },
+    'foto-op-slide-stijl': {
+      title: 'Foto staat',
+      text: 'In zeshoek: rechtsboven, met de titel ernaast en de tekst eronder. Als achtergrond: de foto vult de slide, donker gemaakt zodat de witte tekst goed leesbaar blijft.',
     },
     'slidenummer': {
       title: 'Nummer in zeshoek',

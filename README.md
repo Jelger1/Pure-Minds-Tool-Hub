@@ -438,7 +438,11 @@ gebruikt de [editor-bouwstenen](#editor-bouwstenen).
 - **Rail:** *Template* (template en formaat, en *alles wissen*), *Foto*,
   *Tekst* (belangrijkste veld eerst, het label als laatste) en *Details*.
   Bestaat een onderdeel niet bij het template, dan staat het uit met de reden:
-  een carousel heeft geen foto, standaard foto heeft geen details.
+  standaard foto heeft geen details.
+- **Foto per carousel-slide:** elke slide kan een eigen foto hebben (schakelaar
+  *Foto op deze slide* bij Tekst en bij Foto), in een zeshoek rechtsboven met de
+  titel ernaast, of als achtergrond onder een effen laag Inkt. Uitsnede en zoom
+  horen bij de slide; de foto's gaan mee in de zip en de PDF.
 - **Klik in de preview:** een cyaan kader toont wat je aanwijst (kop, label,
   foto, klantlogo, resultaat, magenta blok …); klikken opent het paneel en
   zet je in het veld. Slepen verschuift de foto, zoals voorheen.

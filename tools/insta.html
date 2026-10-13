@@ -139,16 +139,31 @@
       </div>
     </section>
 
-    <!-- Foto: bij de case eerst de keuze of hij als achtergrond meedoet -->
+    <!-- Foto: bij de case eerst de keuze of hij als achtergrond meedoet; bij de carousel
+         per slide: aan of uit, en in een zeshoek of als achtergrond -->
     <section class="panel" data-section="foto">
       <div class="panel__body">
+        <label class="switch" data-for="carousel">
+          <input type="checkbox" data-slide-photo>
+          <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+          <span class="switch__txt">Foto op <span data-slide-no>slide 1</span> <button type="button" class="help" data-help="foto-op-slide"></button></span>
+        </label>
+        <p class="field-hint" id="slidePhotoHint" data-for="carousel">Elke slide heeft een eigen foto. Zet hem aan om er een toe te voegen; een andere slide kies je onder de preview.</p>
+        <div class="field" id="slidePhotoStyle" data-for="carousel">
+          <span class="label" id="slideStyleLabel">Foto staat <button type="button" class="help" data-help="foto-op-slide-stijl"></button></span>
+          <div class="seg seg--2" role="radiogroup" aria-labelledby="slideStyleLabel">
+            <input type="radio" name="slidePhotoStyle" id="sps-hex" value="zeshoek"><label for="sps-hex"><b>in zeshoek</b></label>
+            <input type="radio" name="slidePhotoStyle" id="sps-bg" value="achtergrond"><label for="sps-bg"><b>als achtergrond</b></label>
+          </div>
+        </div>
+
         <label class="switch" data-for="case">
           <input type="checkbox" data-bind="photoBg" id="photoBgToggle">
           <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
           <span class="switch__txt">Foto als donkere achtergrond gebruiken <button type="button" class="help" data-help="foto-als-achtergrond"></button></span>
         </label>
 
-        <div class="field">
+        <div class="field" id="photoField">
           <span class="label" id="photoLabel">Foto <i data-for="case">optioneel</i> <button type="button" class="help" data-help="foto-toevoegen"></button></span>
           <div class="drop" id="photoDrop" tabindex="0" role="button" aria-labelledby="photoLabel photoDropTitle" data-tour="foto">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/></svg>
@@ -275,6 +290,11 @@
             <input type="checkbox" id="sNumbered">
             <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
             <span class="switch__txt">Nummer in zeshoek <button type="button" class="help" data-help="slidenummer"></button></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" data-slide-photo>
+            <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+            <span class="switch__txt">Foto op deze slide <button type="button" class="help" data-help="foto-op-slide"></button></span>
           </label>
           <div class="slides__actions">
             <button type="button" class="btn btn-quiet btn-xs" id="slideLeft" aria-label="Slide naar voren">&larr; eerder</button>

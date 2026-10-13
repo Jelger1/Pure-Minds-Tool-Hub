@@ -15,7 +15,7 @@
 
    Ongedaan maken: PM.history over de hele post. Foto en klantlogo staan
    per stuk in IndexedDB onder een eigen sleutel (state.photoKey,
-   state.logoKey); een oude foto blijft bewaard zolang hij in de
+   state.logoKey, en per carousel-slide slide.photoKey); een oude foto blijft bewaard zolang hij in de
    geschiedenis kan terugkomen en wordt pas bij de volgende keer laden
    opgeruimd. Zo zet ongedaan maken ook een vervangen foto terug.
    ============================================================================= */
@@ -111,12 +111,31 @@
     return base;
   }
 
+  const CROP = { zoom: 1, fx: 0.5, fy: 0.5 };
+  const num = (v, min, max, fallback) => (Number.isFinite(Number(v)) ? Math.min(max, Math.max(min, Number(v))) : fallback);
+  const cropOf = (c) => (isObj(c) ? { zoom: num(c.zoom, 1, 3, 1), fx: num(c.fx, 0, 1, 0.5), fy: num(c.fy, 0, 1, 0.5) } : { ...CROP });
+
+  // Eén slide met alle velden; de foto (aan of uit, zeshoek of achtergrond) hoort bij de slide
+  function slideOf(s = {}) {
+    return {
+      title: String(s.title || ''),
+      body: String(s.body || ''),
+      numbered: s.numbered !== false,
+      last: false,
+      photo: !!s.photo,
+      photoStyle: s.photoStyle === 'achtergrond' ? 'achtergrond' : 'zeshoek',
+      photoKey: typeof s.photoKey === 'string' ? s.photoKey : '',
+      crop: cropOf(s.crop),
+    };
+  }
+
   // Een toestand gezond maken (na laden of ongedaan maken)
   function normalize(state) {
     const c = state.data.carousel;
     // numbered ontbrak vóór de slides zonder nummer: een oud concept houdt al zijn nummers
-    c.slides = c.slides.filter(isObj).map((s) => ({ title: String(s.title || ''), body: String(s.body || ''), numbered: s.numbered !== false, last: false }));
+    c.slides = c.slides.filter(isObj);
     if (!c.slides.length) c.slides = defaults().data.carousel.slides;
+    c.slides = c.slides.map(slideOf);
     c.active = Math.min(Math.max(0, c.active | 0), c.slides.length - 1);
     c.slides.forEach((s, i) => { s.last = i === c.slides.length - 1; });
     for (const id of ['overlay', 'blog', 'case', 'carousel']) {
@@ -166,6 +185,11 @@
   const current = () => state.data[state.template];
   const carousel = () => state.data.carousel;
   const isCarousel = () => state.template === 'carousel';
+  const activeSlide = () => carousel().slides[carousel().active];
+  // De foto waar de knoppen nu over gaan: van de post, of van de slide die openstaat
+  const slidePhotoOn = () => isCarousel() && !!activeSlide().photo;
+  const photoKey = () => (isCarousel() ? activeSlide().photoKey : state.photoKey);
+  const crop = () => (isCarousel() ? activeSlide().crop : state.crop);
 
   // De laatste slide krijgt geen swipe-aanwijzing; dat volgt uit de volgorde,
   // dus het kan niet meer vergeten of verkeerd staan
@@ -176,7 +200,7 @@
 
   // Templates waarin de foto het beeld draagt; bij de case alleen als achtergrond
   const needsPhoto = () => ['photo', 'overlay', 'blog'].includes(state.template)
-    || (state.template === 'case' && !!state.data.case.photoBg);
+    || (state.template === 'case' && !!state.data.case.photoBg) || slidePhotoOn();
 
   function getPath(obj, path) {
     return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
@@ -219,6 +243,9 @@
     photoDrop: $('#photoDrop'),
     photoInput: $('#photoInput'),
     photoCard: $('#photoCard'),
+    photoField: $('#photoField'),
+    slidePhotoStyle: $('#slidePhotoStyle'),
+    slidePhotoHint: $('#slidePhotoHint'),
     photoThumb: $('#photoThumb'),
     photoName: $('#photoName'),
     photoSize: $('#photoSize'),
@@ -282,7 +309,16 @@
   let frameRequest = 0;
   let thumbTimer = 0;
 
-  const renderEnv = (extra = {}) => ({ ...env, crop: state.crop, ...extra });
+  // Elke slide zijn eigen foto (of null); de uitsnede staat in de slide zelf
+  const fileImg = (key) => (key && files.has(key) ? files.get(key).img : null);
+  const renderEnv = (extra = {}) => ({
+    ...env,
+    crop: state.crop,
+    slidePhotos: carousel().slides.map((s) => (s.photo ? fileImg(s.photoKey) : null)),
+    ...extra,
+  });
+  // Het beeld waar de foto-knoppen nu over gaan
+  const activePhoto = () => (isCarousel() ? (slidePhotoOn() ? fileImg(activeSlide().photoKey) : null) : env.photo);
 
   function render() {
     cancelAnimationFrame(frameRequest);
@@ -378,7 +414,7 @@
       case 'slide': return { label: 'slides', section: 'tekst', field: '#slideNav [aria-selected="true"]' };
       case 'decor': return { label: 'zeshoek', section: 'details', field: '#decorToggle' };
       case 'background': return { label: 'foto als achtergrond', section: 'foto', field: '#photoBgToggle' };
-      case 'photo': return { label: env.photo ? 'foto · sleep om te verschuiven' : 'foto toevoegen', section: 'foto', photo: true };
+      case 'photo': return { label: activePhoto() ? 'foto · sleep om te verschuiven' : 'foto toevoegen', section: 'foto', photo: true };
       default: return null;
     }
   }
@@ -393,7 +429,7 @@
 
   function pickRegion(r) {
     if (r.photo) {
-      if (!env.photo) {
+      if (!activePhoto()) {
         pickPhoto();
         return;
       }
@@ -444,9 +480,9 @@
   // Is de foto groot genoeg voor deze export? Vak en uitsnede komen uit de template
   function syncPhotoCheck() {
     const photoRegion = (lastInfo.regions || []).find((r) => r.key === 'photo');
-    const img = env.photo;
+    const img = activePhoto();
     const res = img && lastInfo.photo && photoRegion
-      ? PM.brand.photoCheck(img.naturalWidth, img.naturalHeight, photoRegion.rect.w, photoRegion.rect.h, (Number(state.exportWidth) || 1080) / 1080, { zoom: state.crop.zoom })
+      ? PM.brand.photoCheck(img.naturalWidth, img.naturalHeight, photoRegion.rect.w, photoRegion.rect.h, (Number(state.exportWidth) || 1080) / 1080, { zoom: crop().zoom })
       : { level: 'ok', message: '' };
     const warn = res.level !== 'ok';
     for (const node of [el.photoNote, el.photoStageNote]) {
@@ -475,7 +511,7 @@
 
   // Lege fotoplek: de preview zelf is de uploadknop, zoals een placeholder in Canva
   function syncPhotoPrompt() {
-    const empty = needsPhoto() && !env.photo;
+    const empty = needsPhoto() && !activePhoto();
     el.previewPhotoBtn.hidden = !empty;
     el.canvas.classList.toggle('needs-photo', empty);
     el.canvas.tabIndex = empty || lastInfo.photo ? 0 : -1;
@@ -497,8 +533,7 @@
     }
     el.app.dataset.template = state.template;
     // Een onderdeel dat bij dit template niet bestaat: uit, met de reden erbij
-    if (isCarousel()) shell.disable('foto', 'Een carousel heeft geen foto. Kies een ander template voor een post met foto.');
-    else shell.enable('foto');
+    shell.enable('foto');
     if (state.template === 'photo') shell.disable('details', 'Standaard foto heeft geen details: foto en label zijn alles wat erop staat.');
     else shell.enable('details');
     // De rondleiding wijst de kop van dit template aan
@@ -521,19 +556,19 @@
     $$('input[name="dest"]').forEach((r) => { r.checked = Number(r.value) === Number(state.exportWidth); });
     el.dot.checked = state.dot !== false;
     el.badge.checked = !!state.badge;
-    syncCrop();
     syncSlides();
+    syncCrop();
     syncLabelChips();
     toolbar.refresh();
   }
 
   function syncCrop() {
-    $('#cropZoom').value = String(Math.round(state.crop.zoom * 100));
+    $('#cropZoom').value = String(Math.round(crop().zoom * 100));
     syncOutputs();
   }
 
   function syncOutputs() {
-    $('#cropZoomVal').textContent = `${Math.round(state.crop.zoom * 100)}%`;
+    $('#cropZoomVal').textContent = `${Math.round(crop().zoom * 100)}%`;
     $('#oStrengthVal').textContent = `${state.data.overlay.strength}%`;
   }
 
@@ -562,7 +597,7 @@
       if (input === el.label) syncLabelChips();
       changed(`${state.template}.${input.dataset.bind}`);
     } else if (input.dataset.crop) {
-      state.crop[input.dataset.crop] = Number(input.value) / 100;
+      crop()[input.dataset.crop] = Number(input.value) / 100;
       syncOutputs();
       changed('zoom');
     }
@@ -639,6 +674,11 @@
     el.sTitle.value = slide.title;
     el.sBody.value = slide.body;
     el.sNumbered.checked = slide.numbered !== false;
+    $$('[data-slide-photo]').forEach((b) => { b.checked = !!slide.photo; });
+    $$('input[name="slidePhotoStyle"]').forEach((r) => { r.checked = r.value === slide.photoStyle; });
+    $$('[data-slide-no]').forEach((n) => { n.textContent = `slide ${c.active + 1}`; });
+    syncPhotoUI();
+    syncCrop();
     $('#slideLeft').disabled = c.active === 0;
     $('#slideRight').disabled = c.active === c.slides.length - 1;
     $('#slideDel').disabled = c.slides.length === 1;
@@ -660,7 +700,7 @@
 
   function addSlide() {
     const c = carousel();
-    c.slides.splice(c.active + 1, 0, { title: '', body: '', numbered: true, last: false });
+    c.slides.splice(c.active + 1, 0, slideOf());
     c.active += 1;
     slidesChanged();
     el.sTitle.focus();
@@ -683,6 +723,24 @@
     changed(null);
   });
 
+  // Foto op deze slide: dezelfde schakelaar bij Tekst en bij Foto
+  $$('[data-slide-photo]').forEach((box) => box.addEventListener('change', (e) => {
+    e.stopPropagation();
+    const slide = activeSlide();
+    slide.photo = box.checked;
+    syncSlides();
+    changed(null);
+    if (slide.photo && !fileImg(slide.photoKey) && box.closest('[data-section="tekst"]')) {
+      toast(`Foto staat aan op slide ${carousel().active + 1}.`, false, { label: 'foto kiezen', run: pickPhoto });
+    }
+  }));
+  $$('input[name="slidePhotoStyle"]').forEach((r) => r.addEventListener('change', (e) => {
+    e.stopPropagation();
+    if (!r.checked) return;
+    activeSlide().photoStyle = r.value;
+    changed(null);
+  }));
+
   function moveSlide(delta) {
     const c = carousel();
     const to = c.active + delta;
@@ -697,7 +755,7 @@
   $('#slideDup').addEventListener('click', () => {
     const c = carousel();
     if (c.slides.length >= 20) return;
-    c.slides.splice(c.active + 1, 0, { ...c.slides[c.active] });
+    c.slides.splice(c.active + 1, 0, slideOf(c.slides[c.active]));
     c.active += 1;
     slidesChanged();
   });
@@ -723,7 +781,7 @@
 
   // Bij het laden: alleen bewaren wat de post nu gebruikt (de geschiedenis is dan leeg)
   function cleanupFiles() {
-    const keep = [state.photoKey, state.logoKey].filter(Boolean);
+    const keep = [state.photoKey, state.logoKey, ...carousel().slides.map((s) => s.photoKey)].filter(Boolean);
     const list = PM.store.get(FILES_KEY, []);
     list.filter((k) => !keep.includes(k)).forEach((k) => PM.idb.del(k));
     PM.store.set(FILES_KEY, keep);
@@ -746,20 +804,32 @@
 
   // Foto en logo uit de toestand zichtbaar maken (na laden, wisselen of ongedaan maken)
   async function applyFiles() {
-    const [photo, logo] = await Promise.all([loadFile(state.photoKey), loadFile(state.logoKey)]);
+    const [photo, logo] = await Promise.all([
+      loadFile(state.photoKey),
+      loadFile(state.logoKey),
+      ...carousel().slides.map((s) => loadFile(s.photoKey)),
+    ]);
     env.photo = photo ? photo.img : null;
     env.clientLogo = logo ? logo.img : null;
     // Een logo met doorzichtige achtergrond gaat in de PDF als PNG, niet als JPEG
     if (logo && /png|webp|gif/i.test(logo.file.type || '')) logo.img.dataset.pdfType = 'PNG';
-    syncPhotoUI(photo);
+    syncPhotoUI();
     syncLogoUI(logo);
     render();
   }
 
-  function syncPhotoUI(entry) {
-    const has = !!entry;
+  // Het fotopaneel: de foto van de post, of in een carousel die van de slide die openstaat.
+  // Staat de foto op die slide uit, dan alleen de schakelaar
+  function syncPhotoUI() {
+    const key = photoKey();
+    const entry = key && files.has(key) ? files.get(key) : null;
+    const off = isCarousel() && !activeSlide().photo;
+    const has = !!entry && !off;
+    el.photoField.hidden = off;
+    el.slidePhotoStyle.hidden = !isCarousel() || off;
+    el.slidePhotoHint.hidden = !off;
     el.photoCard.hidden = !has;
-    el.photoDrop.hidden = has;
+    el.photoDrop.hidden = has || off;
     el.cropControls.hidden = !has;
     el.cropHint.hidden = !has;
     if (!has) {
@@ -795,15 +865,23 @@
   async function setPhoto(file) {
     const key = await addFile(file, 'photo');
     if (!key) return;
-    state.photoKey = key;
-    state.crop = { zoom: 1, fx: 0.5, fy: 0.5 };
+    if (isCarousel()) {
+      // In een carousel hoort de foto bij de slide die openstaat; kiezen zet hem daar aan
+      const slide = activeSlide();
+      slide.photoKey = key;
+      slide.photo = true;
+      slide.crop = { ...CROP };
+      syncSlides();
+    } else {
+      state.photoKey = key;
+      state.crop = { ...CROP };
+    }
     // Pure case: een foto is er om als achtergrond te gebruiken
     if (state.template === 'case' && !state.data.case.photoBg) {
       state.data.case.photoBg = true;
       $('#photoBgToggle').checked = true;
       toast('Foto staat als donkere achtergrond achter de case.');
     }
-    if (isCarousel()) toast('Foto bewaard. De carousel gebruikt geen foto; kies een ander template om hem te zien.');
     syncCrop();
     await applyFiles();
     changed('foto');
@@ -811,7 +889,8 @@
   }
 
   function clearPhoto() {
-    state.photoKey = '';
+    if (isCarousel()) activeSlide().photoKey = '';
+    else state.photoKey = '';
     applyFiles();
     changed('foto');
     toast('Foto verwijderd.', false, { label: 'ongedaan maken', run: () => history.undo() });
@@ -834,7 +913,7 @@
   });
 
   $('#cropReset').addEventListener('click', () => {
-    state.crop = { zoom: 1, fx: 0.5, fy: 0.5 };
+    Object.assign(crop(), CROP);
     syncCrop();
     changed(null);
   });
@@ -877,7 +956,7 @@
   let pan = null;
   el.canvas.addEventListener('pointerdown', (e) => {
     if (!lastInfo.photo) return;
-    pan = { x: e.clientX, y: e.clientY, fx: state.crop.fx, fy: state.crop.fy, moved: false };
+    pan = { x: e.clientX, y: e.clientY, fx: crop().fx, fy: crop().fy, moved: false };
     el.canvas.setPointerCapture(e.pointerId);
     el.canvas.classList.add('is-panning');
   });
@@ -885,9 +964,10 @@
     if (!pan || !lastInfo.photo) return;
     const k = el.canvas.width / el.canvas.getBoundingClientRect().width;
     const { overflowX, overflowY } = lastInfo.photo;
-    if (overflowX > 0.5) state.crop.fx = Math.min(1, Math.max(0, pan.fx - ((e.clientX - pan.x) * k) / overflowX));
-    if (overflowY > 0.5) state.crop.fy = Math.min(1, Math.max(0, pan.fy - ((e.clientY - pan.y) * k) / overflowY));
-    pan.moved = pan.moved || state.crop.fx !== pan.fx || state.crop.fy !== pan.fy;
+    const c = crop();
+    if (overflowX > 0.5) c.fx = Math.min(1, Math.max(0, pan.fx - ((e.clientX - pan.x) * k) / overflowX));
+    if (overflowY > 0.5) c.fy = Math.min(1, Math.max(0, pan.fy - ((e.clientY - pan.y) * k) / overflowY));
+    pan.moved = pan.moved || c.fx !== pan.fx || c.fy !== pan.fy;
     render();
   });
   const endPan = () => {
@@ -905,7 +985,7 @@
 
   // Met het toetsenbord: Enter kiest een foto, pijltjes verschuiven hem
   el.canvas.addEventListener('keydown', (e) => {
-    if ((e.key === 'Enter' || e.key === ' ') && needsPhoto() && !env.photo) {
+    if ((e.key === 'Enter' || e.key === ' ') && needsPhoto() && !activePhoto()) {
       e.preventDefault();
       pickPhoto();
       return;
@@ -914,8 +994,9 @@
     if (!dir || !lastInfo.photo) return;
     e.preventDefault();
     const step = e.shiftKey ? 0.1 : 0.02;
-    state.crop.fx = Math.min(1, Math.max(0, state.crop.fx + dir[0] * step));
-    state.crop.fy = Math.min(1, Math.max(0, state.crop.fy + dir[1] * step));
+    const c = crop();
+    c.fx = Math.min(1, Math.max(0, c.fx + dir[0] * step));
+    c.fy = Math.min(1, Math.max(0, c.fy + dir[1] * step));
     changed('verschuiven');
   });
 
@@ -993,7 +1074,9 @@
   const downloaded = () => { if (window.PM.tour) PM.tour.signal('download'); };
 
   // Het lege fotovak ("sleep hier je foto") gaat mee in een download, net als in de preview
-  const emptyPhotoSlot = () => !env.photo && (lastInfo.regions || []).some((r) => r.key === 'photo');
+  const emptyPhotoSlot = () => (isCarousel()
+    ? carousel().slides.some((s) => s.photo && !fileImg(s.photoKey))
+    : !env.photo && (lastInfo.regions || []).some((r) => r.key === 'photo'));
 
   function downloadSingle(button, index) {
     return run(button, 'bezig…', async () => {
@@ -1142,5 +1225,6 @@
   // Foto en klantlogo uit een vorige sessie terugzetten, dan oude bestanden opruimen
   if (state.photoKey) trackFile(state.photoKey);
   if (state.logoKey) trackFile(state.logoKey);
+  carousel().slides.forEach((s) => { if (s.photoKey) trackFile(s.photoKey); });
   applyFiles().then(cleanupFiles);
 })();
