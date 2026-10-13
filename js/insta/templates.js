@@ -240,33 +240,43 @@
 
     const photo = drawPhoto(ctx, env.photo, { x: 0, y: 0, w: fr.w, h: fr.h }, env.crop);
     region('photo', 0, 0, fr.w, fr.h);
-    if (env.photo) {
-      // Rustige verlopen onder het label en het logo, zodat die leesbaar blijven
-      const bottom = ctx.createLinearGradient(0, fr.logo.y - 220, 0, fr.h);
-      bottom.addColorStop(0, rgba(COLORS.navy, 0));
-      bottom.addColorStop(1, rgba(COLORS.navy, 0.62));
-      ctx.fillStyle = bottom;
-      ctx.fillRect(0, fr.logo.y - 220, fr.w, fr.h);
-      if (String(d.label || '').trim()) {
-        const topGrad = ctx.createLinearGradient(0, 0, 0, fr.labelTop + 190);
-        topGrad.addColorStop(0, rgba(COLORS.navy, 0.55));
-        topGrad.addColorStop(1, rgba(COLORS.navy, 0));
-        ctx.fillStyle = topGrad;
-        ctx.fillRect(0, 0, fr.w, fr.labelTop + 190);
-      }
-    }
+    if (env.photo) softEdges(ctx, fr, d.label);
     drawLabel(ctx, fr, d.label, PAL);
     labelRegion(ctx, fr, d.label);
     return { photo };
   }
 
-  // 2. Foto met tekst-overlay: aankondiging in wit op een merkverloop
+  // Rustige verlopen onder het label en het logo, zodat die leesbaar blijven
+  // (een foto zonder tekst: Standaard foto, of Foto met tekst met lege velden)
+  function softEdges(ctx, fr, label) {
+    const bottom = ctx.createLinearGradient(0, fr.logo.y - 220, 0, fr.h);
+    bottom.addColorStop(0, rgba(COLORS.navy, 0));
+    bottom.addColorStop(1, rgba(COLORS.navy, 0.62));
+    ctx.fillStyle = bottom;
+    ctx.fillRect(0, fr.logo.y - 220, fr.w, fr.h);
+    if (String(label || '').trim()) {
+      const topGrad = ctx.createLinearGradient(0, 0, 0, fr.labelTop + 190);
+      topGrad.addColorStop(0, rgba(COLORS.navy, 0.55));
+      topGrad.addColorStop(1, rgba(COLORS.navy, 0));
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0, 0, fr.w, fr.labelTop + 190);
+    }
+  }
+
+  // Staat er tekst op de post? Alleen dan het donkere verloop van Foto met tekst
+  const hasText = (...values) => values.some((v) => String(v || '').replace(/\*\*/g, '').trim());
+
+  // 2. Foto met tekst-overlay: aankondiging in wit op een merkverloop (standaard
+  //    100%). Zonder kop en toelichting geen verloop: alleen de zachte randen
+  //    onder label en logo, zoals bij Standaard foto
   function tplOverlay(ctx, fr, d, env) {
     const photo = drawPhoto(ctx, env.photo, { x: 0, y: 0, w: fr.w, h: fr.h }, env.crop);
     region('photo', 0, 0, fr.w, fr.h);
-    const k = clamp((d.strength != null ? Number(d.strength) : 80) / 100, 0, 1);
+    const k = clamp((d.strength != null ? Number(d.strength) : 100) / 100, 0, 1);
     const middle = d.position === 'middle';
+    const text = hasText(d.title, d.subtitle);
 
+    if (!text && env.photo) softEdges(ctx, fr, d.label);
     const g = ctx.createLinearGradient(0, 0, 0, fr.h);
     if (middle) {
       g.addColorStop(0, rgba(COLORS.navy, 0.55 * k));
@@ -279,9 +289,11 @@
       g.addColorStop(0.75, rgba(COLORS.navy, 0.82 * k));
       g.addColorStop(1, rgba(COLORS.navy, 0.94 * k));
     }
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, fr.w, fr.h);
-    hexPattern(ctx, fr, { color: '#ffffff', alpha: 0.1, x0: 0, y0: fr.h, x1: 0, y1: fr.h * 0.4 });
+    if (text) {
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, fr.w, fr.h);
+      hexPattern(ctx, fr, { color: '#ffffff', alpha: 0.1, x0: 0, y0: fr.h, x1: 0, y1: fr.h * 0.4 });
+    }
 
     if (d.decor !== false) {
       hexPath(ctx, fr.w - 64, fr.labelTop + 96, 232);
@@ -602,5 +614,5 @@
     return { ...info, overflow: flags.overflow, overflowKeys: over.slice(), regions: regions.slice(), width: fr.w, height: fr.h, frame: fr };
   }
 
-  global.PMTemplates = { renderPost, frame, FORMATS, TEMPLATE_META, COLORS, GRID };
+  global.PMTemplates = { renderPost, frame, hasText, FORMATS, TEMPLATE_META, COLORS, GRID };
 })(window);

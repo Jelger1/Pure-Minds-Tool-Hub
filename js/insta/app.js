@@ -39,6 +39,7 @@
 
   function defaults() {
     return {
+      v: 2,           // 2: het donkere verloop staat standaard op 100%
       template: 'overlay',
       format: 'portrait',
       dot: true,
@@ -54,7 +55,7 @@
           label: '',
           title: 'Onze nieuwe **Google Ads-audit** is live',
           subtitle: 'In twee weken weet je precies waar je advertentiebudget weglekt.',
-          strength: 80,
+          strength: 100,
           position: 'bottom',
           decor: true,
           titleSize: 'normaal',
@@ -168,6 +169,8 @@
     if (state.data.blog.label === 'nieuwe blog') state.data.blog.label = 'pure blog';
     if (state.data.case.label === 'case') state.data.case.label = 'pure case';
     if (state.data.overlay.label === 'aankondiging') state.data.overlay.label = '';
+    // Het verloop stond standaard op 80%; een concept dat dat nog had, gaat naar de nieuwe standaard
+    if (saved && !(saved.v >= 2) && state.data.overlay.strength === 80) state.data.overlay.strength = 100;
     return normalize(state);
   }
 
@@ -570,6 +573,10 @@
   function syncOutputs() {
     $('#cropZoomVal').textContent = `${Math.round(crop().zoom * 100)}%`;
     $('#oStrengthVal').textContent = `${state.data.overlay.strength}%`;
+    // Zonder kop en toelichting heeft de foto geen verloop: de schuif doet dan niets
+    const noText = !T.hasText(state.data.overlay.title, state.data.overlay.subtitle);
+    $('#oStrength').disabled = noText;
+    $('#oStrengthNone').hidden = !noText;
   }
 
   // Snelkeuze voor het label: de labels die Pure Minds gebruikt

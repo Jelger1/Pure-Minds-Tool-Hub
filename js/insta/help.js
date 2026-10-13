@@ -115,7 +115,7 @@
     // Details
     'verloop': {
       title: 'Donker verloop',
-      text: 'Hoe donker de foto wordt achter de tekst, van 30 tot 100%. Hoger maakt de tekst beter leesbaar, lager laat meer van de foto zien. Bij een lichte of drukke foto houd je hem hoog.',
+      text: 'Hoe donker de foto wordt achter de tekst: standaard 100%, zodat de tekst altijd goed leesbaar is. Lager laat meer van de foto zien. Zonder kop en toelichting krijgt de foto geen verloop.',
     },
     'cyaan-punt': {
       title: 'Cyaan punt',
