@@ -23,7 +23,8 @@ svg.ri, .btn svg.ri { fill: currentColor; stroke: none; }
 body.has-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 body.has-app > .topstrip, body.has-app > .site-header { flex: none; }
 .has-app .site-header .container { max-width: none; padding: 0 1.25rem; }
-.has-app .site-header__inner { height: 6rem; }
+.has-app .site-header__inner { height: 4rem; }
+.has-app .site-header__logo { height: 2.625rem; }
 .has-app .toast { z-index: 95; }
 
 .app {
@@ -495,6 +496,8 @@ canvas.has-region { cursor: pointer; }
   .panels { max-height: 52vh; max-height: 52dvh; }
   /* Smal: van de Emerce 100-schakelaar alleen het merkje; de naam blijft voor schermlezers */
   .stage__head .badge-toggle__txt { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .has-app .site-header__inner { height: 3.5rem; }
+  .has-app .site-header__logo { height: 2.25rem; }
   .appbar__name, .appbar__doc, .appbar__sep--name { display: none; }
   .appbar__txt { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
   .split > .btn-primary { padding: .5rem .7rem; }
