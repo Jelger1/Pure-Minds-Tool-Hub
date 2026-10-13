@@ -925,7 +925,10 @@
     const lw = 620;
     layer(ctx, 'Tekst', () => {
       line(ctx, 'Aa', MX - 8, top + 190, { size: 250, weight: 800, color: INK, track: -0.02 });
-      line(ctx, T.font.family, MX, top + 262, { size: 36, weight: 700, color: INK });
+      // Naast de naam, klein: het alternatief waar Pure Minds Sans niet te kiezen is
+      const fw = line(ctx, T.font.family, MX, top + 262, { size: 36, weight: 700, color: INK });
+      const aw = line(ctx, `${C.type.alternative} `, MX + fw + 20, top + 262, { size: 18, color: MUTED });
+      line(ctx, T.font.fallback, MX + fw + 20 + aw, top + 262, { size: 18, weight: 700, color: INK });
       text(ctx, C.type.intro, MX, top + 292, lw, { size: 20, lh: 1.5, color: MUTED });
       line(ctx, C.type.alphabet, MX, top + 404, { size: 22, weight: 400, color: INK, track: 0.08 });
       line(ctx, C.type.lower, MX, top + 436, { size: 22, weight: 400, color: INK, track: 0.08 });

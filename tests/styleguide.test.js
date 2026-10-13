@@ -609,6 +609,8 @@ test('de PDF: de teksten uit content.js staan er als echte tekst in', async () =
   ];
   const missing = want.map(norm).filter((s) => !all.includes(s));
   assert.deepEqual(missing, []);
+  // Het alternatief staat klein naast de naam van het lettertype
+  assert.ok(all.includes(norm(`${C.type.alternative} ${T.font.fallback}`)), 'alternatief: Open Sans');
   // De maat van Heading 1 staat op de pagina als dezelfde tekst als in de uitleg
   assert.ok(all.includes(M.typeSpec(T.type[0]).text), 'de maat uit model.js typeSpec');
 });

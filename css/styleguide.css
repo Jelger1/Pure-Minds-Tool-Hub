@@ -183,6 +183,19 @@
 /* Type: lettertype en typeschaal */
 .sg-code { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; padding: .625rem .75rem; background: var(--pm-zebra); border-left: 3px solid var(--pm-cyan); }
 .sg-code code { font-family: ui-monospace, Consolas, monospace; font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
+/* Welk lettertype waar: Pure Minds Sans (cyaan balk) en het alternatief Open Sans (grijze balk) */
+.sg-fonts { display: grid; gap: .625rem; }
+.sg-font { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; padding: .75rem .875rem; background: #fff; border: 1px solid var(--pm-line); border-left: 3px solid var(--pm-cyan); }
+.sg-font--alt { border-left-color: var(--pm-muted); }
+.sg-font__tag { padding: .1rem .4rem; background: var(--pm-cyan); color: var(--pm-ink); font-size: .6875rem; font-weight: 700; line-height: 1.4; text-transform: uppercase; letter-spacing: .04em; }
+.sg-font--alt .sg-font__tag { background: var(--pm-line); }
+.sg-font__name { font-size: 1.125rem; font-weight: 800; line-height: 1.2; color: var(--pm-ink); }
+.sg-font__use, .sg-font__files { margin: 0; font-size: .8125rem; line-height: 1.5; text-wrap: pretty; }
+.sg-font__files { font-size: .75rem; color: var(--pm-muted); }
+.sg-font__how { margin: 0 0 .25rem; padding-left: 1.1rem; font-size: .8125rem; line-height: 1.5; }
+.sg-font__how li + li { margin-top: .2rem; }
+.sg-font__how b { font-weight: 700; }
+.sg-font__how i { font-style: normal; font-weight: 700; }
 .sg-scale { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
 .sg-scale__row {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem .75rem; align-items: center;
@@ -321,7 +334,7 @@
 @media (pointer: coarse) {
   .sg-val { min-height: 2.75rem; align-items: center; }
   .sg-pagelist a { min-height: 2.75rem; align-items: center; }
-  .sg-text .btn, .sg-scale__row .btn, .sg-row .btn, .sg-code .btn { min-height: 2.75rem; }
+  .sg-text .btn, .sg-scale__row .btn, .sg-row .btn, .sg-code .btn, .sg-font .btn { min-height: 2.75rem; }
   .sg-check { min-height: 2.75rem; align-items: center; }
   .sg-thumb { min-height: 2.75rem; }
   .sg-search__input { height: 2.75rem; }

@@ -148,6 +148,7 @@
 
     type: {
       intro: 'Eén lettertype voor alles: Pure Minds Sans, in print, online en in presentaties.',
+      alternative: 'alternatief:',   // naast de naam, met "Open Sans" (T.font.fallback) erachter
       usage: {
         h1: 'Grote titels, één per pagina',
         h2: 'Subtitels en secties',
@@ -159,7 +160,7 @@
       notes: [
         'Gewichten in gebruik: Regular 400, Bold 700 en ExtraBold 800 (plus cursief).',
         'Nadruk in een kop: één of twee woorden in Pure Cyaan (op donker) of een cyaan punt achter de kop. Nooit onderstrepen.',
-        'Fallback: Open Sans (zelfde vormen) als Pure Minds Sans ergens niet geïnstalleerd is, bijvoorbeeld in Google Slides.',
+        'Alternatief: Open Sans (zelfde vormen), alleen waar je Pure Minds Sans niet kunt kiezen, zoals in Google Docs en Google Slides.',
       ],
       // Uitleg bij een maat als "ExtraBold 800 · 52/58 · −2%", voor wie in Canva werkt (pagina en
       // paneel). Het voorbeeld zelf rekent model.js uit (typeSpec), zodat het nooit afwijkt
@@ -386,7 +387,7 @@
     { id: 'zeshoek', chapter: 'logo', title: 'De zeshoek', words: 'zeshoek hexagon vorm patroon fotokader echo bullet icoonhouder' },
     { id: 'kleuren', chapter: 'kleur', title: 'Kleuren', words: 'kleur kleuren hex rgb cmyk kleurcode cyaan magenta inkt blauw groen oranje palet' },
     { id: 'kleur-toepassen', chapter: 'kleur', title: '60/30/10 en contrast', words: 'verhouding 60 30 10 contrast leesbaarheid wcag toegankelijkheid' },
-    { id: 'typografie', chapter: 'type', title: 'Typografie', words: 'lettertype font pure minds sans open sans gewichten koppen typeschaal' },
+    { id: 'typografie', chapter: 'type', title: 'Typografie', words: 'lettertype font pure minds sans open sans alternatief google docs slides canva downloaden installeren gewichten koppen typeschaal' },
     { id: 'beeldtaal', chapter: 'beeld', title: 'Beeldtaal en fotografie', words: 'foto fotografie beeld licht compositie stock filter' },
     { id: 'iconen', chapter: 'iconen', title: 'Iconen', words: 'iconen icoon icon finder remix zeshoek lijnstijl volle stijl line fill uitgesneden' },
     { id: 'toepassingen', chapter: 'gebruik', title: 'Toepassingen', words: 'social posts presentaties slides templates voorbeelden insta post maker presentation maker' },

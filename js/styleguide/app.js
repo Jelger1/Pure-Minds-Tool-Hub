@@ -659,6 +659,14 @@
         return 'gedownload';
       },
     },
+    lettertype: {
+      busy: 'lettertype…',
+      async task(progress) {
+        const name = await X.fontPackage(progress);
+        toast(`Gedownload: ${name}. Pak hem uit en dubbelklik op elk bestand om te installeren.`);
+        return 'gedownload';
+      },
+    },
     ase: {
       busy: 'bezig…',
       async task() {

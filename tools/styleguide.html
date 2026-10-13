@@ -75,12 +75,13 @@
       <!-- Exporteren: de knop maakt meteen de hele PDF; het pijltje heeft de andere bestanden -->
       <div class="split" data-tour="export">
         <button type="button" class="btn btn-primary" id="exportBtn" title="Exporteer het brandbook als bewerkbare pdf (Ctrl + S)"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 10H18L12 16L6 10H11V3H13V10ZM4 19H20V12H22V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V12H4V19Z"/></svg><span data-label>exporteer brandbook</span></button>
-        <button type="button" class="btn btn-primary split__more" aria-haspopup="menu" aria-controls="exportMenu" aria-label="Meer exportopties: pdf per hoofdstuk, logo-pakket en kleuren"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"/></svg></button>
+        <button type="button" class="btn btn-primary split__more" aria-haspopup="menu" aria-controls="exportMenu" aria-label="Meer exportopties: pdf per hoofdstuk, logo-pakket, lettertype en kleuren"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"/></svg></button>
         <div class="menu__list sg-export" id="exportMenu" role="menu" aria-label="Exporteren">
           <button type="button" class="menu__item" role="menuitem" data-action="pdf"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4H15V8H19V20H5V4ZM3.9985 2C3.44749 2 3 2.44405 3 2.9918V21.0082C3 21.5447 3.44476 22 3.9934 22H20.0066C20.5551 22 21 21.5489 21 20.9925L20.9997 7L16 2H3.9985ZM10.4999 7.5C10.4999 9.07749 10.0442 10.9373 9.27493 12.6534C8.50287 14.3757 7.46143 15.8502 6.37524 16.7191L7.55464 18.3321C10.4821 16.3804 13.7233 15.0421 16.8585 15.49L17.3162 13.5513C14.6435 12.6604 12.4999 9.98994 12.4999 7.5H10.4999ZM11.0999 13.4716C11.3673 12.8752 11.6042 12.2563 11.8037 11.6285C12.2753 12.3531 12.8553 13.0182 13.5101 13.5953C12.5283 13.7711 11.5665 14.0596 10.6352 14.4276C10.7999 14.1143 10.9551 13.7948 11.0999 13.4716Z"/></svg><span class="sg-export__txt"><b>pdf compleet</b><i id="pdfAllSum">alle 18 pagina's, bewerkbaar</i></span></button>
           <button type="button" class="menu__item" role="menuitem" data-action="pdf-hoofdstuk"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 21V23H11V21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H9C10.1947 3 11.2671 3.52375 12 4.35418C12.7329 3.52375 13.8053 3 15 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H13ZM20 19V5H15C13.8954 5 13 5.89543 13 7V19H20ZM11 19V7C11 5.89543 10.1046 5 9 5H4V19H11Z"/></svg><span class="sg-export__txt"><b>pdf van dit hoofdstuk</b><i id="pdfChapterSum">Merk</i></span></button>
           <div class="menu__sep" role="separator"></div>
           <button type="button" class="menu__item" role="menuitem" data-action="logo-pakket"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22ZM19 20V4H5V20H19ZM14 12V17H10V14H12V12H14ZM12 4H14V6H12V4ZM10 6H12V8H10V6ZM12 8H14V10H12V8ZM10 10H12V12H10V10Z"/></svg><span class="sg-export__txt"><b>logo-pakket</b><i>zip met SVG en PNG, wit en Inkt</i></span></button>
+          <button type="button" class="menu__item" role="menuitem" data-action="lettertype"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.246 15H4.75416L2.75416 20H0.600098L7.0001 4H9.0001L15.4001 20H13.246L11.246 15ZM10.446 13L8.0001 6.88516L5.55416 13H10.446ZM21.0001 12.5351V12H23.0001V20H21.0001V19.4649C20.4118 19.8052 19.7287 20 19.0001 20C16.791 20 15.0001 18.2091 15.0001 16C15.0001 13.7909 16.791 12 19.0001 12C19.7287 12 20.4118 12.1948 21.0001 12.5351ZM19.0001 18C20.1047 18 21.0001 17.1046 21.0001 16C21.0001 14.8954 20.1047 14 19.0001 14C17.8955 14 17.0001 14.8954 17.0001 16C17.0001 17.1046 17.8955 18 19.0001 18Z"/></svg><span class="sg-export__txt"><b>lettertype</b><i>zip met Pure Minds Sans, om te installeren</i></span></button>
           <button type="button" class="menu__item" role="menuitem" data-action="ase"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C17.5222 2 22 5.97778 22 10.8889C22 13.9556 19.5111 16.4444 16.4444 16.4444H14.4778C13.5556 16.4444 12.8111 17.1889 12.8111 18.1111C12.8111 18.5333 12.9778 18.9222 13.2333 19.2111C13.5 19.5111 13.6667 19.9 13.6667 20.3333C13.6667 21.2556 12.9 22 12 22C6.47778 22 2 17.5222 2 12C2 6.47778 6.47778 2 12 2ZM10.8111 18.1111C10.8111 16.0843 12.451 14.4444 14.4778 14.4444H16.4444C18.4065 14.4444 20 12.851 20 10.8889C20 7.1392 16.4677 4 12 4C7.58235 4 4 7.58235 4 12C4 16.19 7.2226 19.6285 11.324 19.9718C10.9948 19.4168 10.8111 18.7761 10.8111 18.1111ZM7.5 12C6.67157 12 6 11.3284 6 10.5C6 9.67157 6.67157 9 7.5 9C8.32843 9 9 9.67157 9 10.5C9 11.3284 8.32843 12 7.5 12ZM16.5 12C15.6716 12 15 11.3284 15 10.5C15 9.67157 15.6716 9 16.5 9C17.3284 9 18 9.67157 18 10.5C18 11.3284 17.3284 12 16.5 12ZM12 9C11.1716 9 10.5 8.32843 10.5 7.5C10.5 6.67157 11.1716 6 12 6C12.8284 6 13.5 6.67157 13.5 7.5C13.5 8.32843 12.8284 9 12 9Z"/></svg><span class="sg-export__txt"><b>kleuren voor Adobe</b><i>ase: stalen voor Illustrator en InDesign</i></span></button>
           <button type="button" class="menu__item" role="menuitem" data-action="json"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V14.3C4 13.4716 3.32843 12.8 2.5 12.8H2V11.2H2.5C3.32843 11.2 4 10.5284 4 9.7V6C4 4.34315 5.34315 3 7 3H8V5H7C6.44772 5 6 5.44772 6 6V10.1C6 10.9858 5.42408 11.7372 4.62623 12C5.42408 12.2628 6 13.0142 6 13.9V18C6 18.5523 6.44772 19 7 19H8V21H7C5.34315 21 4 19.6569 4 18ZM20 14.3V18C20 19.6569 18.6569 21 17 21H16V19H17C17.5523 19 18 18.5523 18 18V13.9C18 13.0142 18.5759 12.2628 19.3738 12C18.5759 11.7372 18 10.9858 18 10.1V6C18 5.44772 17.5523 5 17 5H16V3H17C18.6569 3 20 4.34315 20 6V9.7C20 10.5284 20.6716 11.2 21.5 11.2H22V12.8H21.5C20.6716 12.8 20 13.4716 20 14.3Z"/></svg><span class="sg-export__txt"><b>kleuren als json</b><i>voor developers</i></span></button>
         </div>
@@ -194,10 +195,40 @@
     <!-- Type: het lettertype en de typeschaal als CSS -->
     <section class="panel" data-section="type">
       <div class="panel__body">
-        <p class="panel__lead">Eén lettertype voor alles: Pure Minds Sans, met Open Sans als vangnet. <button type="button" class="help" data-help="typeschaal"></button></p>
-        <div class="sg-code">
-          <code id="fontStack"></code>
-          <button type="button" class="btn btn-quiet btn-xs" data-copy-font aria-label="kopieer het lettertype als css">kopieer</button>
+        <p class="panel__lead">Eén lettertype voor alles: Pure Minds Sans. Kun je dat niet kiezen, zoals in Google Docs? Gebruik dan Open Sans.</p>
+
+        <!-- Welk lettertype waar: Pure Minds Sans (downloaden) en Open Sans als alternatief -->
+        <h3 class="sg-h">Welk lettertype waar?</h3>
+        <div class="sg-fonts">
+          <div class="sg-font sg-font--main">
+            <span class="sg-font__tag">ons lettertype</span>
+            <b class="sg-font__name">Pure Minds Sans</b>
+            <p class="sg-font__use">Voor Canva, Word, PowerPoint, Keynote, Illustrator en InDesign.</p>
+            <ul class="sg-font__how">
+              <li><b>Canva:</b> staat al in de Brand Kit. Kies hem in de lijst met lettertypen.</li>
+              <li><b>Op je computer:</b> download de zip, pak hem uit en dubbelklik op elk bestand. Klik dan op <i>Installeren</i>. Start Word of PowerPoint daarna opnieuw.</li>
+            </ul>
+            <button type="button" class="btn btn-outline btn-sm" data-local-action="lettertype"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19H21V21H3V19ZM13 13.1716L19.0711 7.1005L20.4853 8.51472L12 17L3.51472 8.51472L4.92893 7.1005L11 13.1716V2H13V13.1716Z"/></svg><span data-label>download Pure Minds Sans</span></button>
+            <p class="sg-font__files">Zip met Regular, Bold, ExtraBold, Italic en Bold Italic.</p>
+          </div>
+          <div class="sg-font sg-font--alt">
+            <span class="sg-font__tag">alternatief</span>
+            <b class="sg-font__name">Open Sans</b>
+            <p class="sg-font__use">Alleen waar je zelf geen lettertype kunt installeren: Google Docs, Google Slides en Google Sheets. Open Sans heeft dezelfde vormen.</p>
+            <ul class="sg-font__how">
+              <li><b>Zo kies je hem:</b> open het menu met lettertypen, kies <i>Meer lettertypen</i>, zoek op Open Sans en vink hem aan.</li>
+              <li><b>Gewichten:</b> ook hier Regular, Bold en ExtraBold.</li>
+            </ul>
+            <a class="btn btn-quiet btn-sm" href="https://fonts.google.com/specimen/Open+Sans" target="_blank" rel="noopener">Open Sans op Google Fonts</a>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">Voor de website (CSS) <button type="button" class="help" data-help="typeschaal"></button></span>
+          <div class="sg-code">
+            <code id="fontStack"></code>
+            <button type="button" class="btn btn-quiet btn-xs" data-copy-font aria-label="kopieer het lettertype als css">kopieer</button>
+          </div>
         </div>
         <!-- Uitleg voor wie in Canva werkt: wat betekent ExtraBold 800 · 52/58 · −2%? Open of dicht wordt onthouden -->
         <details class="sg-explain" id="typeExplain" open>
@@ -206,7 +237,7 @@
           <ol class="sg-explain__list" id="typeLegend"></ol>
         </details>
         <ul class="sg-scale" id="typeScale"></ul>
-        <p class="field-hint">In gebruik: Regular 400, Bold 700 en ExtraBold 800, met cursief. De lettertypebestanden staan in assets/fonts/.</p>
+        <p class="field-hint">In gebruik: Regular 400, Bold 700 en ExtraBold 800, met cursief.</p>
         <nav class="sg-pagelist" data-pages="type" aria-label="Pagina's van Type"></nav>
       </div>
     </section>

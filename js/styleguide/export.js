@@ -22,6 +22,7 @@
                                                     -> { name, elements, parts }
      PMStyleguideExport.logoFile(env, variant, format)   'wit' | 'inkt', 'svg' | 'png' -> { blob, name }
      PMStyleguideExport.logoPackage(env, progress)  zip met SVG en PNG van beide varianten
+     PMStyleguideExport.fontPackage(progress)       zip met Pure Minds Sans (de snedes in gebruik)
      PMStyleguideExport.colors(kind)                'ase' | 'json' -> { blob, name }
      PMStyleguideExport.badge(variant)              de Emerce 100-badge, wit of zwart (SVG)
    ============================================================================= */
@@ -181,6 +182,33 @@
     return name;
   }
 
+  // Pure Minds Sans: dezelfde snedes die de makers in PDF, Word en PowerPoint insluiten
+  const FONT_README = [
+    'Pure Minds Sans',
+    '',
+    'Installeren: dubbelklik op elk bestand en klik op Installeren (Windows) of Installeer lettertype (Mac). Start Word, PowerPoint of Illustrator daarna opnieuw.',
+    'In Canva staat Pure Minds Sans al in de Brand Kit.',
+    'In gebruik: Regular 400, Bold 700 en ExtraBold 800, met cursief.',
+    '',
+    'Alternatief: Open Sans (zelfde vormen), alleen waar je zelf geen lettertype kunt installeren, zoals in Google Docs, Google Slides en Google Sheets.',
+    '',
+    `${C.company} · ${C.contact.web}`,
+    '',
+  ].join('
+');
+
+  async function fontPackage(progress = () => {}) {
+    progress('lettertype…');
+    const [JSZip, fonts] = await Promise.all([PM.libs.jszip(), PM.fontFiles()]);
+    const zip = new JSZip();
+    Object.values(fonts).forEach((f) => zip.file(f.file, f.data));
+    zip.file('LEESMIJ.txt', FONT_README);
+    progress('inpakken…');
+    const name = 'pure-minds-sans.zip';
+    PM.saveBlob(await zip.generateAsync({ type: 'blob' }), name);
+    return name;
+  }
+
   /* ---------------------------------------------------------------------------
      Kleuren en badge
      ------------------------------------------------------------------------- */
@@ -198,5 +226,5 @@
     return { blob: new Blob([svg], { type: 'image/svg+xml' }), name: `emerce-100-2026-${variant === 'zwart' ? 'zwart' : 'wit'}.svg` };
   }
 
-  global.PMStyleguideExport = { pdf, logoFile, logoPackage, colors, badge };
+  global.PMStyleguideExport = { pdf, logoFile, logoPackage, fontPackage, colors, badge };
 })(window);

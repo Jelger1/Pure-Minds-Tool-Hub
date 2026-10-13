@@ -72,7 +72,7 @@
     },
     'typeschaal': {
       title: 'De typeschaal',
-      text: 'Maten in px op een scherm van 1440 breed. De uitleg erboven vertelt wat 800, 52/58 en −2% betekenen, ook in Canva. Kopieer de CSS van een stijl, of alleen het lettertype met Open Sans als vangnet.',
+      text: 'Maten in px op een scherm van 1440 breed. De uitleg eronder vertelt wat 800, 52/58 en −2% betekenen, ook in Canva. Kopieer de CSS van een stijl, of alleen het lettertype, met Open Sans als reserve.',
     },
     'fotocheck': {
       title: 'Past deze foto?',
