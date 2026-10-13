@@ -104,10 +104,11 @@ kbd {
 .topstrip__sep { margin: 0 .375rem; }
 
 .site-header { border-bottom: 1px solid var(--pm-line); background: rgba(255, 255, 255, .85); backdrop-filter: blur(8px); }
-.site-header__inner { height: 4rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.site-header__inner { height: 6.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .site-header__brand { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-.site-header__logo { height: 2.4rem; width: auto; flex: none; }
-.site-header__divider { width: 1px; height: 2.25rem; background: var(--pm-line); }
+/* Het zeshoeklogo op 80 px breed: het minimum uit het brandbook, daaronder is "marketing group" niet leesbaar */
+.site-header__logo { width: 5rem; height: auto; flex: none; }
+.site-header__divider { width: 1px; height: 3rem; background: var(--pm-line); }
 .site-header__title { min-width: 0; }
 .site-header__title h1, .site-header__name { font-size: 15px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
 .site-header__title p { font-size: .75rem; color: var(--pm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
