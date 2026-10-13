@@ -26,6 +26,7 @@
     search: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.6-4.6M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>',
     help: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-2.5-11.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 16.5v.5"/></svg>',
     resume: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4M12 8v4l3 2"/></svg>',
+    bieb: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v5H3zm1 5v11h16V9M9 13h6"/></svg>',
   };
 
   // Formaat-icoon: een vlakje in de echte verhouding, passend in een vak van w × h rem
@@ -71,6 +72,45 @@
     }
     const title = String(info.title || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
     return { at: seen, title: title || 'Zonder titel', noun: info.noun || 'ontwerp', ratio: info.ratio };
+  }
+
+  // De bieb: wat je in deze browser bewaard hebt (js/shared/library.js), nieuwste eerst
+  const LIB = window.PM.library;
+  const BIEB_SHOWN = 3;
+
+  function bieb(tool) {
+    const list = LIB && live(tool) ? LIB.list(tool.id) : [];
+    if (!list.length) return '';
+    const now = Date.now();
+    const base = url(tool.href);
+    const item = (e) => {
+      const n = LIB.daysLeft(e, now);
+      const art = e.thumb
+        ? (() => {
+          const [a, b] = String(e.ratio || '1 / 1').split('/').map(Number);
+          const ar = a > 0 && b > 0 ? a / b : 1;
+          const w = Math.min(2.6, 2.25 * ar);
+          return `<span class="bieb__img" style="width:${w.toFixed(2)}rem;height:${(w / ar).toFixed(2)}rem"><img src="${esc(e.thumb)}" alt=""></span>`;
+        })()
+        : shape(e.ratio, 2.6, 2.25, tool.tone === 'light' ? 'shape--light' : '');
+      return `
+        <li><a class="bieb__item" href="${esc(`${base}?bieb=${encodeURIComponent(e.id)}`)}">
+          <span class="bieb__art" aria-hidden="true">${art}</span>
+          <span class="bieb__text">
+            <span class="bieb__title">${esc(e.title)}</span>
+            <span class="bieb__meta"><span class="bieb__left${n <= 2 ? ' is-soon' : ''}">${esc(LIB.leftText(n))}</span> · ${esc(LIB.savedText(e.savedAt, now))}</span>
+          </span>
+        </a></li>`;
+    };
+    const more = list.length > BIEB_SHOWN
+      ? `<a class="bieb__more" href="${esc(`${base}?bieb=lijst`)}">alle ${list.length} in je bieb${ICON.arrow}</a>`
+      : '';
+    return `
+      <div class="bieb">
+        <p class="bieb__head">${ICON.bieb}in je bieb <span class="bieb__count">${list.length}</span><span class="bieb__note">· ${LIB.DAYS} dagen bewaard</span></p>
+        <ul class="bieb__list">${list.slice(0, BIEB_SHOWN).map(item).join('')}</ul>
+        ${more}
+      </div>`;
   }
 
   const tourDone = (tool) => {
@@ -138,8 +178,9 @@
           <span class="draft__meta">jouw ${esc(d.noun)} · ${esc(when(d.at))}</span>
         </span>
         <span class="draft__go" aria-hidden="true">${ICON.arrow}</span>
-      </a>
-      <p class="maker__or">of begin iets nieuws</p>` : '';
+      </a>` : '';
+    const saved = soon ? '' : bieb(tool);
+    const or = draft || saved ? '<p class="maker__or">of begin iets nieuws</p>' : '';
 
     const body = soon ? '' : tool.search ? searchForm(tool) : formats(tool);
     const exports = (tool.exports || []).join(' · ');
@@ -153,6 +194,8 @@
           <p class="maker__desc">${esc(tool.description)}</p>
         </div>
         ${draft}
+        ${saved}
+        ${or}
         ${body}
         ${exports || help ? `<div class="maker__foot">${exports ? `<span class="maker__exports">${esc(exports)}</span>` : ''}${help}</div>` : ''}
       </li>`;

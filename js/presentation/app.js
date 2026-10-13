@@ -311,6 +311,7 @@
   // Gestart vanaf het dashboard: dan bij de rondleiding alleen een melding.
   // Eenmalig te lezen (daarna weg uit de adresbalk), dus bewaard voor de start
   const start = PM.startParams();
+  let lib = null;   // de bieb (js/shared/library.js), aan het eind gekoppeld
   // De rondleiding vanaf de hub (#rondleiding) is die van een gewone presentatie. Lezen vóór
   // PM.shell: die haalt de hash weg
   const hubTour = location.hash === '#rondleiding';
@@ -319,7 +320,7 @@
   const wanted = TYPES.includes(start.type) ? start.type : hubTour ? 'regulier' : null;
   let startType = wanted && (wanted === 'regulier' || DECKS[wanted]) && wanted !== state.type ? wanted : null;
   // type=regulier is geen snelle start: bij een eerste bezoek start de rondleiding zoals altijd
-  const quickStart = Object.keys(start).some((k) => k !== 'type') || (TYPES.includes(start.type) && start.type !== 'regulier');
+  const quickStart = Object.keys(start).some((k) => k !== 'type' && k !== 'bieb') || (TYPES.includes(start.type) && start.type !== 'regulier');
   // De rondleiding begint bij de titel van slide 1
   const tourStatus = (PM.store.get(TOUR_KEY, null) || {}).status;
   if (!tourStatus || tourStatus === 'nieuw' || tourStatus === 'bezig') state.active = 0;
@@ -512,6 +513,7 @@
   function changed(key) {
     history.commit(key);
     save();
+    if (lib) lib.touch();
     render();
   }
 
@@ -1524,6 +1526,7 @@
     Object.assign(state, freshDeck(type), { type, dot: true, showNumbers: false });
     state.stash = { ...state.stash, [type]: null };
     afterSwitch(true);
+    if (lib) lib.detach();
     const undo = { label: 'ongedaan maken', run: () => history.undo() };
     const text = {
       regulier: 'Nieuwe presentatie gestart met de voorbeeldslides.',
@@ -2402,6 +2405,8 @@
     return PM.run(btn, busy, async (progress) => {
       const done = await task(progress);
       if (PM.tour) PM.tour.signal('download');
+      // Wat je downloadt, gaat ook (stil) in de bieb
+      if (lib) lib.save({ quiet: true });
       return done;
     });
   }
@@ -2680,6 +2685,44 @@
     render();
     drawStrip();
   });
+
+  // Bieb: de presentatie, het voorstel of de positionering die openstaat 14 dagen bewaren.
+  // Elke soort heeft zijn eigen plek (slot). Openen van een andere soort werkt als wisselen:
+  // wat openstaat gaat naar Soort; wat daar van die soort stond, gaat eerst in de bieb
+  const biebDeck = (s, box = s) => ({
+    v: 2, type: s.type, dot: s.dot, badge: s.badge,
+    slides: box.slides, active: 0, showNumbers: box.showNumbers === true, form: box.form || null, parked: box.parked || {},
+  });
+  lib = PM.library ? PM.library.attach({
+    tool: 'presentation',
+    slot: () => state.type,
+    getState: () => biebDeck(state),
+    fileKeys: (s) => [...(s.slides || []), ...Object.values(s.parked || {})].map((x) => x && x.photoKey),
+    async apply(saved, keys) {
+      keys.forEach(trackFile);
+      const deck = normalize({ ...saved, exportWidth: state.exportWidth, stash: {} });
+      const stash = { ...state.stash };
+      if (deck.type !== state.type) {
+        const keep = { slides: state.slides, active: state.active, showNumbers: state.showNumbers };
+        if (state.type !== 'regulier') Object.assign(keep, { form: state.form, parked: state.parked });
+        stash[state.type] = keep;
+        if (stash[deck.type] && !lib.isClean(deck.type)) await lib.save({ quiet: true, state: biebDeck({ ...state, type: deck.type }, stash[deck.type]) });
+      }
+      stash[deck.type] = null;
+      state = { ...deck, stash, exportWidth: state.exportWidth, active: 0 };
+      syncAll();
+      changed(null);
+      applyPhotos();
+    },
+    thumb() {
+      const c = document.createElement('canvas');
+      S.renderSlide(c, state, 0, slideEnv(0), { scale: 240 / S.W });
+      return c;
+    },
+    undo: () => history.undo(),
+    close: () => shell.closePopover(),
+    openId: start.bieb,
+  }) : null;
 
   // Foto's uit een vorige sessie terugzetten, dan oude bestanden opruimen. De bewaarde
   // andere soort en geparkeerde slides houden hun foto's (photoKeys)

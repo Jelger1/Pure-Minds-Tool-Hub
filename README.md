@@ -68,6 +68,7 @@ js/
   shared/core.js              gedeelde hulpfuncties (window.PM)
   shared/brand.js             huisstijl als gegevens, plus controles (PM.brand)
   shared/history.js           ongedaan maken en opnieuw (PM.history)
+  shared/library.js           de bieb: ontwerpen 14 dagen bewaren (PM.library)
   shared/shell.js             indeling zoals Canva: rail, één paneel, podium (PM.shell)
   shared/help.js              [?]-uitleg naast instellingen (PM.help)
   shared/toolbar.js           tekstwerkbalk zoals Word (PM.toolbar)
@@ -1151,5 +1152,30 @@ Teksten en instellingen staan in `localStorage`, afbeeldingen (handtekening,
 slidefoto's) in IndexedDB, allebei alleen in de eigen browser. Foto's en het
 klantlogo van de Insta Post Maker en van een voorstel of positionering worden
 ook bewaard.
+
+### De bieb
+
+In de drie makers staat rechtsboven **bieb** (`js/shared/library.js`). Daar
+bewaar je je ontwerp om het later nog aan te passen, in plaats van het opnieuw
+te maken. Een ontwerp blijft 14 dagen staan na de laatste keer bewaren; daarna
+ruimt elke pagina met de bieb het op. Bij elke download bewaart een maker zijn
+ontwerp ook vanzelf, en het dashboard toont per maker wat er in je bieb staat
+(een klik opent het via `?bieb=<id>`).
+
+- **Opslag:** de lijst in `localStorage` (`pm-library-v1`, met een kleine
+  miniatuur), het ontwerp in IndexedDB (`library:<id>`) met eigen kopieën van
+  foto's, logo's en handtekening. Alleen in deze browser, niet gedeeld.
+- **Bijwerken of nieuw:** een ontwerp dat uit de bieb komt of daar bewaard is,
+  werkt bij bewaren zijn plek bij (weer 14 dagen); *als nieuw bewaren* maakt
+  een tweede. *Alles wissen* of *nieuw* koppelt los.
+- **Niets kwijt:** open je een ander ontwerp terwijl het open ontwerp
+  gewijzigd is, dan gaat dat eerst in de bieb. Openen is één stap om ongedaan
+  te maken.
+- **Presentaties:** alleen de soort die openstaat (presentatie, voorstel of
+  positionering), elk met een eigen plek. Een andere soort openen werkt als
+  wisselen: wat openstaat gaat naar Soort.
+- **Een maker koppelen:** `PM.library.attach({ tool, getState, fileKeys, apply,
+  thumb, undo, close, openId })`; roep `touch()` bij elke wijziging, `detach()`
+  bij een nieuw ontwerp en `save({ quiet: true })` na een download.
 
 Vervang je een logo in `assets/brand/`, draai dan `npm run brand`.

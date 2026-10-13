@@ -49,6 +49,14 @@
       <button type="button" class="appbar__btn" id="redoBtn" aria-label="Opnieuw" title="Opnieuw (Ctrl + Shift + Z)" aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z" disabled><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.1716 6.99955H11C7.68629 6.99955 5 9.68584 5 12.9996C5 16.3133 7.68629 18.9996 11 18.9996H20V20.9996H11C6.58172 20.9996 3 17.4178 3 12.9996C3 8.58127 6.58172 4.99955 11 4.99955H18.1716L15.636 2.46402L17.0503 1.0498L22 5.99955L17.0503 10.9493L15.636 9.53509L18.1716 6.99955Z"/></svg></button>
     </div>
     <div class="appbar__right">
+      <!-- Bieb: je ontwerp 14 dagen bewaren om het later aan te passen (js/shared/library.js) -->
+      <div class="menu menu--lib">
+        <button type="button" class="appbar__btn" id="libBtn" aria-haspopup="dialog" aria-controls="libPop" title="Bieb: bewaar je ontwerp om het later aan te passen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10H2V4.00293C2 3.44903 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.43788 22 4.00293V10H21V20.0015C21 20.553 20.5551 21 20.0066 21H3.9934C3.44476 21 3 20.5525 3 20.0015V10ZM19 10H5V19H19V10ZM4 5V8H20V5H4ZM9 12H15V14H9V12Z"/></svg><span class="appbar__txt">bieb</span><span class="lib__count" data-lib-count></span></button>
+        <div class="popover lib" id="libPop" role="dialog" aria-labelledby="libTitle">
+          <h2 class="popover__title" id="libTitle">Bieb<span class="dot">.</span></h2>
+          <div class="popover__body" data-lib></div>
+        </div>
+      </div>
       <div class="menu">
         <button type="button" class="appbar__btn" data-help-menu aria-haspopup="menu" aria-controls="helpMenu" title="Rondleiding en sneltoetsen"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM11 15H13V17H11V15ZM13 13.3551V14H11V12.5C11 11.9477 11.4477 11.5 12 11.5C12.8284 11.5 13.5 10.8284 13.5 10C13.5 9.17157 12.8284 8.5 12 8.5C11.2723 8.5 10.6656 9.01823 10.5288 9.70577L8.56731 9.31346C8.88637 7.70919 10.302 6.5 12 6.5C13.933 6.5 15.5 8.067 15.5 10C15.5 11.5855 14.4457 12.9248 13 13.3551Z"/></svg><span class="appbar__txt">hulp</span></button>
         <div class="menu__list" id="helpMenu" role="menu" aria-label="Hulp">
@@ -384,6 +392,7 @@
 
 <script src="../js/shared/tools.js"></script>
 <script src="../js/shared/core.js"></script>
+<script src="../js/shared/library.js"></script>
 <script src="../js/shared/brand-data.js"></script>
 <script src="../js/shared/history.js"></script>
 <script src="../js/shared/shell.js"></script>

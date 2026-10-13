@@ -125,6 +125,40 @@ body.has-app > .topstrip, body.has-app > .site-header { flex: none; }
 .popover__note { font-size: .75rem; color: var(--pm-muted); line-height: 1.5; }
 .popover__row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 
+/* --- Bieb: je ontwerpen 14 dagen bewaard (js/shared/library.js) --- */
+
+.lib { width: 26rem; }
+.lib__count:not(:empty) {
+  min-width: 1.15rem; height: 1.15rem; padding: 0 .3rem;
+  background: var(--pm-cyan); color: var(--pm-ink);
+  font-size: .6875rem; font-weight: 700; line-height: 1.15rem; text-align: center;
+}
+.lib__lead { font-size: .8125rem; line-height: 1.5; color: var(--pm-muted); text-wrap: pretty; }
+.lib__list {
+  display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none;
+  max-height: min(22rem, 50vh); overflow-y: auto; border-top: 1px solid var(--pm-line);
+}
+.lib__item {
+  display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) auto auto; align-items: center; gap: .625rem;
+  padding: .625rem .25rem; border-bottom: 1px solid var(--pm-line);
+}
+.lib__item.is-current { padding-left: .5rem; background: var(--pm-tint); box-shadow: inset 3px 0 0 var(--pm-cyan); }
+.lib__thumb { display: grid; place-items: center; width: 3.5rem; height: 3rem; }
+.lib__art { display: block; overflow: hidden; background: var(--pm-canvas); border-top: 2px solid var(--pm-cyan); }
+.lib__art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lib__txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.lib__title { font-size: .875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib__meta, .lib__left { font-size: .75rem; color: var(--pm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib__left.is-soon { color: #8f5600; font-weight: 700; }
+.lib__open { font-size: .75rem; font-weight: 700; color: var(--pm-blue); white-space: nowrap; }
+.lib__del svg { width: 1.05rem; height: 1.05rem; }
+.lib__empty { padding: .625rem .75rem; background: var(--pm-zebra); border-left: 3px solid var(--pm-line); font-size: .8125rem; line-height: 1.5; color: var(--pm-muted); }
+/* Smal: de bieb hangt aan de rechterkant van de balk, anders valt hij links van het scherm */
+@media (max-width: 639px) {
+  .appbar__right { position: relative; }
+  .menu--lib { position: static; }
+}
+
 /* --- Rail: grote knoppen, icoon boven een kort woord --- */
 
 .rail {

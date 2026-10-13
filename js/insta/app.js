@@ -184,6 +184,7 @@
   if (T.FORMATS[start.format]) state.format = start.format;
 
   const save = PM.debounce(() => PM.store.set(STORAGE_KEY, state), 300, { flushOnHide: true });
+  let lib = null;   // de bieb (js/shared/library.js), aan het eind gekoppeld
 
   const env = { logo: null, badge: null, photo: null, clientLogo: null };
   const current = () => state.data[state.template];
@@ -638,6 +639,7 @@
   function changed(key) {
     history.commit(key);
     save();
+    if (lib) lib.touch();
     render();
   }
 
@@ -1091,7 +1093,11 @@
   const saveFile = ({ blob, name }) => PM.saveBlob(blob, name);
   const run = PM.run;
   // Een download is klaar: de rondleiding kan verder
-  const downloaded = () => { if (window.PM.tour) PM.tour.signal('download'); };
+  // Een download is klaar: de rondleiding kan verder, en het ontwerp gaat (stil) in de bieb
+  const downloaded = () => {
+    if (window.PM.tour) PM.tour.signal('download');
+    if (lib) lib.save({ quiet: true });
+  };
 
   // Het lege fotovak ("sleep hier je foto") gaat mee in een download, net als in de preview
   const emptyPhotoSlot = () => (isCarousel()
@@ -1224,6 +1230,7 @@
     syncInputs();
     applyFiles();
     changed(null);
+    if (lib) lib.detach();
     toast('Alles gewist; je begint opnieuw met de voorbeelden.', false, { label: 'ongedaan maken', run: () => history.undo() });
   });
 
@@ -1241,6 +1248,33 @@
   syncInputs();
   history.clear();
   render();
+
+  // Bieb: dit ontwerp 14 dagen bewaren om het later aan te passen. Openen zet de hele post
+  // terug (één stap om ongedaan te maken); je downloadinstellingen blijven zoals ze staan
+  lib = PM.library ? PM.library.attach({
+    tool: 'insta',
+    getState: () => state,
+    fileKeys: (s) => [s.photoKey, s.logoKey, ...(((s.data || {}).carousel || {}).slides || []).map((x) => x && x.photoKey)],
+    async apply(saved, keys) {
+      keys.forEach(trackFile);
+      const keep = { exportType: state.exportType, exportWidth: state.exportWidth };
+      state = normalize({ ...merge(defaults(), saved), ...keep });
+      syncLast();
+      syncVisibility();
+      syncInputs();
+      await applyFiles();
+      changed(null);
+    },
+    // De post, of de eerste slide van een carousel, zonder badge
+    thumb() {
+      const c = document.createElement('canvas');
+      T.renderPost(c, { ...state, badge: false }, renderEnv({ slideIndex: 0 }), { scale: 240 / 1080 });
+      return c;
+    },
+    undo: () => history.undo(),
+    close: () => shell.closePopover(),
+    openId: start.bieb,
+  }) : null;
 
   // Foto en klantlogo uit een vorige sessie terugzetten, dan oude bestanden opruimen
   if (state.photoKey) trackFile(state.photoKey);

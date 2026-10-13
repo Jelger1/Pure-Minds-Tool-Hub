@@ -209,6 +209,7 @@
   // Gestart vanaf het dashboard (?type=offerte): meteen het goede soort document.
   // Pas opgeslagen bij de eerste wijziging, zodat alleen kijken niets verandert.
   const start = PM.startParams();
+  let lib = null;   // de bieb (js/shared/library.js), aan het eind gekoppeld
   const quickStart = !!TYPE_LABEL[start.type];
   if (quickStart) state.type = start.type;
   let sender = normalizeSender(PM.store.get(SENDER_KEY, {}));
@@ -667,6 +668,7 @@
   function changed(key = null) {
     history.commit(key);
     save();
+    if (lib) lib.touch();
     renderSoon();
   }
 
@@ -1320,7 +1322,11 @@
   }
 
   // Een export is klaar: de rondleiding kan verder
-  const downloaded = () => { if (PM.tour) PM.tour.signal('download'); };
+  // Een export is klaar: de rondleiding kan verder, en het document gaat (stil) in de bieb
+  const downloaded = () => {
+    if (PM.tour) PM.tour.signal('download');
+    if (lib) lib.save({ quiet: true });
+  };
 
   // Bewerkbare vector-PDF: de pagina's worden ongeschaald gekloond (de preview
   // is verkleind) en door js/document/pdf.js opnieuw opgebouwd in jsPDF
@@ -1548,6 +1554,7 @@
     syncInputs();
     syncVisibility();
     changed(null);
+    if (lib) lib.detach();
     PM.toast('Nieuw, leeg document gestart.', false, { label: 'ongedaan maken', run: () => history.undo() });
   });
 
@@ -1576,6 +1583,25 @@
   history.clear();
   render();
   PM.fontsReady.then(render);
+  // Bieb: dit document 14 dagen bewaren om het later aan te passen. Openen zet het hele
+  // document terug (één stap om ongedaan te maken); je briefpapier blijft zoals het staat
+  lib = PM.library ? PM.library.attach({
+    tool: 'document',
+    getState: () => state,
+    fileKeys: (s) => [s.sigKey],
+    apply(saved, keys) {
+      keys.forEach(trackFile);
+      state = normalize(saved);
+      syncInputs();
+      syncVisibility();
+      applySignature();
+      changed(null);
+    },
+    undo: () => history.undo(),
+    close: () => shell.closePopover(),
+    openId: start.bieb,
+  }) : null;
+
   // Handtekening uit een vorige sessie terugzetten, dan oude bestanden opruimen
   if (state.sigKey) trackFile(state.sigKey);
   applySignature().then(cleanupFiles);
